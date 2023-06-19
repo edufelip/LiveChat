@@ -10,7 +10,9 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.project.livechat.ui.navigation.Routes
 import com.project.livechat.ui.navigation.builder.contactsRoute
 import com.project.livechat.ui.navigation.builder.homeRoute
+import com.project.livechat.ui.navigation.builder.onBoardingRoute
 import com.project.livechat.ui.theme.LiveChatTheme
+import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,11 +25,16 @@ class MainActivity : ComponentActivity() {
             LiveChatTheme {
                 val navController = rememberAnimatedNavController()
                 val permissionViewModel = viewModel<PermissionViewModel>()
-
+                val contactsViewModel = viewModel<ContactsViewModel>()
+                contentResolver
                 AnimatedNavHost(
                     navController = navController,
-                    startDestination = Routes.HomeRoute.route,
+                    startDestination = Routes.OnBoardingRoute.route,
                     builder = {
+                        onBoardingRoute(
+                            navHostController = navController,
+                            onBackPressedDispatcher = onBackPressedDispatcher
+                        )
                         homeRoute(
                             navHostController = navController,
                             onBackPressedDispatcher = onBackPressedDispatcher
@@ -35,7 +42,8 @@ class MainActivity : ComponentActivity() {
                         contactsRoute(
                             navHostController = navController,
                             onBackPressedDispatcher = onBackPressedDispatcher,
-                            permissionViewModel = permissionViewModel
+                            permissionViewModel = permissionViewModel,
+                            contactsViewModel = contactsViewModel
                         )
                     }
                 )

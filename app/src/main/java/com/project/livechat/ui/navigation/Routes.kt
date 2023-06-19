@@ -29,6 +29,11 @@ sealed class Routes(val route: String, val argumentKey: String) {
         navigate(navHostController)
     }
 
+    object OnBoardingRoute : Routes(
+        route = "on_boarding_screen",
+        argumentKey = "ARGS-HOME-SCREEN"
+    )
+
     object HomeRoute : Routes(
         route = "home_screen",
         argumentKey = "ARGS-HOME-SCREEN"
