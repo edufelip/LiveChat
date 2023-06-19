@@ -6,3 +6,8 @@ plugins {
     alias(libs.plugins.hilt) apply (false)
 }
 
+buildscript {
+    dependencies {
+        classpath(libs.firebase.google.services)
+    }
+}

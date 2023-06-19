@@ -52,6 +52,7 @@ targetSdk = "33"
 version-catalog-update = "0.8.0"
 # @keep
 firebase-auth = "21.3.0"
+firebase-google-services = "4.3.15"
 
 [libraries]
 accompanist-adaptive = { module = "com.google.accompanist:accompanist-adaptive", version.ref = "accompanist" }
@@ -129,6 +130,7 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 rometools-modules = { module = "com.rometools:rome-modules", version.ref = "rome" }
 rometools-rome = { module = "com.rometools:rome", version.ref = "rome" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebase-auth" }
+firebase-google-services = { module = "com.google.gms:google-services", version.ref = "firebase-google-services" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
