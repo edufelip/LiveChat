@@ -39,7 +39,8 @@ fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
                      // Success
                 }
                 is ValidationResult.Error -> {
-                    // Erro
+                    val errorType = event.errorType
+                    onBoardingViewModel.updateErrorText(context.getString(errorType.messageResourceId), errorType)
                 }
                 is ValidationResult.Idle -> Unit
             }
@@ -93,7 +94,7 @@ fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
 
             Button(
                 onClick = {
-                    onBoardingViewModel.navigateForward()
+                    onBoardingViewModel.onEvent(NumberVerificationFormEvent.Submit)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

@@ -22,10 +22,12 @@ class OnBoardingViewModel(
         when (event) {
             is NumberVerificationFormEvent.PhoneNumberChanged -> {
                 state = state.copy(phoneNum = event.number)
+                resetFormError()
             }
 
             is NumberVerificationFormEvent.PhoneCodeChanged -> {
                 state = state.copy(phoneCode = event.code)
+                resetFormError()
             }
 
             is NumberVerificationFormEvent.Submit -> submitData()
@@ -46,14 +48,34 @@ class OnBoardingViewModel(
         state = state.copy(currentPage = aimPage)
     }
 
-    private fun submitData() {
-        val numberValidationResult = validatePhoneNumber(state.phoneNum)
-        if (numberValidationResult is ValidationResult.Error) {
+    private fun resetFormError() {
+        viewModelScope.launch {
+            validationEventChannel.send(ValidationResult.Idle)
             state = state.copy(
-                phoneError = numberValidationResult.message
+                phoneError = null
             )
+        }
+    }
+
+    fun updateErrorText(message: String, errorType: OnBoardingErrors) {
+        when (errorType) {
+            OnBoardingErrors.INVALID_NUMBER -> state = state.copy(
+                phoneError = message
+            )
+        }
+    }
+
+    private fun submitData() {
+        val completePhoneNumber = "${state.phoneCode}${state.phoneNum}"
+        val numberValidationResult = validatePhoneNumber(completePhoneNumber)
+        if (numberValidationResult is ValidationResult.Error) {
+            viewModelScope.launch {
+                validationEventChannel.send(numberValidationResult)
+            }
             return
         }
+
+        // Make call to send sms
         viewModelScope.launch {
             validationEventChannel.send(ValidationResult.Success)
         }

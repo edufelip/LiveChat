@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Live Chat</string>
+
+    <!-- OnBoardingScree -->
+
+    <string name="on_boarding_invalid_number_error">This number is not a valid number</string>
 </resources>
