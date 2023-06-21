@@ -66,7 +66,7 @@ class OnBoardingViewModel(
     }
 
     private fun submitData() {
-        val completePhoneNumber = "${state.phoneCode}${state.phoneNum}"
+        val completePhoneNumber = "+${state.phoneCode}${state.phoneNum}"
         val numberValidationResult = validatePhoneNumber(completePhoneNumber)
         if (numberValidationResult is ValidationResult.Error) {
             viewModelScope.launch {

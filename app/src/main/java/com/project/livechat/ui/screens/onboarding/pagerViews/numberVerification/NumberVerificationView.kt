@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,7 +37,7 @@ fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
         onBoardingViewModel.validationEvents.collect { event ->
             when(event) {
                 is ValidationResult.Success -> {
-                     // Success
+                    onBoardingViewModel.navigateForward()
                 }
                 is ValidationResult.Error -> {
                     val errorType = event.errorType
@@ -53,7 +54,6 @@ fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
         ) {
             Text(text = "Enter your phone number")
             Text(text = "LiveChat will send you a SMS message to verify your phone number. Enter your country code and phone number")
-
             Row(modifier = Modifier.padding(top = 12.dp)) {
                 OutlinedTextField(
                     value = state.phoneCode,
@@ -84,14 +84,17 @@ fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
                     maxLines = 1
                 )
             }
-
+            if (state.phoneError != null) {
+                Text(
+                    text = state.phoneError,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
             Spacer(
                 modifier = Modifier.weight(1f)
             )
-
-            if (state.phoneError != null) {
-            }
-
             Button(
                 onClick = {
                     onBoardingViewModel.onEvent(NumberVerificationFormEvent.Submit)
