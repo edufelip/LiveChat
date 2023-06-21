@@ -11,6 +11,7 @@ import com.project.livechat.ui.navigation.Routes
 import com.project.livechat.ui.navigation.builder.contactsRoute
 import com.project.livechat.ui.navigation.builder.homeRoute
 import com.project.livechat.ui.navigation.builder.onBoardingRoute
+import com.project.livechat.ui.screens.onboarding.OnBoardingViewModel
 import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberAnimatedNavController()
                 val permissionViewModel = viewModel<PermissionViewModel>()
                 val contactsViewModel = viewModel<ContactsViewModel>()
+                val onBoardingViewModel = viewModel<OnBoardingViewModel>()
                 contentResolver
                 AnimatedNavHost(
                     navController = navController,
@@ -33,7 +35,8 @@ class MainActivity : ComponentActivity() {
                     builder = {
                         onBoardingRoute(
                             navHostController = navController,
-                            onBackPressedDispatcher = onBackPressedDispatcher
+                            onBackPressedDispatcher = onBackPressedDispatcher,
+                            onBoardingViewModel = onBoardingViewModel
                         )
                         homeRoute(
                             navHostController = navController,

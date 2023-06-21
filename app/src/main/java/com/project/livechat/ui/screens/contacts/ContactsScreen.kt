@@ -4,7 +4,11 @@ import android.Manifest
 import android.app.Activity
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,9 +16,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -23,8 +30,12 @@ import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavHostController
+import com.project.livechat.domain.models.Contact
+import com.project.livechat.ui.screens.contacts.widgets.ContactItem
+import com.project.livechat.ui.utils.getAllContacts
 import com.project.livechat.ui.utils.getMultiplePermissionsLauncher
 import com.project.livechat.ui.utils.openAppSettings
+import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
 import com.project.livechat.ui.widgets.ContactsPermissionTextProvider
 import com.project.livechat.ui.widgets.PermissionDialog
@@ -33,14 +44,30 @@ import com.project.livechat.ui.widgets.PermissionDialog
 fun ContactsScreen(
     navHostController: NavHostController,
     backPressedDispatcher: OnBackPressedDispatcher,
-    permissionViewModel: PermissionViewModel
+    permissionViewModel: PermissionViewModel,
+    contactsViewModel: ContactsViewModel
 ) {
+    val context = LocalContext.current
+    val activity = context as Activity
+
+    val contactsList = remember { mutableStateOf(listOf<Contact>()) }
+
     val permissionsToRequest = arrayOf(Manifest.permission.READ_CONTACTS)
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
-    val multiplePermissionResultLauncher =
-        getMultiplePermissionsLauncher(permissionsToRequest, permissionViewModel)
+    val multiplePermissionResultLauncher = getMultiplePermissionsLauncher(
+        permissionsToRequest,
+        permissionViewModel,
+        hashMapOf(
+            Manifest.permission.READ_CONTACTS to {
+                contactsList.value = context.getAllContacts()
+                // Pegar lista de contatos do Room
+                // Checar com a lista do device
+                // Pegar a diferenca e verificar com o Firebase
+                // O que tiver a mais adiciona no Room, o que tiver de menos remove
+            }
+        )
+    )
     val lifecycleOwner = LocalLifecycleOwner.current
-    val activity = LocalContext.current as Activity
 
     DisposableEffect(key1 = lifecycleOwner, effect = {
         val eventObserver = LifecycleEventObserver { _, event ->
@@ -58,7 +85,10 @@ fun ContactsScreen(
         }
     })
 
-    ContactsScreenContent(navHostController)
+    ContactsScreenContent(
+        navHostController = navHostController,
+        contactsList = contactsList.value
+    )
 
     dialogQueue.reversed().forEach { permission ->
         PermissionDialog(
@@ -76,7 +106,6 @@ fun ContactsScreen(
             onDismiss = permissionViewModel::dismissDialog,
             onOkClick = {
                 permissionViewModel.dismissDialog()
-
             },
             onGoToAppSettingsClick = {
                 activity.openAppSettings()
@@ -89,7 +118,12 @@ fun ContactsScreen(
 @Composable
 fun ContactsScreenContent(
     navHostController: NavHostController? = null,
+    contactsList: List<Contact>,
 ) {
+    val searchText = remember {
+        mutableStateOf("")
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -110,9 +144,23 @@ fun ContactsScreenContent(
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(paddingValues = paddingValues)
+            modifier = Modifier
+                .padding(paddingValues = paddingValues)
+                .fillMaxSize()
         ) {
-
+            TextField(
+                value = searchText.value,
+                onValueChange = {
+                    searchText.value = it
+                },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = "Search") }
+            )
+            LazyColumn() {
+                itemsIndexed(items = contactsList) { _, contact ->
+                    ContactItem(contact = contact)
+                }
+            }
         }
     }
 }
@@ -120,5 +168,20 @@ fun ContactsScreenContent(
 @Composable
 @Preview
 fun ContactsScreenPreview() {
-    ContactsScreenContent()
+    ContactsScreenContent(
+        contactsList = listOf(
+            Contact(
+                name = "Reginaldo",
+                phoneNo = "+5521985670564",
+                description = "A very nice dude 😘",
+                photo = null
+            ),
+            Contact(
+                name = "Reginaldo",
+                phoneNo = "+5521985670564",
+                description = "A very nice dude 😘",
+                photo = null
+            ),
+        )
+    )
 }

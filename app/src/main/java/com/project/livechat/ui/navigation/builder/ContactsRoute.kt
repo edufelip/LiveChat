@@ -9,13 +9,15 @@ import com.project.livechat.ui.navigation.Routes
 import com.project.livechat.ui.screens.contacts.ContactsScreen
 import com.project.livechat.ui.utils.exitTransition
 import com.project.livechat.ui.utils.popEnterTransition
+import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.contactsRoute(
     navHostController: NavHostController,
     onBackPressedDispatcher: OnBackPressedDispatcher,
-    permissionViewModel: PermissionViewModel
+    permissionViewModel: PermissionViewModel,
+    contactsViewModel: ContactsViewModel
 ) {
     composable(
         route = Routes.ContactsRoute.route,
@@ -25,7 +27,8 @@ fun NavGraphBuilder.contactsRoute(
         ContactsScreen(
             navHostController = navHostController,
             backPressedDispatcher = onBackPressedDispatcher,
-            permissionViewModel = permissionViewModel
+            permissionViewModel = permissionViewModel,
+            contactsViewModel = contactsViewModel
         )
     }
 }

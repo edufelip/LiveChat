@@ -9,7 +9,8 @@ import com.project.livechat.ui.viewmodels.PermissionViewModel
 @Composable
 fun getMultiplePermissionsLauncher(
     permissionsToRequest: Array<String>,
-    permissionViewModel: PermissionViewModel
+    permissionViewModel: PermissionViewModel,
+    permissionSuccessDispatcher: HashMap<String, () -> Unit>
 ): ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>> {
     return rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
@@ -19,6 +20,8 @@ fun getMultiplePermissionsLauncher(
                     permission = permission,
                     isGranted = perms[permission] == true
                 )
+
+                permissionSuccessDispatcher[permission]?.invoke()
             }
         }
     )
