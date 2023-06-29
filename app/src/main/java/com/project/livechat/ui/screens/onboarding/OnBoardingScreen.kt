@@ -8,10 +8,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
 import com.project.livechat.ui.screens.onboarding.pagerViews.OnBoardingTermsAgreement
+import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
+import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -50,7 +50,7 @@ fun OnBoardingContent(
     totalPages: Int
 ) {
     HorizontalPager(pageCount = totalPages, state = pagerState) { index ->
-        when(index) {
+        when (index) {
             0 -> OnBoardingTermsAgreement(onBoardingViewModel = onBoardingViewModel)
             1 -> OnBoardingNumberVerification(onBoardingViewModel = onBoardingViewModel)
         }

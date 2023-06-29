@@ -1,20 +1,23 @@
-package com.project.livechat.ui.screens.onboarding
+package com.project.livechat.ui.viewmodels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.project.livechat.domain.validators.ValidatePhoneNumber
+import com.project.livechat.domain.validators.PhoneNumberValidator
 import com.project.livechat.domain.validators.ValidationResult
 import com.project.livechat.ui.ValidationViewModel
+import com.project.livechat.ui.screens.onboarding.OnBoardingErrors
 import com.project.livechat.ui.screens.onboarding.models.NumberVerificationFormState
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.NumberVerificationFormEvent
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OnBoardingViewModel(
-    private val validatePhoneNumber: ValidatePhoneNumber = ValidatePhoneNumber()
-) : ValidationViewModel() {
+@HiltViewModel
+class OnBoardingViewModel @Inject constructor() : ValidationViewModel() {
 
+    private val phoneNumberValidator: PhoneNumberValidator = PhoneNumberValidator()
     var state by mutableStateOf(NumberVerificationFormState())
     val pages = 3.apply { this.minus(1) }
 
@@ -67,7 +70,7 @@ class OnBoardingViewModel(
 
     private fun submitData() {
         val completePhoneNumber = "+${state.phoneCode}${state.phoneNum}"
-        val numberValidationResult = validatePhoneNumber(completePhoneNumber)
+        val numberValidationResult = phoneNumberValidator(completePhoneNumber)
         if (numberValidationResult is ValidationResult.Error) {
             viewModelScope.launch {
                 validationEventChannel.send(numberValidationResult)

@@ -110,6 +110,7 @@ dependencies {
 kapt {
     correctErrorTypes = true
     javacOptions {
+        option("-Adagger.fastInit=ENABLED")
         option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
     }
 }

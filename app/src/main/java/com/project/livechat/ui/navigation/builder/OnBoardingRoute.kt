@@ -7,9 +7,9 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.composable
 import com.project.livechat.ui.navigation.Routes
 import com.project.livechat.ui.screens.onboarding.OnBoardingScreen
-import com.project.livechat.ui.screens.onboarding.OnBoardingViewModel
 import com.project.livechat.ui.utils.exitTransition
 import com.project.livechat.ui.utils.popEnterTransition
+import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.onBoardingRoute(
