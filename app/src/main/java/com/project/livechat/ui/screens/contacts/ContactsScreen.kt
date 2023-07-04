@@ -27,14 +27,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavHostController
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.ui.screens.contacts.widgets.ContactItem
-import com.project.livechat.ui.utils.getAllContacts
+import com.project.livechat.ui.utils.extensions.getAllContacts
 import com.project.livechat.ui.utils.getMultiplePermissionsLauncher
-import com.project.livechat.ui.utils.openAppSettings
+import com.project.livechat.ui.utils.extensions.openAppSettings
 import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
 import com.project.livechat.ui.widgets.ContactsPermissionTextProvider
@@ -44,8 +45,8 @@ import com.project.livechat.ui.widgets.PermissionDialog
 fun ContactsScreen(
     navHostController: NavHostController,
     backPressedDispatcher: OnBackPressedDispatcher,
-    permissionViewModel: PermissionViewModel,
-    contactsViewModel: ContactsViewModel
+    permissionViewModel: PermissionViewModel = hiltViewModel(),
+    contactsViewModel: ContactsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val activity = context as Activity

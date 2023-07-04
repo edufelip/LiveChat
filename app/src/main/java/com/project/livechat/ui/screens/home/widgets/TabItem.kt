@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.project.livechat.ui.screens.home.models.TabItemModel
-import com.project.livechat.ui.utils.isIndexCurrent
+import com.project.livechat.ui.utils.extensions.isIndexCurrent
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

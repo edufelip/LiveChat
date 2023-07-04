@@ -1,5 +1,6 @@
-package com.project.livechat.ui.screens.onboarding.pagerViews
+package com.project.livechat.ui.screens.onboarding.pagerViews.termsAgreement
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,13 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import com.project.livechat.ui.theme.LiveChatTheme
-import com.project.livechat.ui.utils.AnnotatedStrStruct
-import com.project.livechat.ui.utils.AnnotatedStructType
-import com.project.livechat.ui.utils.buildLinkText
+import com.project.livechat.ui.utils.extensions.AnnotatedStrStruct
+import com.project.livechat.ui.utils.extensions.AnnotatedStructType
+import com.project.livechat.ui.utils.extensions.buildLinkText
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnBoardingTermsAgreement(
@@ -49,7 +51,9 @@ fun OnBoardingTermsAgreement(
         MaterialTheme.colorScheme.primary
     )
 
-    Scaffold { padding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
         Column(
             modifier = Modifier.padding(all = 24.dp)
         ) {
@@ -104,7 +108,7 @@ fun OnBoardingTermsAgreement(
 @Preview
 @Composable
 fun OnBoardingTermsAgreementPreview() {
-    val onBoardingViewModel = viewModel<OnBoardingViewModel>()
+    val onBoardingViewModel = hiltViewModel<OnBoardingViewModel>()
     LiveChatTheme {
         OnBoardingTermsAgreement(
             onBoardingViewModel = onBoardingViewModel

@@ -16,8 +16,6 @@ import com.project.livechat.ui.viewmodels.PermissionViewModel
 fun NavGraphBuilder.contactsRoute(
     navHostController: NavHostController,
     onBackPressedDispatcher: OnBackPressedDispatcher,
-    permissionViewModel: PermissionViewModel,
-    contactsViewModel: ContactsViewModel
 ) {
     composable(
         route = Routes.ContactsRoute.route,
@@ -26,9 +24,7 @@ fun NavGraphBuilder.contactsRoute(
     ) {
         ContactsScreen(
             navHostController = navHostController,
-            backPressedDispatcher = onBackPressedDispatcher,
-            permissionViewModel = permissionViewModel,
-            contactsViewModel = contactsViewModel
+            backPressedDispatcher = onBackPressedDispatcher
         )
     }
 }

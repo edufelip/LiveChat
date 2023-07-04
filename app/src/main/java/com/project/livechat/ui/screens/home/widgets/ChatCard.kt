@@ -29,7 +29,7 @@ import coil.request.ImageRequest
 import com.project.livechat.R
 import com.project.livechat.ui.screens.home.models.ChatCardModel
 import com.project.livechat.ui.theme.LiveChatTheme
-import com.project.livechat.ui.utils.badgeLayout
+import com.project.livechat.ui.utils.extensions.badgeLayout
 
 @Composable
 fun ChatCard(

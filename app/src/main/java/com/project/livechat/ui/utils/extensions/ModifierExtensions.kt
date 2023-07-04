@@ -1,4 +1,4 @@
-package com.project.livechat.ui.utils
+package com.project.livechat.ui.utils.extensions
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout

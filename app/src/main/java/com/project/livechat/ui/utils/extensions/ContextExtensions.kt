@@ -1,4 +1,4 @@
-package com.project.livechat.ui.utils
+package com.project.livechat.ui.utils.extensions
 
 import android.content.Context
 import android.provider.ContactsContract

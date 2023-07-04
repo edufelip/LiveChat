@@ -8,9 +8,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.project.livechat.ui.screens.onboarding.pagerViews.OnBoardingTermsAgreement
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
+import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OnBoardingOneTimePassword
+import com.project.livechat.ui.screens.onboarding.pagerViews.termsAgreement.OnBoardingTermsAgreement
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import kotlinx.coroutines.launch
 
@@ -19,13 +21,13 @@ import kotlinx.coroutines.launch
 fun OnBoardingScreen(
     navHostController: NavHostController,
     backPressedDispatcher: OnBackPressedDispatcher,
-    onBoardingViewModel: OnBoardingViewModel
+    onBoardingViewModel: OnBoardingViewModel = hiltViewModel(),
 ) {
     val pagerState = rememberPagerState()
     val scope = rememberCoroutineScope()
 
-    val totalPages = onBoardingViewModel.pages
-    val currentPage = onBoardingViewModel.state.currentPage
+    val totalPages = onBoardingViewModel.screenState.totalPages
+    val currentPage = onBoardingViewModel.screenState.currentPage
 
     LaunchedEffect(key1 = currentPage) {
         scope.launch {
@@ -49,10 +51,15 @@ fun OnBoardingContent(
     pagerState: PagerState,
     totalPages: Int
 ) {
-    HorizontalPager(pageCount = totalPages, state = pagerState) { index ->
+    HorizontalPager(
+        pageCount = totalPages,
+        state = pagerState,
+        userScrollEnabled = false
+    ) { index ->
         when (index) {
             0 -> OnBoardingTermsAgreement(onBoardingViewModel = onBoardingViewModel)
             1 -> OnBoardingNumberVerification(onBoardingViewModel = onBoardingViewModel)
+            2 -> OnBoardingOneTimePassword(onBoardingViewModel = onBoardingViewModel)
         }
     }
 }
