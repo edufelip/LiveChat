@@ -1,9 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kapt)
-    alias(libs.plugins.hilt) apply(false)
+    kotlin("android")
+    kotlin("kapt")
+    id("com.android.application")
     id("com.google.gms.google-services")
+    id("dagger.hilt.android.plugin")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -56,6 +57,10 @@ android {
     }
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
@@ -67,6 +72,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.accompanist.navigationanimation)
     implementation(libs.accompanist.permissions)
+    implementation(libs.accompanist.systemuicontroller)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -76,11 +82,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.google.android.material)
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.ext.navigation.compose)
-    kapt(libs.hilt.ext.work)
-    kapt(libs.hilt.ext.compiler)
-    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt)
+    kapt(libs.androidx.hilt.kapt)
 
     implementation(libs.firebase.auth)
 
@@ -104,13 +108,4 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.hilt.compiler)
-}
-
-kapt {
-    correctErrorTypes = true
-    javacOptions {
-        option("-Adagger.fastInit=ENABLED")
-        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-    }
 }
