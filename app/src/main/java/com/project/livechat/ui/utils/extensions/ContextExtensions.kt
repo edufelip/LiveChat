@@ -2,6 +2,7 @@ package com.project.livechat.ui.utils.extensions
 
 import android.content.Context
 import android.provider.ContactsContract
+import android.widget.Toast
 import com.project.livechat.domain.models.Contact
 
 fun Context.getAllContacts(): ArrayList<Contact> {
@@ -37,4 +38,8 @@ fun Context.getAllContacts(): ArrayList<Contact> {
     }
     cursor?.close()
     return contactList
+}
+
+fun Context.toastShort(text: String) {
+    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
 }
