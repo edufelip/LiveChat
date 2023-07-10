@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.androidx.lifecycle.viewModelCompose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.google.android.material)
@@ -86,6 +87,7 @@ dependencies {
     implementation(libs.androidx.hilt)
     kapt(libs.androidx.hilt.kapt)
 
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
 
     implementation(libs.androidx.compose.foundation.layout)

@@ -53,7 +53,7 @@ secrets = "2.0.1"
 targetSdk = "33"
 version-catalog-update = "0.8.0"
 # @keep
-firebase-auth = "21.3.0"
+firebase= "32.1.1"
 firebase-google-services = "4.3.15"
 
 [libraries]
@@ -98,7 +98,6 @@ androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-viewm
 androidx-lifecycle-runtime = "androidx.lifecycle:lifecycle-runtime-ktx:2.6.0-alpha04"
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle-runtime-compose" }
 androidx-lifecycle-viewModelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle-compose" }
-androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle-compose" }
 androidx-lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "androidx-lifecycle-compose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidx-navigation" }
@@ -130,7 +129,8 @@ okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 rometools-modules = { module = "com.rometools:rome-modules", version.ref = "rome" }
 rometools-rome = { module = "com.rometools:rome", version.ref = "rome" }
-firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebase-auth" }
+firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-google-services = { module = "com.google.gms:google-services", version.ref = "firebase-google-services" }
 
 [plugins]
