@@ -20,6 +20,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -34,8 +35,8 @@ import androidx.navigation.NavHostController
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.ui.screens.contacts.widgets.ContactItem
 import com.project.livechat.ui.utils.extensions.getAllContacts
-import com.project.livechat.ui.utils.getMultiplePermissionsLauncher
 import com.project.livechat.ui.utils.extensions.openAppSettings
+import com.project.livechat.ui.utils.getMultiplePermissionsLauncher
 import com.project.livechat.ui.viewmodels.ContactsViewModel
 import com.project.livechat.ui.viewmodels.PermissionViewModel
 import com.project.livechat.ui.widgets.ContactsPermissionTextProvider
@@ -51,6 +52,10 @@ fun ContactsScreen(
     val context = LocalContext.current
     val activity = context as Activity
 
+    LaunchedEffect(Unit) {
+//        contactsViewModel
+    }
+
     val contactsList = remember { mutableStateOf(listOf<Contact>()) }
 
     val permissionsToRequest = arrayOf(Manifest.permission.READ_CONTACTS)
@@ -60,7 +65,8 @@ fun ContactsScreen(
         permissionViewModel,
         hashMapOf(
             Manifest.permission.READ_CONTACTS to {
-                contactsList.value = context.getAllContacts()
+                val contacts = context.getAllContacts()
+                contactsViewModel.checkContacts(contacts)
                 // Pegar lista de contatos do Room
                 // Checar com a lista do device
                 // Pegar a diferenca e verificar com o Firebase

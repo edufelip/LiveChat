@@ -82,13 +82,17 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.google.android.material)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.hilt)
+    kapt(libs.androidx.room.compiler)
     kapt(libs.androidx.hilt.kapt)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.material3)

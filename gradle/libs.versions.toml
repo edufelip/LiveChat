@@ -43,11 +43,11 @@ ksp = "1.8.0-1.0.9"
 maps-compose = "2.5.3"
 material = "1.9.0-beta01"
 # @keep
-minSdk = "21"
+minSdk = "24"
 okhttp = "4.10.0"
 robolectric = "4.9.2"
 rome = "1.18.0"
-room = "2.5.0"
+room = "2.5.2"
 secrets = "2.0.1"
 # @keep
 targetSdk = "33"
@@ -130,6 +130,7 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 rometools-modules = { module = "com.rometools:rome-modules", version.ref = "rome" }
 rometools-rome = { module = "com.rometools:rome", version.ref = "rome" }
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-google-services = { module = "com.google.gms:google-services", version.ref = "firebase-google-services" }
 

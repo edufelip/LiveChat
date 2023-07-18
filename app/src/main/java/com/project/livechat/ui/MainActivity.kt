@@ -34,10 +34,11 @@ class MainActivity : ComponentActivity() {
                 systemUiController.setStatusBarColor(MaterialTheme.colorScheme.surface)
                 AnimatedNavHost(
                     navController = navController,
-                    startDestination = if (firebaseAuth.currentUser != null)
-                        Routes.HomeRoute.route
-                    else
-                        Routes.OnBoardingRoute.route,
+                    startDestination = Routes.HomeRoute.route,
+//                    startDestination = if (firebaseAuth.currentUser != null)
+//                        Routes.HomeRoute.route
+//                    else
+//                        Routes.OnBoardingRoute.route,
                     builder = {
                         onBoardingRoute(
                             navHostController = navController,

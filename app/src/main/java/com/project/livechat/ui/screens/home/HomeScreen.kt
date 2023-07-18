@@ -28,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,16 +52,12 @@ fun HomeScreen(
     backPressedDispatcher: OnBackPressedDispatcher
 ) {
     val pagerState = rememberPagerState()
-    LaunchedEffect(key1 = Unit) {
-//        val mAuth = FirebaseAuth.getInstance()
-//        val currentUser = mAuth.currentUser
-//        if (currentUser != null) Routes.AuthenticationRoute.navigate(navHostController)
-    }
     HomeContent(
         itemList = tabItemList,
         pagerState = pagerState,
         navHostController = navHostController
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
