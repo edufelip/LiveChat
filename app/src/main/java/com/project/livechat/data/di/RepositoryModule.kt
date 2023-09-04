@@ -2,8 +2,7 @@ package com.project.livechat.data.di
 
 import com.project.livechat.data.contracts.IContactsLocalData
 import com.project.livechat.data.contracts.IContactsRemoteData
-import com.project.livechat.data.providers.ContactsLocalData
-import com.project.livechat.data.repository.ContactsRepository
+import com.project.livechat.data.repositories.ContactsRepository
 import com.project.livechat.domain.repositories.IContactsRepository
 import dagger.Module
 import dagger.Provides

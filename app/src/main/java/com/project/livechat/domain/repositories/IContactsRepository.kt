@@ -10,7 +10,7 @@ interface IContactsRepository {
 
     suspend fun removeContactsFromLocal(contacts: List<Contact>)
 
-    suspend fun addContactToLocal(contacts: Contact)
+    suspend fun addContactToLocal(contact: Contact)
 
     suspend fun updateContacts(contacts: List<Contact>)
 }

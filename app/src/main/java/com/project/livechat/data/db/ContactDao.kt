@@ -13,14 +13,14 @@ interface ContactDao {
     fun getAllContacts(): Flow<List<ContactRoom>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertContact(contact: ContactRoom)
+    fun insertContact(contact: ContactRoom)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAllContacts(contactsList: List<ContactRoom>)
+    fun insertAllContacts(contactsList: List<ContactRoom>)
 
     @Query("UPDATE contact_table SET name = :name, description = :description, photo = :photo WHERE phoneNo = :phoneNo")
-    suspend fun updateContact(name: String, phoneNo: String, description: String, photo: String)
+    fun updateContact(name: String, phoneNo: String, description: String, photo: String)
 
     @Query("DELETE FROM contact_table WHERE phoneNo in (:contactPhoneNoList)")
-    suspend fun deleteContacts(contactPhoneNoList: List<String>)
+    fun deleteContacts(contactPhoneNoList: List<String>)
 }

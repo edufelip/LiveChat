@@ -1,4 +1,4 @@
-package com.project.livechat.data.repository
+package com.project.livechat.data.repositories
 
 import com.project.livechat.data.contracts.IContactsLocalData
 import com.project.livechat.data.contracts.IContactsRemoteData
