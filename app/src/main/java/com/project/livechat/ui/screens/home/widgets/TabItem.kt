@@ -1,12 +1,12 @@
 package com.project.livechat.ui.screens.home.widgets
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.project.livechat.ui.screens.home.models.TabItemModel
 import com.project.livechat.ui.utils.extensions.isIndexCurrent
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TabItem(
     pagerState: PagerState,
@@ -75,12 +74,11 @@ fun TabItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
 fun TabItemPreview() {
     TabItem(
-        pagerState = PagerState(),
+        pagerState = rememberPagerState{ 0 },
         index = 0,
         item = TabItemModel(
             text = "Example"

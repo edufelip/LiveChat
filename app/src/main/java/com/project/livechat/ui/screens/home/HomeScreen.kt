@@ -1,7 +1,6 @@
 package com.project.livechat.ui.screens.home
 
 import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.project.livechat.ui.navigation.Routes
+import com.project.livechat.ui.navigation.builder.ContactsScreen
 import com.project.livechat.ui.screens.home.behavior.homeTabBehaviorFactory
 import com.project.livechat.ui.screens.home.models.TabItemModel
 import com.project.livechat.ui.screens.home.models.chatCardList
@@ -45,13 +44,14 @@ import com.project.livechat.ui.screens.home.widgets.TabItem
 import com.project.livechat.ui.theme.LiveChatTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
     backPressedDispatcher: OnBackPressedDispatcher
 ) {
-    val pagerState = rememberPagerState()
+    val pagerState = rememberPagerState {
+        tabItemList.size
+    }
     HomeContent(
         itemList = tabItemList,
         pagerState = pagerState,
@@ -60,7 +60,7 @@ fun HomeScreen(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     itemList: List<TabItemModel>,
@@ -84,7 +84,7 @@ fun HomeContent(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                Routes.ContactsRoute.navigate(navHostController)
+                navHostController.navigate(ContactsScreen)
             }) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -102,7 +102,6 @@ fun HomeContent(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Tabs(itemList: List<TabItemModel>, pagerState: PagerState) {
     val scope = rememberCoroutineScope()
@@ -113,7 +112,7 @@ fun Tabs(itemList: List<TabItemModel>, pagerState: PagerState) {
                 .padding(bottom = 8.dp)
         ) {
             itemsIndexed(itemList) { index, item ->
-                TabItem(pagerState = pagerState, index = index, item = item) { index ->
+                TabItem(pagerState = pagerState, index = index, item = item) { _ ->
                     scope.launch {
                         homeTabBehaviorFactory(
                             itemList[index].behavior,
@@ -133,14 +132,12 @@ fun Tabs(itemList: List<TabItemModel>, pagerState: PagerState) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TabsContent(itemList: List<TabItemModel>, pagerState: PagerState) {
     HorizontalPager(
-        pageCount = itemList.size,
         state = pagerState,
         userScrollEnabled = false
-    ) { pageIndex ->
+    ) {
         TabContent()
     }
 }
@@ -168,11 +165,12 @@ fun TabContent() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Preview
 @Composable
 fun HomePreview() {
-    val pagerState = rememberPagerState()
+    val pagerState = rememberPagerState {
+        tabItemList.size
+    }
     val navHostController = rememberNavController()
     LiveChatTheme {
         HomeContent(

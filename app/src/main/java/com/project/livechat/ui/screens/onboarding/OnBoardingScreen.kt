@@ -2,7 +2,6 @@ package com.project.livechat.ui.screens.onboarding
 
 import android.app.Activity
 import android.util.Log
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -19,7 +18,7 @@ import androidx.navigation.NavHostController
 import com.project.livechat.R
 import com.project.livechat.domain.utils.StateUI
 import com.project.livechat.domain.validators.ValidationResult
-import com.project.livechat.ui.navigation.Routes
+import com.project.livechat.ui.navigation.builder.HomeScreen
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OnBoardingOneTimePassword
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OneTimePasswordErrors
@@ -29,7 +28,6 @@ import com.project.livechat.ui.widgets.dialog.ErrorAlertDialog
 import com.project.livechat.ui.widgets.dialog.ProgressAlertDialog
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
     navHostController: NavHostController,
@@ -37,9 +35,11 @@ fun OnBoardingScreen(
 ) {
     val context = LocalContext.current
     val activity = context as Activity
-    val pagerState = rememberPagerState()
-    val scope = rememberCoroutineScope()
     val totalPages = onBoardingViewModel.screenState.totalPages
+    val pagerState = rememberPagerState {
+        totalPages
+    }
+    val scope = rememberCoroutineScope()
     val currentPage = onBoardingViewModel.screenState.currentPage
     val sendSmsStateUI = onBoardingViewModel.sendSmsStateUI.collectAsStateWithLifecycle().value
     val verifyCodeStateUI =
@@ -77,7 +77,7 @@ fun OnBoardingScreen(
 
         when (verifyCodeStateUI) {
             is StateUI.Success -> {
-                Routes.HomeRoute.navigate(navHostController)
+                navHostController.navigate(HomeScreen)
             }
 
             StateUI.Loading -> {
@@ -161,14 +161,12 @@ fun OnBoardingScreen(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingContent(
     pagerState: PagerState,
     totalPages: Int
 ) {
     HorizontalPager(
-        pageCount = totalPages,
         state = pagerState,
         userScrollEnabled = false
     ) { index ->

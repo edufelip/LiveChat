@@ -98,7 +98,6 @@ fun OnBoardingOneTimePassword(onBoardingViewModel: OnBoardingViewModel = hiltVie
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OneTimePasswordContent(
     state: NumberVerificationFormState,

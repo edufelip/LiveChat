@@ -8,8 +8,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthMissingActivityForRecaptchaException
 import com.google.firebase.auth.PhoneAuthCredential
@@ -27,7 +25,6 @@ import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OneTimePasswordErrors
 import com.project.livechat.ui.utils.coalesce
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -96,7 +93,7 @@ class OnBoardingViewModel @Inject constructor(
     fun navigateForward() {
         val value = screenState.currentPage
         val aimPage =
-            if (value >= screenState.totalPages) screenState.totalPages else value + 1
+            if (value >= screenState.totalPages.minus(1)) screenState.totalPages.minus(1) else value + 1
         screenState = screenState.copy(currentPage = aimPage)
     }
 

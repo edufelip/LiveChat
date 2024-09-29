@@ -1,30 +1,23 @@
 package com.project.livechat.ui.navigation.builder
 
 import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.composable
-import com.project.livechat.ui.navigation.Routes
+import androidx.navigation.compose.composable
 import com.project.livechat.ui.screens.contacts.ContactsScreen
-import com.project.livechat.ui.utils.exitTransition
-import com.project.livechat.ui.utils.popEnterTransition
-import com.project.livechat.ui.viewmodels.ContactsViewModel
-import com.project.livechat.ui.viewmodels.PermissionViewModel
+import kotlinx.serialization.Serializable
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.contactsRoute(
     navHostController: NavHostController,
     onBackPressedDispatcher: OnBackPressedDispatcher,
 ) {
-    composable(
-        route = Routes.ContactsRoute.route,
-        popEnterTransition = { popEnterTransition },
-        exitTransition = { exitTransition },
-    ) {
+    composable<ContactsScreen> {
         ContactsScreen(
             navHostController = navHostController,
             backPressedDispatcher = onBackPressedDispatcher
         )
     }
 }
+
+@Serializable
+object ContactsScreen

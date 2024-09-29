@@ -1,69 +1,58 @@
 [versions]
 accompanist = "0.30.1"
-gradle = "8.1.1"
-google-services = "4.3.15"
-androidGradlePlugin = "8.0.0"
-androidx-activity-compose = "1.7.2"
-androidx-appcompat = "1.6.1"
-androidx-benchmark = "1.1.1"
-androidx-benchmark-junit4 = "1.2.0-beta04"
-androidx-compose-bom = "2023.08.00"
+gradle = "8.1.4"
+google-services = "4.4.2"
+androidGradlePlugin = "8.0.2"
+androidx-activity-compose = "1.9.2"
+androidx-appcompat = "1.7.0"
+androidx-benchmark = "1.3.1"
+androidx-benchmark-junit4 = "1.3.1"
+androidx-compose-bom = "2024.09.02"
 androidx-constraintlayout = "1.0.1"
-androidx-corektx = "1.10.1"
-androidx-lifecycle = "2.6.1"
-androidx-lifecycle-compose = "2.6.1"
-androidx-lifecycle-runtime-compose = "2.6.1"
-androidx-navigation = "2.7.1"
+androidx-corektx = "1.13.1"
+androidx-lifecycle = "2.8.6"
+androidx-lifecycle-compose = "2.8.6"
+androidx-lifecycle-runtime-compose = "2.8.6"
+androidx-navigation = "2.8.1"
 androidx-palette = "1.0.0"
-androidx-test = "1.5.0"
-androidx-test-espresso = "3.5.1"
-androidx-test-ext-junit = "1.1.5"
-androidx-test-ext-truth = "1.5.0"
-androidx-window = "1.2.0-beta01"
-androidxHiltNavigationCompose = "1.0.0"
-androix-test-uiautomator = "2.2.0"
-coil = "2.2.0"
-compose-compiler = "1.5.1"
-coroutines = "1.7.3"
-google-maps = "18.1.0"
+androidx-test = "1.6.2"
+androidx-test-espresso = "3.6.1"
+androidx-test-ext-junit = "1.2.1"
+androidx-test-ext-truth = "1.6.0"
+androidx-window = "1.3.0"
+androidxHiltNavigationCompose = "1.2.0"
+androix-test-uiautomator = "2.3.0"
+coil = "2.6.0"
+coroutines = "1.8.0"
 gradle-versions = "0.46.0"
-hilt = "2.46.1"
-hiltExt = "1.0.0"
-# @pin When updating to AGP 7.4.0-alpha10 and up we can update this https://developer.android.com/studio/write/java8-support#library-desugaring-versions
-jdkDesugar = "2.0.3"
+hilt = "2.51.1"
+jdkDesugar = "2.1.2"
 junit = "4.13.2"
-# @pin Update in conjuction with Compose Compiler
-kotlin = "1.9.0"
-ksp = "1.8.0-1.0.9"
-maps-compose = "2.5.3"
-material = "1.11.0-alpha02"
+kotlin = "2.0.0"
+ksp = "1.9.10-1.0.13"
+material = "1.12.0"
+okhttp = "4.12.0"
+robolectric = "4.9.2"
+rome = "1.18.0"
+room = "2.6.1"
+secrets = "2.0.1"
+version-catalog-update = "0.8.0"
+firebase= "33.3.0"
+truth = "1.1.3"
+jupiter = "5.10.1"
+turbine = "1.0.0"
+composeNavigation = "2.8.1"
+serialization = "1.6.3"
 # @keep
 minSdk = "24"
 # @keep
 targetSdk = "34"
 # @keep
 compileSdk = "34"
-okhttp = "4.10.0"
-robolectric = "4.9.2"
-rome = "1.18.0"
-room = "2.5.2"
-secrets = "2.0.1"
-version-catalog-update = "0.8.0"
-# @keep
-firebase= "32.2.3"
-firebase-google-services = "4.3.15"
-truth = "1.1.3"
-jupiter = "5.8.2"
-turbine = "1.0.0"
 
 [libraries]
-accompanist-adaptive = { module = "com.google.accompanist:accompanist-adaptive", version.ref = "accompanist" }
-accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanist" }
-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanist" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
-accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist" }
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
-accompanist-navigationanimation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanist" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidx-activity-compose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
@@ -100,7 +89,8 @@ androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-kt
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle-runtime-compose" }
 androidx-lifecycle-viewModelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle-compose" }
 androidx-lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "androidx-lifecycle-compose" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidx-navigation" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidx-navigation" }
 androidx-palette = { module = "androidx.palette:palette", version.ref = "androidx-palette" }
@@ -114,7 +104,7 @@ androidx-test-ext-truth = { module = "androidx.test.ext:truth", version.ref = "a
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 jupiter = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidx-test" }
-androidx-test-runner = "androidx.test:runner:1.5.2"
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androix-test-uiautomator" }
 androidx-window = { module = "androidx.window:window", version.ref = "androidx-window" }
 coil-kt-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
@@ -135,7 +125,6 @@ rometools-rome = { module = "com.rometools:rome", version.ref = "rome" }
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
-firebase-google-services = { module = "com.google.gms:google-services", version.ref = "firebase-google-services" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
@@ -145,6 +134,8 @@ gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }

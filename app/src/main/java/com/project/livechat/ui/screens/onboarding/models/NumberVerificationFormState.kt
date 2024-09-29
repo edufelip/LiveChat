@@ -9,9 +9,8 @@ data class NumberVerificationFormState(
     val phoneNumError: String? = null,
     val oneTimePass: String = "",
     val oneTimePassError: String? = null,
-
     val currentPage: Int = 0,
-    val totalPages: Int = 3.apply { this.minus(1) },
+    val totalPages: Int = 3,
     val storedVerificationId: String = "",
     val token: PhoneAuthProvider.ForceResendingToken? = null
 ) : Serializable {

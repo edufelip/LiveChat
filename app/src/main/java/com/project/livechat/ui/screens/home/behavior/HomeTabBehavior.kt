@@ -1,6 +1,5 @@
 package com.project.livechat.ui.screens.home.behavior
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import kotlinx.coroutines.CoroutineScope
 
@@ -12,7 +11,6 @@ enum class HomeTabCategory {
     FILTER, ADD
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 fun homeTabBehaviorFactory(
     behavior: HomeTabCategory,
     pagerState: PagerState,
