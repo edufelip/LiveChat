@@ -5,6 +5,8 @@ plugins {
     id("com.google.gms.google-services")
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -52,10 +54,6 @@ android {
         viewBinding = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
-    }
-
     packaging.resources {
         // Multiple dependency bring these files in. Exclude them to enable
         // our test APK to build (has no effect on our AARs)
@@ -80,7 +78,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.androidx.activity.compose)
-    implementation(libs.accompanist.navigationanimation)
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.systemuicontroller)
 
@@ -113,6 +110,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.googlefonts)
     implementation(libs.coil.kt.compose)
     implementation(libs.jupiter)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.navigation.compose)
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)

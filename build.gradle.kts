@@ -10,3 +10,7 @@ buildscript {
         classpath(libs.dagger.hilt.gradle)
     }
 }
+
+plugins {
+    alias(libs.plugins.compose.compiler) apply false
+}
