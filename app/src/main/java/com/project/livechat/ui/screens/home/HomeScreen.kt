@@ -16,6 +16,8 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,8 +30,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -42,6 +46,8 @@ import com.project.livechat.ui.screens.home.models.tabItemList
 import com.project.livechat.ui.screens.home.widgets.ChatCard
 import com.project.livechat.ui.screens.home.widgets.TabItem
 import com.project.livechat.ui.theme.LiveChatTheme
+import com.project.livechat.ui.widgets.ActionIcon
+import com.project.livechat.ui.widgets.SwipeableItemWithActions
 import kotlinx.coroutines.launch
 
 @Composable
@@ -144,6 +150,7 @@ fun TabsContent(itemList: List<TabItemModel>, pagerState: PagerState) {
 
 @Composable
 fun TabContent() {
+    val chatCardList = chatCardList.toMutableStateList()
     chatCardList.takeIf { it.isNotEmpty() }?.let {
         LazyColumn(
             modifier = Modifier
@@ -151,8 +158,33 @@ fun TabContent() {
                 .padding(top = 8.dp, start = 8.dp, end = 8.dp)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            itemsIndexed(it) { _, item ->
-                ChatCard(chatCardModel = item)
+            itemsIndexed(
+                items = it,
+                key = { _, contact -> contact.id }
+            ) { index, chatCard ->
+                SwipeableItemWithActions(
+                    isRevealed = chatCard.isOptionsRevealed,
+                    actions = {
+                        ActionIcon(
+                            onClick = {
+                                chatCardList[index] = chatCard.copy(isOptionsRevealed = false)
+                            },
+                            backgroundColor = Color.Yellow,
+                            icon = Icons.Default.Email,
+                            modifier = Modifier.fillMaxHeight()
+                        )
+                        ActionIcon(
+                            onClick = {
+                                chatCardList[index] = chatCard.copy(isOptionsRevealed = false)
+                            },
+                            backgroundColor = Color.Red,
+                            icon = Icons.Default.Delete,
+                            modifier = Modifier.fillMaxHeight()
+                        )
+                    }
+                ) {
+                   ChatCard(chatCardModel = chatCard)
+                }
             }
         }
     } ?: run {

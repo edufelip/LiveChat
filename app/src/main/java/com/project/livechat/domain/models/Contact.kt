@@ -1,6 +1,7 @@
 package com.project.livechat.domain.models
 
 data class Contact(
+    val id: Int,
     val name: String,
     val phoneNo: String,
     val description: String? = null,

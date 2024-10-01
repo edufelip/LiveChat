@@ -33,6 +33,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavHostController
 import com.project.livechat.domain.models.Contact
+import com.project.livechat.ui.models.ContactUI
+import com.project.livechat.ui.models.toContactUI
 import com.project.livechat.ui.screens.contacts.widgets.ContactItem
 import com.project.livechat.ui.utils.extensions.getAllContacts
 import com.project.livechat.ui.utils.extensions.openAppSettings
@@ -56,7 +58,7 @@ fun ContactsScreen(
 //        contactsViewModel
     }
 
-    val contactsList = remember { mutableStateOf(listOf<Contact>()) }
+    val contactsList = remember { mutableStateOf(listOf<ContactUI>()) }
 
     val permissionsToRequest = arrayOf(Manifest.permission.READ_CONTACTS)
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
@@ -125,7 +127,7 @@ fun ContactsScreen(
 @Composable
 fun ContactsScreenContent(
     navHostController: NavHostController? = null,
-    contactsList: List<Contact>,
+    contactsList: List<ContactUI>,
 ) {
     val searchText = remember {
         mutableStateOf("")
@@ -163,8 +165,11 @@ fun ContactsScreenContent(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(text = "Search") }
             )
-            LazyColumn() {
-                itemsIndexed(items = contactsList) { _, contact ->
+            LazyColumn {
+                itemsIndexed(
+                    items = contactsList,
+                    key = { _, contact -> contact.id }
+                ) { index , contact ->
                     ContactItem(contact = contact)
                 }
             }
@@ -178,17 +183,19 @@ fun ContactsScreenPreview() {
     ContactsScreenContent(
         contactsList = listOf(
             Contact(
+                id = 1,
                 name = "Reginaldo",
                 phoneNo = "+5521985670564",
                 description = "A very nice dude 😘",
                 photo = null
-            ),
+            ).toContactUI(),
             Contact(
+                id = 2,
                 name = "Reginaldo",
                 phoneNo = "+5521985670564",
                 description = "A very nice dude 😘",
                 photo = null
-            ),
-        )
+            ).toContactUI(),
+        ),
     )
 }

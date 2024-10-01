@@ -30,7 +30,7 @@ fun Context.getAllContacts(): ArrayList<Contact> {
                     val phoneNumber = pCur.getString(pCur.getColumnIndex(
                         ContactsContract.CommonDataKinds.Phone.NUMBER
                     ).takeIf { it >= 0 } ?: 0)
-                    contactList.add(Contact(name = name, phoneNo = phoneNumber))
+                    contactList.add(Contact(id.toInt(), name = name, phoneNo = phoneNumber))
                 }
                 pCur?.close()
             }

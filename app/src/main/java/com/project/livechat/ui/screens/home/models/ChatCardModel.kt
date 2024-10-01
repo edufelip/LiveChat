@@ -1,12 +1,13 @@
 package com.project.livechat.ui.screens.home.models
 
-class ChatCardModel(
+data class ChatCardModel(
     val id: Int,
     val photo: String?,
     val name: String,
     val lastMessage: String,
     val lastMessageTime: String,
-    val unreadCount: Int?
+    val unreadCount: Int?,
+    val isOptionsRevealed: Boolean = false
 )
 
 val chatCardList = listOf(

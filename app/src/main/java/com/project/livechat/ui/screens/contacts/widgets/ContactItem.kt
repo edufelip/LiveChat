@@ -25,9 +25,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.project.livechat.R
 import com.project.livechat.domain.models.Contact
+import com.project.livechat.ui.models.ContactUI
+import com.project.livechat.ui.models.toContactUI
 
 @Composable
-fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
+fun ContactItem(
+    contact: ContactUI,
+    modifier: Modifier = Modifier
+) {
     Column {
         Row(
             modifier = modifier
@@ -72,10 +77,11 @@ fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
 fun ContactItemPreview() {
     ContactItem(
         contact = Contact(
+            id = 1,
             name = "Reginaldo",
             phoneNo = "+5521985670564",
             description = "A very nice dude (I think)",
             photo = null
-        ), modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ).toContactUI(), modifier = Modifier.background(MaterialTheme.colorScheme.background)
     )
 }

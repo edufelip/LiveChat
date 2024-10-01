@@ -32,7 +32,7 @@ class ContactsLocalData @Inject constructor(
 
     override suspend fun updateContact(contacts: List<Contact>) {
         contacts.forEach {
-            val (name, phoneNo, description, photo) = it
+            val (_, name, phoneNo, description, photo) = it
             dao.updateContact(name, phoneNo, description ?: "", photo ?: "")
         }
     }

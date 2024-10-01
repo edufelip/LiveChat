@@ -24,7 +24,8 @@ data class ContactRoom(
                 name = name,
                 phoneNo = phoneNo,
                 description = description,
-                photo = photo
+                photo = photo,
+                id = id
             )
         }
     }
