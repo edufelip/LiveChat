@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 fun NavGraphBuilder.onBoardingRoute(
     navHostController: NavHostController,
 ) {
-    composable<OnboardingScreen> {
-//        val args = it.toRoute<OnboardingScreen>()
+    composable<OnboardingScreen> { backStackEntry ->
         OnBoardingScreen(
             navHostController = navHostController,
+            viewModelStoreOwner = backStackEntry
         )
     }
 }

@@ -1,7 +1,7 @@
 package com.project.livechat.ui
 
 import androidx.lifecycle.ViewModel
-import com.project.livechat.domain.validators.ValidationResult
+import com.project.livechat.domain.validation.ValidationResult
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 

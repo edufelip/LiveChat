@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.project.livechat.ui.screens.onboarding.models.NumberVerificationFormState
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.NumberVerificationFormEvent
@@ -47,7 +46,7 @@ import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import com.project.livechat.ui.widgets.topbar.DefaultTopBar
 
 @Composable
-fun OnBoardingOneTimePassword(onBoardingViewModel: OnBoardingViewModel = hiltViewModel()) {
+fun OnBoardingOneTimePassword(onBoardingViewModel: OnBoardingViewModel) {
     val activity = LocalContext.current as Activity
     val state = onBoardingViewModel.screenState
     val timerCount = onBoardingViewModel.timeoutCount.collectAsStateWithLifecycle()

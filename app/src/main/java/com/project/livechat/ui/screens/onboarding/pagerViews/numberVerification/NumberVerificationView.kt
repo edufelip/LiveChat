@@ -1,7 +1,6 @@
 package com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,21 +16,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.livechat.ui.screens.onboarding.models.NumberVerificationFormState
 import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 
 
 @Composable
-fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val activity = context as Activity
+fun OnBoardingNumberVerification(onBoardingViewModel: OnBoardingViewModel) {
     val state = onBoardingViewModel.screenState
 
     NumberVerificationContent(

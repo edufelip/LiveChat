@@ -7,20 +7,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.auth.FirebaseAuth
 import com.project.livechat.ui.navigation.builder.HomeScreen
 import com.project.livechat.ui.navigation.builder.contactsRoute
 import com.project.livechat.ui.navigation.builder.homeRoute
 import com.project.livechat.ui.navigation.builder.onBoardingRoute
 import com.project.livechat.ui.theme.LiveChatTheme
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +36,6 @@ class MainActivity : ComponentActivity() {
                     )
                     contactsRoute(
                         navHostController = navController,
-                        onBackPressedDispatcher = onBackPressedDispatcher,
                     )
                 }
             }

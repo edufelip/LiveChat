@@ -1,9 +1,21 @@
 package com.project.livechat
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import com.project.livechat.koin.androidPlatformModule
+import com.project.livechat.koin.androidViewModelModule
+import com.project.livechat.shared.data.initSharedKoin
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
 
-abstract class BaseApplication: Application()
+class MyApplication : Application() {
 
-@HiltAndroidApp
-class MyApplication : BaseApplication()
+    override fun onCreate() {
+        super.onCreate()
+        initSharedKoin(
+            platformModules = listOf(androidPlatformModule, androidViewModelModule)
+        ) {
+            androidLogger()
+            androidContext(this@MyApplication)
+        }
+    }
+}

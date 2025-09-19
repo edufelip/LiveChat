@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.utils.extensions.AnnotatedStrStruct
 import com.project.livechat.ui.utils.extensions.AnnotatedStructType
@@ -30,7 +29,7 @@ import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 
 @Composable
 fun OnBoardingTermsAgreement(
-    onBoardingViewModel: OnBoardingViewModel = hiltViewModel()
+    onBoardingViewModel: OnBoardingViewModel
 ) {
     val context = LocalContext.current
     val annotatedString = buildLinkText(

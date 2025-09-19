@@ -1,0 +1,41 @@
+package com.project.livechat.data.di
+
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import com.project.livechat.data.contracts.IContactsRemoteData
+import com.project.livechat.data.remote.FirebaseRestConfig
+import com.project.livechat.data.remote.FirebaseRestContactsRemoteData
+import com.project.livechat.shared.data.database.LiveChatDatabase
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
+fun iosPlatformModule(
+    config: FirebaseRestConfig,
+    httpClient: HttpClient = defaultHttpClient()
+): Module = module {
+    single { config }
+    single { httpClient }
+    single<SqlDriver> { NativeSqliteDriver(LiveChatDatabase.Schema, "livechat.db") }
+    single<IContactsRemoteData> { FirebaseRestContactsRemoteData(get(), get()) }
+}
+
+private fun defaultHttpClient(): HttpClient = HttpClient(Darwin) {
+    install(ContentNegotiation) {
+        json(
+            Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+            }
+        )
+    }
+    install(Logging) {
+        level = LogLevel.NONE
+    }
+}

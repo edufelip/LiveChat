@@ -7,17 +7,20 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavHostController
 import com.project.livechat.R
 import com.project.livechat.domain.utils.StateUI
-import com.project.livechat.domain.validators.ValidationResult
+import com.project.livechat.domain.validation.ValidationError
+import com.project.livechat.domain.validation.ValidationResult
 import com.project.livechat.ui.navigation.builder.HomeScreen
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OnBoardingOneTimePassword
@@ -27,14 +30,17 @@ import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import com.project.livechat.ui.widgets.dialog.ErrorAlertDialog
 import com.project.livechat.ui.widgets.dialog.ProgressAlertDialog
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun OnBoardingScreen(
     navHostController: NavHostController,
-    onBoardingViewModel: OnBoardingViewModel = hiltViewModel(),
+    viewModelStoreOwner: ViewModelStoreOwner? = LocalViewModelStoreOwner.current,
 ) {
     val context = LocalContext.current
     val activity = context as Activity
+    val owner = viewModelStoreOwner ?: error("ViewModelStoreOwner not available")
+    val onBoardingViewModel: OnBoardingViewModel = koinViewModel(viewModelStoreOwner = owner)
     val totalPages = onBoardingViewModel.screenState.totalPages
     val pagerState = rememberPagerState {
         totalPages
@@ -133,13 +139,13 @@ fun OnBoardingScreen(
                 }
 
                 is ValidationResult.Error -> {
-                    val errorMessage = when (event.errorType) {
-                        OnBoardingValidationErrors.INVALID_NUMBER ->
+                    val errorMessage = when (event.type) {
+                        ValidationError.InvalidPhoneNumber ->
                             context.getString(R.string.on_boarding_invalid_number_error)
                     }
                     onBoardingViewModel.parseOnBoardingError(
                         message = errorMessage,
-                        errorType = event.errorType
+                        errorType = event.type
                     )
                 }
 
@@ -157,23 +163,25 @@ fun OnBoardingScreen(
 
     OnBoardingContent(
         pagerState = pagerState,
-        totalPages = totalPages
+        totalPages = totalPages,
+        onBoardingViewModel = onBoardingViewModel
     )
 }
 
 @Composable
 fun OnBoardingContent(
     pagerState: PagerState,
-    totalPages: Int
+    totalPages: Int,
+    onBoardingViewModel: OnBoardingViewModel
 ) {
     HorizontalPager(
         state = pagerState,
         userScrollEnabled = false
     ) { index ->
         when (index) {
-            0 -> OnBoardingTermsAgreement()
-            1 -> OnBoardingNumberVerification()
-            2 -> OnBoardingOneTimePassword()
+            0 -> OnBoardingTermsAgreement(onBoardingViewModel)
+            1 -> OnBoardingNumberVerification(onBoardingViewModel)
+            2 -> OnBoardingOneTimePassword(onBoardingViewModel)
         }
     }
 }

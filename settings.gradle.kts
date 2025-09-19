@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Live Chat"
 include(":app")
-
+include(":shared:data")
+include(":shared:domain")

@@ -6,7 +6,6 @@ import com.project.livechat.domain.models.Contact
 import com.project.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.project.livechat.domain.useCases.GetLocalContactsUseCase
 import com.project.livechat.domain.utils.StateUI
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,10 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class ContactsViewModel @Inject constructor(
+class ContactsViewModel(
     private val checkRegisteredContactsUseCase: CheckRegisteredContactsUseCase,
     private val getLocalContactsUseCase: GetLocalContactsUseCase
 ) : ViewModel() {

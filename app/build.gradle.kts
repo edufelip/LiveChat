@@ -1,9 +1,7 @@
 plugins {
     kotlin("android")
-    kotlin("kapt")
     id("com.android.application")
     id("com.google.gms.google-services")
-    id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
@@ -19,16 +17,9 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-        testInstrumentationRunner = "com.project.livechat.HiltTestRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
-    }
-    kapt {
-        javacOptions {
-            option("-Adagger.fastInit=ENABLED")
-            option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-        }
-        correctErrorTypes = true
     }
 
     buildTypes {
@@ -65,10 +56,6 @@ android {
     }
 }
 
-kapt {
-    correctErrorTypes = true
-}
-
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
@@ -76,6 +63,9 @@ dependencies {
 
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(project(":shared:domain"))
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.accompanist.permissions)
@@ -89,17 +79,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui.ktx)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.runtime)
     implementation(libs.google.android.material)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.androidx.hilt)
-    kapt(libs.androidx.room.compiler)
-    kapt(libs.androidx.hilt.kapt)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
 
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.material3)
@@ -130,7 +113,4 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.androidx.hilt.test)
-    kaptAndroidTest(libs.androidx.hilt.kapt)
-    androidTestAnnotationProcessor(libs.androidx.hilt.kapt)
 }

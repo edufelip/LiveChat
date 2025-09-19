@@ -16,25 +16,21 @@ import com.project.livechat.domain.providers.IPhoneAuthProvider
 import com.project.livechat.domain.providers.IPhoneAuthProvider.Companion.PHONE_AUTH_TIMEOUT
 import com.project.livechat.domain.providers.IPhoneAuthProvider.Companion.PHONE_VERIFY_MARGIN
 import com.project.livechat.domain.utils.StateUI
-import com.project.livechat.domain.validators.PhoneNumberValidator
-import com.project.livechat.domain.validators.ValidationResult
+import com.project.livechat.domain.validation.PhoneNumberValidator
+import com.project.livechat.domain.validation.ValidationError
+import com.project.livechat.domain.validation.ValidationResult
 import com.project.livechat.ui.ValidationViewModel
-import com.project.livechat.ui.screens.onboarding.OnBoardingValidationErrors
 import com.project.livechat.ui.screens.onboarding.models.NumberVerificationFormState
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.NumberVerificationFormEvent
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OneTimePasswordErrors
 import com.project.livechat.ui.utils.coalesce
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class OnBoardingViewModel @Inject constructor(
+class OnBoardingViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val phoneAuthProvider: IPhoneAuthProvider,
     private val phoneNumberValidator: PhoneNumberValidator
@@ -115,9 +111,9 @@ class OnBoardingViewModel @Inject constructor(
         }
     }
 
-    fun parseOnBoardingError(message: String, errorType: OnBoardingValidationErrors) {
+    fun parseOnBoardingError(message: String, errorType: ValidationError) {
         when (errorType) {
-            OnBoardingValidationErrors.INVALID_NUMBER -> screenState = screenState.copy(
+            ValidationError.InvalidPhoneNumber -> screenState = screenState.copy(
                 phoneNumError = message
             )
         }

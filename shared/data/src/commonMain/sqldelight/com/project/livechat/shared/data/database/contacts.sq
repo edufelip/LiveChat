@@ -1,0 +1,27 @@
+CREATE TABLE contacts (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone_no TEXT NOT NULL,
+    description TEXT,
+    photo TEXT
+);
+
+getAllContacts:
+SELECT id, name, phone_no, description, photo
+FROM contacts
+ORDER BY name;
+
+insertContact:
+INSERT INTO contacts(name, phone_no, description, photo)
+VALUES (?, ?, ?, ?);
+
+updateContactByPhone:
+UPDATE contacts
+SET name = ?,
+    description = ?,
+    photo = ?
+WHERE phone_no = ?;
+
+deleteContactsByPhone:
+DELETE FROM contacts
+WHERE phone_no IN ?;

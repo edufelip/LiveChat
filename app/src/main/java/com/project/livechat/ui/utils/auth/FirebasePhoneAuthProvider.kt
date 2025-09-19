@@ -15,9 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class FirebasePhoneAuthProvider @Inject constructor(
+class FirebasePhoneAuthProvider(
     private val firebaseAuth: FirebaseAuth
 ) : IPhoneAuthProvider {
     override fun callSmsVerification(
