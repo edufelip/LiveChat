@@ -45,3 +45,35 @@ WHERE conversation_id = ?
 clearConversationMessages:
 DELETE FROM messages
 WHERE conversation_id = ?;
+
+getConversationSummaries:
+WITH latest AS (
+    SELECT conversation_id, MAX(created_at) AS max_created_at
+    FROM messages
+    GROUP BY conversation_id
+)
+SELECT
+    m.conversation_id AS conversation_id,
+    m.id AS message_id,
+    m.sender_id AS sender_id,
+    m.body AS body,
+    m.created_at AS created_at,
+    m.status AS status,
+    cs.last_read_at AS last_read_at,
+    cs.is_pinned AS is_pinned,
+    cs.pinned_at AS pinned_at,
+    c.name AS contact_name,
+    c.photo AS contact_photo,
+    (
+        SELECT COUNT(*)
+        FROM messages AS unread
+        WHERE unread.conversation_id = m.conversation_id
+          AND unread.created_at > IFNULL(cs.last_read_at, 0)
+    ) AS unread_count
+FROM latest
+JOIN messages m ON m.conversation_id = latest.conversation_id AND m.created_at = latest.max_created_at
+LEFT JOIN conversation_state cs ON cs.conversation_id = m.conversation_id
+LEFT JOIN contacts c ON c.phone_no = m.conversation_id
+ORDER BY
+    CASE WHEN IFNULL(cs.is_pinned, 0) = 1 THEN 0 ELSE 1 END,
+    m.created_at DESC;

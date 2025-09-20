@@ -42,7 +42,7 @@ import kotlinx.serialization.json.Json
 
 private const val DEFAULT_POLLING_LIMIT = 50
 
-class MessagesRemoteData(
+class FirebaseMessagesRemoteData(
     private val httpClient: HttpClient,
     private val config: FirebaseRestConfig,
     private val sessionProvider: UserSessionProvider,

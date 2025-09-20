@@ -2,9 +2,7 @@ package com.project.livechat.data.di
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
-import com.project.livechat.data.contracts.IContactsRemoteData
 import com.project.livechat.data.remote.FirebaseRestConfig
-import com.project.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.project.livechat.domain.providers.UserSessionProvider
@@ -26,7 +24,6 @@ fun iosPlatformModule(
     single { config }
     single { httpClient }
     single<SqlDriver> { NativeSqliteDriver(LiveChatDatabase.Schema, "livechat.db") }
-    single<IContactsRemoteData> { FirebaseRestContactsRemoteData(get(), get()) }
     single { InMemoryUserSessionProvider() }
     single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
 }

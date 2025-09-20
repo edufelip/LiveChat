@@ -3,7 +3,8 @@ import LiveChatShared
 
 @main
 struct LiveChatIOSApp: App {
-    @StateObject private var conversationViewModel: ConversationViewModel
+    @StateObject private var conversationListViewModel: ConversationListViewModel
+    @StateObject private var contactsViewModel: ContactsViewModel
 
     init() {
         let config = FirebaseRestConfig(
@@ -12,18 +13,27 @@ struct LiveChatIOSApp: App {
             usersCollection: "users",
             messagesCollection: "messages",
             conversationsCollection: "conversations",
+            invitesCollection: "invites",
             websocketEndpoint: "",
             pollingIntervalMs: 5_000
         )
         KoinHolder.shared.startIfNeeded(config: config)
         KoinHolder.shared.updateSession(userId: "demo-user")
-        _conversationViewModel = StateObject(wrappedValue: ConversationViewModel(conversationId: "demo-conversation"))
+        _conversationListViewModel = StateObject(wrappedValue: ConversationListViewModel())
+        _contactsViewModel = StateObject(wrappedValue: ContactsViewModel())
     }
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                ConversationView(viewModel: conversationViewModel)
+            TabView {
+                ConversationListView(viewModel: conversationListViewModel)
+                    .tabItem {
+                        Label("Chats", systemImage: "message.fill")
+                    }
+                ContactsView(viewModel: contactsViewModel, phoneContactsProvider: { [] })
+                    .tabItem {
+                        Label("Contacts", systemImage: "person.2.fill")
+                    }
             }
         }
     }

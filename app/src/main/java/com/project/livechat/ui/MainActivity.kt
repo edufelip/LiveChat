@@ -38,10 +38,7 @@ class MainActivity : ComponentActivity() {
                     onBoardingRoute(
                         navHostController = navController
                     )
-                    homeRoute(
-                        navHostController = navController,
-                        onBackPressedDispatcher = onBackPressedDispatcher
-                    )
+                    homeRoute(navHostController = navController)
                     contactsRoute(
                         navHostController = navController,
                     )

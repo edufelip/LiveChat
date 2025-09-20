@@ -4,12 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,7 +33,9 @@ import com.project.livechat.ui.models.toContactUI
 @Composable
 fun ContactItem(
     contact: ContactUI,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isRegistered: Boolean = false,
+    onInvite: (() -> Unit)? = null
 ) {
     Column {
         Row(
@@ -62,6 +66,18 @@ fun ContactItem(
                 Text(text = contact.name)
                 Text(text = contact.description ?: "")
             }
+            Spacer(modifier = Modifier.weight(1f))
+            if (isRegistered) {
+                Text(
+                    text = "On LiveChat",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else if (onInvite != null) {
+                Button(onClick = onInvite) {
+                    Text(text = "Invite")
+                }
+            }
         }
         HorizontalDivider(
             modifier = Modifier
@@ -82,6 +98,9 @@ fun ContactItemPreview() {
             phoneNo = "+5521985670564",
             description = "A very nice dude (I think)",
             photo = null
-        ).toContactUI(), modifier = Modifier.background(MaterialTheme.colorScheme.background)
+        ).toContactUI(),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        isRegistered = false,
+        onInvite = {}
     )
 }
