@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Timer
@@ -40,6 +39,7 @@ import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.
 import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.utils.extensions.AnnotatedStrStruct
 import com.project.livechat.ui.utils.extensions.AnnotatedStructType
+import com.project.livechat.ui.utils.extensions.LinkText
 import com.project.livechat.ui.utils.extensions.buildLinkText
 import com.project.livechat.ui.utils.extensions.toastShort
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
@@ -188,15 +188,14 @@ fun OneTimePasswordContent(
                 ) {
                     Text(text = "Didn't receive the code?")
                     Spacer(modifier = Modifier.height(4.dp))
-                    ClickableText(text = annotatedString, onClick = { offset ->
-                        annotatedString.getStringAnnotations(
-                            tag = "try_again",
-                            start = offset,
-                            end = offset
-                        ).firstOrNull()?.let {
+                    LinkText(
+                        text = annotatedString,
+                        style = MaterialTheme.typography.bodyMedium
+                    ) { tag ->
+                        if (tag == "try_again") {
                             events.callSmsVerification()
                         }
-                    })
+                    }
                 }
             } else {
                 Row(

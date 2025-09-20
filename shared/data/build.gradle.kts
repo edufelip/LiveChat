@@ -1,21 +1,25 @@
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
 }
 
 kotlin {
     androidTarget()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+    val iosX64 = iosX64()
+    val iosArm64 = iosArm64()
+    val iosSimulatorArm64 = iosSimulatorArm64()
+
+    val xcFramework = XCFramework("LiveChatShared")
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":shared:domain"))
+                api(project(":shared:domain"))
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
                 implementation(libs.sqldelight.runtime)
@@ -24,6 +28,8 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.websockets)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {
@@ -68,7 +74,16 @@ kotlin {
                 implementation(libs.sqldelight.jdbc.driver)
             }
         }
+}
+
+    listOf(iosX64, iosArm64, iosSimulatorArm64).forEach { target ->
+        target.binaries.framework {
+            baseName = "LiveChatShared"
+            export(project(":shared:domain"))
+            xcFramework.add(this)
+        }
     }
+
 
     jvmToolchain(17)
 }

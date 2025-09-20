@@ -51,7 +51,7 @@ class FirebaseRestContactsRemoteData(
             )
         )
 
-        val responses: List<RunQueryResponse> = httpClient.post(config.endpoint) {
+        val responses: List<RunQueryResponse> = httpClient.post(config.queryEndpoint) {
             if (config.apiKey.isNotBlank()) {
                 parameter("key", config.apiKey)
             }

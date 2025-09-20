@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,11 +63,11 @@ fun ContactItem(
                 Text(text = contact.description ?: "")
             }
         }
-        Divider(
-            Modifier
-                .height(1.dp)
+        HorizontalDivider(
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = 32.dp),
+            thickness = 1.dp
         )
     }
 }

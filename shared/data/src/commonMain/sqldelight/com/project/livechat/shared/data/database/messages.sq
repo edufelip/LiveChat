@@ -1,0 +1,47 @@
+CREATE TABLE messages (
+    id TEXT NOT NULL PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    sender_id TEXT NOT NULL,
+    body TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    local_temp_id TEXT
+);
+
+getMessagesForConversation:
+SELECT id, conversation_id, sender_id, body, created_at, status, local_temp_id
+FROM messages
+WHERE conversation_id = ?
+ORDER BY created_at;
+
+insertMessage:
+INSERT OR REPLACE INTO messages(id, conversation_id, sender_id, body, created_at, status, local_temp_id)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+updateMessageStatusByLocalId:
+UPDATE messages
+SET id = ?,
+    status = ?,
+    local_temp_id = NULL
+WHERE local_temp_id = ?;
+
+updateMessageStatus:
+UPDATE messages
+SET status = ?
+WHERE id = ?;
+
+getLatestMessageTimestamp:
+SELECT created_at
+FROM messages
+WHERE conversation_id = ?
+ORDER BY created_at DESC
+LIMIT 1;
+
+deleteMessagesOutsideConversation:
+DELETE FROM messages
+WHERE conversation_id = ?
+  AND id NOT IN ?;
+
+clearConversationMessages:
+DELETE FROM messages
+WHERE conversation_id = ?;

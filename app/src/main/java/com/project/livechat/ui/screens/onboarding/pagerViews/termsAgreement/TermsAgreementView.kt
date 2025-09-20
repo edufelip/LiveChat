@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.utils.extensions.AnnotatedStrStruct
 import com.project.livechat.ui.utils.extensions.AnnotatedStructType
+import com.project.livechat.ui.utils.extensions.LinkText
 import com.project.livechat.ui.utils.extensions.buildLinkText
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 
@@ -79,36 +79,24 @@ fun TermsAgreementContent(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                ClickableText(
+                LinkText(
                     text = annotatedString,
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(
-                            tag = "policy",
-                            start = offset,
-                            end = offset
-                        ).firstOrNull()
-                            ?.let {
-                                Toast.makeText(
-                                    context,
-                                    "To be implemented yet - Privacy Policy",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        annotatedString.getStringAnnotations(
-                            tag = "terms",
-                            start = offset,
-                            end = offset
-                        ).firstOrNull()
-                            ?.let {
-                                Toast.makeText(
-                                    context,
-                                    "To be implemented yet - Terms of Service",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                    },
                     style = MaterialTheme.typography.bodyMedium
-                )
+                ) { tag ->
+                    when (tag) {
+                        "policy" -> Toast.makeText(
+                            context,
+                            "To be implemented yet - Privacy Policy",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        "terms" -> Toast.makeText(
+                            context,
+                            "To be implemented yet - Terms of Service",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             FilledTonalButton(

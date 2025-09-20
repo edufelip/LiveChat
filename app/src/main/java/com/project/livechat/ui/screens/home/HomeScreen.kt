@@ -19,7 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -130,10 +130,9 @@ fun Tabs(itemList: List<TabItemModel>, pagerState: PagerState) {
                 }
             }
         }
-        Divider(
-            Modifier
-                .height(1.dp)
-                .fillMaxWidth()
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.dp
         )
     }
 }

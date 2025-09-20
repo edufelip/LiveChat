@@ -16,6 +16,7 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {

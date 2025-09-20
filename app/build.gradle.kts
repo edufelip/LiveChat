@@ -56,6 +56,10 @@ android {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
@@ -64,8 +68,15 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.android)
     implementation(project(":shared:domain"))
+    implementation(project(":shared:data"))
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+    implementation(libs.sqldelight.android.driver)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.websockets)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.accompanist.permissions)

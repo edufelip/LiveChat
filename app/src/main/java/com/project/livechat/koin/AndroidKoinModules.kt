@@ -1,6 +1,6 @@
 package com.project.livechat.koin
 
-import app.cash.sqldelight.android.AndroidSqliteDriver
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import app.cash.sqldelight.db.SqlDriver
 import android.content.Context
 import com.google.firebase.FirebaseApp
@@ -8,7 +8,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.project.livechat.data.contracts.IContactsRemoteData
 import com.project.livechat.data.remote.FirebaseRestConfig
 import com.project.livechat.data.remote.FirebaseRestContactsRemoteData
+import com.project.livechat.data.session.FirebaseUserSessionProvider
 import com.project.livechat.domain.providers.IPhoneAuthProvider
+import com.project.livechat.domain.providers.UserSessionProvider
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.project.livechat.ui.components.connection.ConnectivityObserver
 import com.project.livechat.ui.components.connection.NetworkConnectivityObserver
@@ -19,6 +21,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -30,6 +33,7 @@ val androidPlatformModule = module {
     single { provideHttpClient() }
     single<ConnectivityObserver> { NetworkConnectivityObserver(androidContext()) }
     single<IContactsRemoteData> { FirebaseRestContactsRemoteData(get(), get()) }
+    single<UserSessionProvider> { FirebaseUserSessionProvider(get()) }
     single<IPhoneAuthProvider> { FirebasePhoneAuthProvider(get()) }
     single<SqlDriver> {
         AndroidSqliteDriver(
@@ -64,4 +68,5 @@ private fun provideHttpClient(): HttpClient = HttpClient(OkHttp) {
     install(Logging) {
         level = LogLevel.NONE
     }
+    install(WebSockets) { }
 }
