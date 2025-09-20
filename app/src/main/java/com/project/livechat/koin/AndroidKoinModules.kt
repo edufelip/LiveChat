@@ -5,9 +5,7 @@ import app.cash.sqldelight.db.SqlDriver
 import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.project.livechat.data.contracts.IContactsRemoteData
 import com.project.livechat.data.remote.FirebaseRestConfig
-import com.project.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.project.livechat.data.session.FirebaseUserSessionProvider
 import com.project.livechat.domain.providers.IPhoneAuthProvider
 import com.project.livechat.domain.providers.UserSessionProvider
@@ -32,7 +30,6 @@ val androidPlatformModule = module {
     single { provideFirebaseRestConfig(androidContext()) }
     single { provideHttpClient() }
     single<ConnectivityObserver> { NetworkConnectivityObserver(androidContext()) }
-    single<IContactsRemoteData> { FirebaseRestContactsRemoteData(get(), get()) }
     single<UserSessionProvider> { FirebaseUserSessionProvider(get()) }
     single<IPhoneAuthProvider> { FirebasePhoneAuthProvider(get()) }
     single<SqlDriver> {

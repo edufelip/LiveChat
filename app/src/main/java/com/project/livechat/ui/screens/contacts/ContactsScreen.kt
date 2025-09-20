@@ -9,10 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -30,18 +30,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.project.livechat.domain.models.Contact
-import com.project.livechat.domain.utils.StateUI
+import com.project.livechat.domain.models.ContactsUiState
 import com.project.livechat.ui.models.ContactUI
 import com.project.livechat.ui.models.toContactUI
+import com.project.livechat.ui.models.toDomain
 import com.project.livechat.ui.screens.contacts.widgets.ContactItem
 import com.project.livechat.ui.utils.extensions.getAllContacts
 import com.project.livechat.ui.utils.extensions.openAppSettings
@@ -59,44 +60,45 @@ fun ContactsScreen(
 ) {
     val context = LocalContext.current
     val activity = context as Activity
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    val localContactsState by contactsViewModel.localContactsList.collectAsStateWithLifecycle()
-    val validatedContactsState by contactsViewModel.validatedContactsList.collectAsStateWithLifecycle()
-    val contactsState = deriveContactsState(localContactsState, validatedContactsState)
+    val uiState by contactsViewModel.uiState.collectAsStateWithLifecycle()
+    var phoneContacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
 
     val permissionsToRequest = arrayOf(Manifest.permission.READ_CONTACTS)
     val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
-    val multiplePermissionResultLauncher = getMultiplePermissionsLauncher(
+    val permissionLauncher = getMultiplePermissionsLauncher(
         permissionsToRequest,
         permissionViewModel,
         hashMapOf(
             Manifest.permission.READ_CONTACTS to {
                 val contacts = context.getAllContacts()
-                contactsViewModel.checkContacts(contacts)
+                phoneContacts = contacts
+                contactsViewModel.syncContacts(contacts)
             }
         )
     )
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
-        val eventObserver = LifecycleEventObserver { _, event ->
+        val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                multiplePermissionResultLauncher.launch(permissionsToRequest)
+                permissionLauncher.launch(permissionsToRequest)
             }
         }
-        lifecycleOwner.lifecycle.addObserver(eventObserver)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(eventObserver)
-        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     ContactsScreenContent(
         navHostController = navHostController,
-        contactsState = contactsState,
-        onRetry = {
+        uiState = uiState,
+        phoneContacts = phoneContacts,
+        onRefresh = {
             val contacts = context.getAllContacts()
-            contactsViewModel.checkContacts(contacts)
-        }
+            phoneContacts = contacts
+            contactsViewModel.syncContacts(contacts)
+        },
+        onInvite = { contactsViewModel.invite(it.toDomain()) }
     )
 
     dialogQueue.reversed().forEach { permission ->
@@ -117,15 +119,23 @@ fun ContactsScreen(
 @Composable
 fun ContactsScreenContent(
     navHostController: NavHostController? = null,
-    contactsState: StateUI<List<ContactUI>>,
-    onRetry: () -> Unit = {}
+    uiState: ContactsUiState,
+    phoneContacts: List<Contact>,
+    onRefresh: () -> Unit = {},
+    onInvite: (ContactUI) -> Unit = {}
 ) {
     var searchText by remember { mutableStateOf("") }
     val filterQuery = searchText.trim()
-    val filteredContacts = remember(contactsState, filterQuery) {
-        val base = (contactsState as? StateUI.Success)?.data ?: emptyList()
-        if (filterQuery.isBlank()) base
-        else base.filter { contact ->
+    val registeredPhones = remember(uiState.validatedContacts) {
+        uiState.validatedContacts.map { it.phoneNo }.toSet()
+    }
+    val displayContacts = remember(uiState.localContacts, phoneContacts) {
+        (phoneContacts + uiState.localContacts).distinctBy { it.phoneNo }
+            .map { it.toContactUI() }
+    }
+    val filteredContacts = remember(displayContacts, filterQuery) {
+        if (filterQuery.isBlank()) displayContacts
+        else displayContacts.filter { contact ->
             contact.name.contains(filterQuery, ignoreCase = true) ||
                 contact.phoneNo.contains(filterQuery, ignoreCase = true)
         }
@@ -160,35 +170,22 @@ fun ContactsScreenContent(
                 placeholder = { Text(text = "Search") }
             )
 
-            when (contactsState) {
-                is StateUI.Success -> {
-                    if (filteredContacts.isEmpty()) {
-                        EmptyContactsState(modifier = Modifier.fillMaxSize())
-                    } else {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            itemsIndexed(
-                                items = filteredContacts,
-                                key = { _, contact -> contact.id }
-                            ) { _, contact ->
-                                ContactItem(contact = contact)
-                            }
-                        }
+            when {
+                uiState.isLoading -> LoadingState(modifier = Modifier.fillMaxSize())
+                uiState.errorMessage != null -> ErrorState(
+                    modifier = Modifier.fillMaxSize(),
+                    onRetry = onRefresh
+                )
+                filteredContacts.isEmpty() -> EmptyContactsState(modifier = Modifier.fillMaxSize())
+                else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(filteredContacts, key = { it.phoneNo }) { contact ->
+                        val isRegistered = registeredPhones.contains(contact.phoneNo)
+                        ContactItem(
+                            contact = contact,
+                            isRegistered = isRegistered,
+                            onInvite = if (isRegistered || uiState.isSyncing) null else { { onInvite(contact) } }
+                        )
                     }
-                }
-
-                is StateUI.Error -> {
-                    ErrorState(
-                        modifier = Modifier.fillMaxSize(),
-                        onRetry = onRetry
-                    )
-                }
-
-                StateUI.Loading -> {
-                    LoadingState(modifier = Modifier.fillMaxSize())
-                }
-
-                StateUI.Idle -> {
-                    IdleState(modifier = Modifier.fillMaxSize())
                 }
             }
         }
@@ -205,14 +202,16 @@ private fun LoadingState(modifier: Modifier = Modifier) {
 @Composable
 private fun ErrorState(
     modifier: Modifier = Modifier,
-    onRetry: () -> Unit
+    onRetry: () -> Unit = {}
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "We couldn't reach Firestore.")
-            Button(onClick = onRetry) {
-                Text(text = "Retry")
-            }
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Something went wrong")
+        Button(onClick = onRetry) {
+            Text(text = "Retry")
         }
     }
 }
@@ -220,70 +219,12 @@ private fun ErrorState(
 @Composable
 private fun EmptyContactsState(modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Text(text = "No contacts to show yet.")
+        Text(text = "No contacts found")
     }
 }
 
-@Composable
-private fun IdleState(modifier: Modifier = Modifier) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Text(text = "Grant contacts permission to load your list.")
-    }
-}
-
-@Composable
 @Preview
-fun ContactsScreenPreview() {
-    ContactsScreenContent(
-        contactsState = StateUI.Success(
-            listOf(
-                Contact(
-                    id = 1,
-                    name = "Reginaldo",
-                    phoneNo = "+5521985670564",
-                    description = "A very nice dude 😘",
-                    photo = null
-                ).toContactUI(),
-                Contact(
-                    id = 2,
-                    name = "Maria",
-                    phoneNo = "+5521985000000",
-                    description = null,
-                    photo = null
-                ).toContactUI()
-            )
-        )
-    )
+@Composable
+private fun LoadingStatePreview() {
+    LoadingState(modifier = Modifier.fillMaxSize())
 }
-
-private fun deriveContactsState(
-    localState: StateUI<List<Contact>>,
-    remoteState: StateUI<List<Contact>>
-): StateUI<List<ContactUI>> {
-    val localUi = localState.mapState { contacts -> contacts.toUiModels() }
-    val remoteUi = remoteState.mapState { contacts -> contacts.toUiModels() }
-
-    return when (remoteUi) {
-        is StateUI.Success -> if (remoteUi.data.isEmpty()) localUi else remoteUi
-        is StateUI.Error -> when (localUi) {
-            is StateUI.Success -> localUi
-            else -> remoteUi
-        }
-        StateUI.Loading -> when (localUi) {
-            is StateUI.Success -> localUi
-            is StateUI.Error -> localUi
-            StateUI.Loading -> StateUI.Loading
-            StateUI.Idle -> StateUI.Loading
-        }
-        StateUI.Idle -> localUi
-    }
-}
-
-private inline fun <T, R> StateUI<T>.mapState(crossinline transform: (T) -> R): StateUI<R> = when (this) {
-    is StateUI.Success -> StateUI.Success(transform(data))
-    is StateUI.Error -> StateUI.Error(type, cause)
-    StateUI.Loading -> StateUI.Loading
-    StateUI.Idle -> StateUI.Idle
-}
-
-private fun List<Contact>.toUiModels(): List<ContactUI> = map { it.toContactUI() }

@@ -22,10 +22,11 @@ import com.project.livechat.domain.utils.StateUI
 import com.project.livechat.domain.validation.ValidationError
 import com.project.livechat.domain.validation.ValidationResult
 import com.project.livechat.ui.navigation.builder.HomeScreen
+import com.project.livechat.ui.navigation.builder.OnboardingScreen
 import com.project.livechat.ui.screens.onboarding.pagerViews.numberVerification.OnBoardingNumberVerification
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OnBoardingOneTimePassword
 import com.project.livechat.ui.screens.onboarding.pagerViews.oneTimePassword.OneTimePasswordErrors
-import com.project.livechat.ui.screens.onboarding.pagerViews.termsAgreement.OnBoardingTermsAgreement
+import com.project.livechat.ui.screens.onboarding.pagerViews.success.OnBoardingSuccess
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import com.project.livechat.ui.widgets.dialog.ErrorAlertDialog
 import com.project.livechat.ui.widgets.dialog.ProgressAlertDialog
@@ -50,6 +51,7 @@ fun OnBoardingScreen(
     val sendSmsStateUI = onBoardingViewModel.sendSmsStateUI.collectAsStateWithLifecycle().value
     val verifyCodeStateUI =
         onBoardingViewModel.verifyCodeStateUI.collectAsStateWithLifecycle().value
+    val onboardingRoute = remember { requireNotNull(OnboardingScreen::class.qualifiedName) }
 
     var progressTitle: String = ""
     var progressDescription: String = ""
@@ -63,8 +65,9 @@ fun OnBoardingScreen(
 
         when (sendSmsStateUI) {
             is StateUI.Success -> {
-                if (onBoardingViewModel.screenState.currentPage == 1)
+                if (onBoardingViewModel.screenState.currentPage == 0) {
                     onBoardingViewModel.navigateForward()
+                }
             }
 
             StateUI.Loading -> {
@@ -83,7 +86,9 @@ fun OnBoardingScreen(
 
         when (verifyCodeStateUI) {
             is StateUI.Success -> {
-                navHostController.navigate(HomeScreen)
+                if (onBoardingViewModel.screenState.currentPage < onBoardingViewModel.screenState.totalPages - 1) {
+                    onBoardingViewModel.navigateForward()
+                }
             }
 
             StateUI.Loading -> {
@@ -163,25 +168,38 @@ fun OnBoardingScreen(
 
     OnBoardingContent(
         pagerState = pagerState,
-        totalPages = totalPages,
-        onBoardingViewModel = onBoardingViewModel
+        onBoardingViewModel = onBoardingViewModel,
+        onNavigateBack = { navHostController.popBackStack() },
+        onStartChatting = {
+            navHostController.popBackStack(onboardingRoute, inclusive = true)
+            navHostController.navigate(HomeScreen) {
+                launchSingleTop = true
+            }
+        }
     )
 }
 
 @Composable
 fun OnBoardingContent(
     pagerState: PagerState,
-    totalPages: Int,
-    onBoardingViewModel: OnBoardingViewModel
+    onBoardingViewModel: OnBoardingViewModel,
+    onNavigateBack: () -> Unit,
+    onStartChatting: () -> Unit
 ) {
     HorizontalPager(
         state = pagerState,
         userScrollEnabled = false
     ) { index ->
         when (index) {
-            0 -> OnBoardingTermsAgreement(onBoardingViewModel)
-            1 -> OnBoardingNumberVerification(onBoardingViewModel)
-            2 -> OnBoardingOneTimePassword(onBoardingViewModel)
+            0 -> OnBoardingNumberVerification(
+                onBoardingViewModel = onBoardingViewModel,
+                onNavigateBack = onNavigateBack
+            )
+            1 -> OnBoardingOneTimePassword(onBoardingViewModel)
+            2 -> OnBoardingSuccess(
+                state = onBoardingViewModel.screenState,
+                onStartChatting = onStartChatting
+            )
         }
     }
 }

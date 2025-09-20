@@ -44,26 +44,35 @@ class ContactsRepositoryMock: IContactsRepository {
         }
     }
 
+    override suspend fun inviteContact(contact: Contact): Boolean {
+        registeredContacts.add(contact)
+        return true
+    }
+
     companion object {
         val FAKE_REGISTERED_CONTACT_ONE = Contact(
+            id = 1,
             name = "Registered Contact 1",
             phoneNo = "+5521988888888",
             description = null,
             photo = null
         )
         val FAKE_REGISTERED_CONTACT_TWO = Contact(
+            id = 2,
             name = "Registered Contact 2",
             phoneNo = "+5515988888888",
             description = null,
             photo = null
         )
         val FAKE_LOCAL_CONTACT_ONE = Contact(
+            id = 3,
             name = "Local Contact 1",
             phoneNo = "+5521999999999",
             description = null,
             photo = null
         )
         val FAKE_LOCAL_CONTACT_TWO = Contact(
+            id = 4,
             name = "Local Contact 2",
             phoneNo = "+5515999999999",
             description = null,

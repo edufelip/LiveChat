@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.util)
     implementation(libs.androidx.compose.ui.viewbinding)
     implementation(libs.androidx.compose.ui.googlefonts)
+    implementation(libs.libphonenumber)
     implementation(libs.coil.kt.compose)
     implementation(libs.jupiter)
     implementation(libs.kotlinx.serialization.json)

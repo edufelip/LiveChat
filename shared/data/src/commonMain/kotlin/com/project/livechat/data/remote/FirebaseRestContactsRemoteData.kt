@@ -9,6 +9,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,29 @@ class FirebaseRestContactsRemoteData(
                 emit(contact)
             }
         }
+    }
+
+    override suspend fun inviteContact(contact: Contact): Boolean = withContext(dispatcher) {
+        if (!config.isConfigured) return@withContext false
+        val now = Clock.System.now().toEpochMilliseconds()
+        val documentsUrl = "${config.documentsEndpoint}/${config.invitesCollection}"
+        val request = CreateDocumentRequest(
+            fields = mapOf(
+                "phone_no" to Value(stringValue = contact.phoneNo),
+                "name" to Value(stringValue = contact.name),
+                "invited_at" to Value(integerValue = now.toString())
+            )
+        )
+
+        runCatching {
+            httpClient.post(documentsUrl) {
+                if (config.apiKey.isNotBlank()) {
+                    parameter("key", config.apiKey)
+                }
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+        }.isSuccess
     }
 
     private suspend fun contactExists(phoneNumber: String): Boolean = withContext(dispatcher) {
@@ -98,7 +122,8 @@ class FirebaseRestContactsRemoteData(
 
     @Serializable
     private data class Value(
-        @SerialName("stringValue") val stringValue: String
+        @SerialName("stringValue") val stringValue: String? = null,
+        @SerialName("integerValue") val integerValue: String? = null
     )
 
     @Serializable
@@ -109,6 +134,11 @@ class FirebaseRestContactsRemoteData(
     @Serializable
     private data class FirestoreDocument(
         val name: String? = null
+    )
+
+    @Serializable
+    private data class CreateDocumentRequest(
+        val fields: Map<String, Value>
     )
 
     private companion object {

@@ -8,6 +8,7 @@ import com.project.livechat.data.mappers.insertMessage
 import com.project.livechat.data.mappers.insertMessages
 import com.project.livechat.data.mappers.toDomain
 import com.project.livechat.data.mappers.toInsertParams
+import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageStatus
 import com.project.livechat.shared.data.database.LiveChatDatabase
@@ -23,6 +24,7 @@ class MessagesLocalDataSource(
 ) : IMessagesLocalData {
 
     private val queries = database.messagesQueries
+    private val conversationStateQueries = database.conversation_stateQueries
 
     override fun observeMessages(conversationId: String, limit: Int): Flow<List<Message>> {
         return queries.getMessagesForConversation(conversationId)
@@ -78,6 +80,65 @@ class MessagesLocalDataSource(
                 database.clearConversation(conversationId)
                 database.insertMessages(messages.toInsertParams())
             }
+        }
+    }
+
+    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
+        return queries.getConversationSummaries { conversationId, messageId, senderId, body, createdAt, status, lastReadAt, isPinned, pinnedAt, contactName, contactPhoto, unreadCount ->
+            val statusEnum = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT)
+            val message = Message(
+                id = messageId,
+                conversationId = conversationId,
+                senderId = senderId,
+                body = body,
+                createdAt = createdAt,
+                status = statusEnum,
+                localTempId = null
+            )
+            ConversationSummary(
+                conversationId = conversationId,
+                contactName = contactName,
+                contactPhoto = contactPhoto,
+                lastMessage = message,
+                unreadCount = unreadCount?.toInt() ?: 0,
+                isPinned = (isPinned ?: 0L) != 0L,
+                pinnedAt = pinnedAt,
+                lastReadAt = lastReadAt
+            )
+        }
+            .asFlow()
+            .mapToList(dispatcher)
+    }
+
+    override suspend fun markConversationAsRead(conversationId: String, lastReadAt: Long) {
+        withContext(dispatcher) {
+            conversationStateQueries.insertConversationState(
+                conversation_id = conversationId,
+                last_read_at = lastReadAt,
+                is_pinned = 0,
+                pinned_at = null
+            )
+            conversationStateQueries.updateLastReadAt(
+                last_read_at = lastReadAt,
+                conversation_id = conversationId
+            )
+        }
+    }
+
+    override suspend fun setConversationPinned(conversationId: String, pinned: Boolean, pinnedAt: Long?) {
+        withContext(dispatcher) {
+            val pinnedValue = if (pinned) 1L else 0L
+            conversationStateQueries.insertConversationState(
+                conversation_id = conversationId,
+                last_read_at = 0,
+                is_pinned = pinnedValue,
+                pinned_at = pinnedAt
+            )
+            conversationStateQueries.updatePinnedState(
+                is_pinned = pinnedValue,
+                pinned_at = pinnedAt,
+                conversation_id = conversationId
+            )
         }
     }
 }

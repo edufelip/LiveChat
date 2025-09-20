@@ -11,8 +11,9 @@ LiveChat is a Kotlin Multiplatform chat experience geared toward organizing conv
 - **State/Data**: Kotlin Coroutines/Flows, shared ViewModels created in `app/src/main/java/com/project/livechat/ui/viewmodels`, Koin adapters in `androidViewModelModule`.
 - **Persistence**: [SQDelight](https://cashapp.github.io/sqldelight/) schema defined under `shared/data/src/commonMain/sqldelight` with drivers provided per platform.
 - **Remote**:
-  - Android uses Firebase Auth for phone verification and the shared REST client (`FirebaseRestContactsRemoteData`) to query Firestore via Ktor/OkHttp. Configuration is pulled from `google-services.json` at runtime.
-  - iOS shares the same REST client using the Darwin engine; a helper reads `GoogleService-Info.plist` or accepts explicit `FirebaseRestConfig` values when credentials change.
+  - Android uses Firebase Auth for phone verification and resolves Firestore clients from the shared `firebaseBackendModule`. Configuration is pulled from `google-services.json` at runtime.
+  - iOS reuses the same backend module with a Darwin `HttpClient`; supply credentials via `GoogleService-Info.plist` or pass a manual `FirebaseRestConfig`.
+- **Backend Abstraction**: Koin boots with a configurable backend module list. The default `firebaseBackendModule` wires Firestore/Realtime listeners today, but you can replace it with your own implementation that provides `IContactsRemoteData`, `IMessagesRemoteData`, and `UserSessionProvider` bindings for a dedicated service.
 - **Testing**: Shared MPP tests cover the SQDelight data source and Koin bootstrap (`shared/data/src/commonTest`). Android instrumented tests were removed during the migration; add new ones as needed.
 
 ## Getting Started
@@ -51,22 +52,25 @@ https://github.com/edufelip/live-chat_android.git
       usersCollection: "users",
       messagesCollection: "messages",
       conversationsCollection: "conversations",
+      invitesCollection: "invites",
       websocketEndpoint: "",
       pollingIntervalMs: 5_000
   )
   KoinHolder.shared.startIfNeeded(config: config)
   KoinHolder.shared.updateSession(userId: "demo-user", idToken: "optional-token")
   ```
+- Target a non-Firebase backend by passing your own module list to `startKoinForiOS(config:httpClient:backendModules:)`; the helper will bypass the default `firebaseBackendModule`.
 - Alternatively, keep a `GoogleService-Info.plist` in the Xcode target and call `loadFirebaseRestConfigFromPlist()` to build the config before starting Koin (see `shared/data/src/iosMain/.../FirebaseRestConfigLoader.kt`).
 - `ConversationViewModel` subscribes to the shared `ConversationPresenter` (`shared/domain/src/commonMain/.../ConversationPresenter.kt`) and exposes Swift-friendly `MessageItemViewModel` objects for `ConversationView`.
 
 ### Dependency Graph
 Koin bootstraps in `MyApplication` via `initSharedKoin`, wiring:
 - `androidPlatformModule` (Firebase SDK bindings, connectivity observer, SQL driver).
+- `firebaseBackendModule` (Firestore contacts/messages clients, session provider bindings).
 - `androidViewModelModule` (Compose ViewModels).
 - Shared modules from `:shared:data` and `:shared:domain`.
 
-On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatformModule` (Darwin HTTP client, native SQLDelight driver, in-memory session provider) so SwiftUI can resolve `ConversationPresenter` and repositories.
+On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatformModule` (Darwin HTTP client, native SQLDelight driver, in-memory session provider) plus the backend module list you provide—defaulting to `firebaseBackendModule`.
 
 ## Layout Preview
 <br>

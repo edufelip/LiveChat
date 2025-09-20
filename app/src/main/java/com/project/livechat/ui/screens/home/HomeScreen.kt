@@ -1,213 +1,201 @@
 package com.project.livechat.ui.screens.home
 
-import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.project.livechat.ui.navigation.builder.ContactsScreen
-import com.project.livechat.ui.screens.home.behavior.homeTabBehaviorFactory
-import com.project.livechat.ui.screens.home.models.TabItemModel
-import com.project.livechat.ui.screens.home.models.chatCardList
-import com.project.livechat.ui.screens.home.models.tabItemList
-import com.project.livechat.ui.screens.home.widgets.ChatCard
-import com.project.livechat.ui.screens.home.widgets.TabItem
+import com.project.livechat.ui.screens.home.models.ConversationItemUiModel
+import com.project.livechat.ui.screens.home.models.HomeUiState
+import com.project.livechat.ui.screens.home.widgets.ConversationCard
 import com.project.livechat.ui.theme.LiveChatTheme
-import com.project.livechat.ui.widgets.ActionIcon
-import com.project.livechat.ui.widgets.SwipeableItemWithActions
+import com.project.livechat.ui.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
     navHostController: NavHostController,
-    backPressedDispatcher: OnBackPressedDispatcher
+    viewModel: HomeViewModel = koinViewModel(),
+    onConversationSelected: (String) -> Unit,
+    onContactsClick: () -> Unit = { navHostController.navigate(ContactsScreen) }
 ) {
-    val pagerState = rememberPagerState {
-        tabItemList.size
-    }
-    HomeContent(
-        itemList = tabItemList,
-        pagerState = pagerState,
-        navHostController = navHostController
-    )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearError()
+            }
+        }
+    }
+
+    HomeContent(
+        uiState = uiState,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
+        onConversationClicked = {
+            viewModel.onConversationOpened(it.id)
+            onConversationSelected(it.id)
+        },
+        onPinToggle = { id, pinned -> viewModel.togglePinned(id, pinned) },
+        onContactsClick = onContactsClick,
+        snackbarHostState = snackbarHostState
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeContent(
-    itemList: List<TabItemModel>,
-    pagerState: PagerState,
-    navHostController: NavHostController
+private fun HomeContent(
+    uiState: HomeUiState,
+    onSearchQueryChange: (String) -> Unit,
+    onConversationClicked: (ConversationItemUiModel) -> Unit,
+    onPinToggle: (String, Boolean) -> Unit,
+    onContactsClick: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
-
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navHostController.navigate(ContactsScreen)
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null
-                )
+            FloatingActionButton(onClick = onContactsClick) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier.padding(paddingValues = paddingValues)
-        ) {
-            Tabs(itemList = itemList, pagerState = pagerState)
-            TabsContent(itemList = itemList, pagerState = pagerState)
-        }
-    }
-}
-
-@Composable
-fun Tabs(itemList: List<TabItemModel>, pagerState: PagerState) {
-    val scope = rememberCoroutineScope()
-    Column {
-        LazyRow(
             modifier = Modifier
-                .padding(start = 8.dp)
-                .padding(bottom = 8.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            itemsIndexed(itemList) { index, item ->
-                TabItem(pagerState = pagerState, index = index, item = item) { _ ->
-                    scope.launch {
-                        homeTabBehaviorFactory(
-                            itemList[index].behavior,
-                            pagerState,
-                            scope,
-                            index
-                        ).execute()
+            var searchField by remember(uiState.searchQuery) { mutableStateOf(TextFieldValue(uiState.searchQuery)) }
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = searchField,
+                onValueChange = {
+                    searchField = it
+                    onSearchQueryChange(it.text)
+                },
+                label = { Text(text = "Search conversations") },
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when {
+                uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                uiState.conversations.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "No conversations yet", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                else -> {
+                    val pinned = uiState.conversations.filter { it.isPinned }
+                    val others = uiState.conversations.filterNot { it.isPinned }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        if (pinned.isNotEmpty()) {
+                            item {
+                                SectionHeader(title = "Pinned")
+                            }
+                            items(pinned, key = { it.id }) { item ->
+                                ConversationCard(
+                                    item = item,
+                                    onClick = { onConversationClicked(item) },
+                                    onTogglePin = { onPinToggle(item.id, it) }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
+                        }
+
+                        item {
+                            SectionHeader(title = if (pinned.isNotEmpty()) "Others" else "Conversations")
+                        }
+                        items(others, key = { it.id }) { item ->
+                            ConversationCard(
+                                item = item,
+                                onClick = { onConversationClicked(item) },
+                                onTogglePin = { onPinToggle(item.id, it) }
+                            )
+                        }
                     }
                 }
             }
         }
-        HorizontalDivider(
-            modifier = Modifier.fillMaxWidth(),
-            thickness = 1.dp
-        )
     }
 }
 
 @Composable
-fun TabsContent(itemList: List<TabItemModel>, pagerState: PagerState) {
-    HorizontalPager(
-        state = pagerState,
-        userScrollEnabled = false
-    ) {
-        TabContent()
-    }
-}
-
-@Composable
-fun TabContent() {
-    val chatCardList = chatCardList.toMutableStateList()
-    chatCardList.takeIf { it.isNotEmpty() }?.let {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(top = 8.dp, start = 8.dp, end = 8.dp)
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            itemsIndexed(
-                items = it,
-                key = { _, contact -> contact.id }
-            ) { index, chatCard ->
-                SwipeableItemWithActions(
-                    isRevealed = chatCard.isOptionsRevealed,
-                    actions = {
-                        ActionIcon(
-                            onClick = {
-                                chatCardList[index] = chatCard.copy(isOptionsRevealed = false)
-                            },
-                            backgroundColor = Color.Yellow,
-                            icon = Icons.Default.Email,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                        ActionIcon(
-                            onClick = {
-                                chatCardList[index] = chatCard.copy(isOptionsRevealed = false)
-                            },
-                            backgroundColor = Color.Red,
-                            icon = Icons.Default.Delete,
-                            modifier = Modifier.fillMaxHeight()
-                        )
-                    }
-                ) {
-                   ChatCard(chatCardModel = chatCard)
-                }
-            }
-        }
-    } ?: run {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "")
-        }
-    }
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
 }
 
 @Preview
 @Composable
-fun HomePreview() {
-    val pagerState = rememberPagerState {
-        tabItemList.size
-    }
-    val navHostController = rememberNavController()
+private fun HomeContentPreview() {
     LiveChatTheme {
         HomeContent(
-            itemList = tabItemList,
-            pagerState = pagerState,
-            navHostController = navHostController
+            uiState = HomeUiState(
+                conversations = listOf(
+                    ConversationItemUiModel(
+                        id = "1",
+                        title = "Walter White",
+                        subtitle = "I'm the one who knocks",
+                        timeLabel = "10:21 AM",
+                        timestamp = 0L,
+                        unreadCount = 2,
+                        isPinned = true,
+                        avatarUrl = null
+                    ),
+                    ConversationItemUiModel(
+                        id = "2",
+                        title = "Skyler",
+                        subtitle = "Let's talk tonight",
+                        timeLabel = "Yesterday",
+                        timestamp = 0L,
+                        unreadCount = 0,
+                        isPinned = false,
+                        avatarUrl = null
+                    )
+                )
+            ),
+            onSearchQueryChange = {},
+            onConversationClicked = {},
+            onPinToggle = { _, _ -> },
+            onContactsClick = {},
+            snackbarHostState = remember { SnackbarHostState() }
         )
     }
 }

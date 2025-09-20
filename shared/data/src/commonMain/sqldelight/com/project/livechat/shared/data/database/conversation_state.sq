@@ -1,0 +1,26 @@
+CREATE TABLE conversation_state (
+    conversation_id TEXT NOT NULL PRIMARY KEY,
+    last_read_at INTEGER NOT NULL DEFAULT 0,
+    is_pinned INTEGER NOT NULL DEFAULT 0,
+    pinned_at INTEGER
+);
+
+insertConversationState:
+INSERT OR IGNORE INTO conversation_state(conversation_id, last_read_at, is_pinned, pinned_at)
+VALUES (?, ?, ?, ?);
+
+updateLastReadAt:
+UPDATE conversation_state
+SET last_read_at = ?
+WHERE conversation_id = ?;
+
+updatePinnedState:
+UPDATE conversation_state
+SET is_pinned = ?,
+    pinned_at = ?
+WHERE conversation_id = ?;
+
+getConversationState:
+SELECT conversation_id, last_read_at, is_pinned, pinned_at
+FROM conversation_state
+WHERE conversation_id = ?;

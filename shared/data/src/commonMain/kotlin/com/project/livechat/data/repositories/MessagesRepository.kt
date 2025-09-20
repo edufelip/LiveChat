@@ -3,6 +3,7 @@ package com.project.livechat.data.repositories
 import com.project.livechat.data.contracts.IMessagesLocalData
 import com.project.livechat.data.contracts.IMessagesRemoteData
 import com.project.livechat.data.mappers.toPendingMessage
+import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageDraft
 import com.project.livechat.domain.models.MessageStatus
@@ -62,6 +63,22 @@ class MessagesRepository(
                 localData.upsertMessages(remoteMessages)
             }
             remoteMessages
+        }
+    }
+
+    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
+        return localData.observeConversationSummaries()
+    }
+
+    override suspend fun markConversationAsRead(conversationId: String, lastReadAt: Long) {
+        withContext(dispatcher) {
+            localData.markConversationAsRead(conversationId, lastReadAt)
+        }
+    }
+
+    override suspend fun setConversationPinned(conversationId: String, pinned: Boolean, pinnedAt: Long?) {
+        withContext(dispatcher) {
+            localData.setConversationPinned(conversationId, pinned, pinnedAt)
         }
     }
 }
