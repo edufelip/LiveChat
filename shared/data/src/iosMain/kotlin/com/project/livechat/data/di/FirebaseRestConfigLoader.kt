@@ -9,6 +9,7 @@ import platform.Foundation.dictionaryWithContentsOfFile
 private const val DEFAULT_USERS_COLLECTION = "users"
 private const val DEFAULT_MESSAGES_COLLECTION = "messages"
 private const val DEFAULT_CONVERSATIONS_COLLECTION = "conversations"
+private const val DEFAULT_INVITES_COLLECTION = "invites"
 private const val DEFAULT_WEBSOCKET_ENDPOINT = ""
 private const val DEFAULT_POLLING_INTERVAL_MS = 5_000L
 
@@ -19,6 +20,7 @@ private const val MESSAGES_COLLECTION_KEY = "FIRESTORE_MESSAGES_COLLECTION"
 private const val CONVERSATIONS_COLLECTION_KEY = "FIRESTORE_CONVERSATIONS_COLLECTION"
 private const val WEBSOCKET_ENDPOINT_KEY = "FIRESTORE_WEBSOCKET_ENDPOINT"
 private const val POLLING_INTERVAL_KEY = "FIRESTORE_POLLING_INTERVAL_MS"
+private const val INVITES_COLLECTION_KEY = "FIRESTORE_INVITES_COLLECTION"
 
 @Throws(IllegalStateException::class)
 fun loadFirebaseRestConfigFromPlist(
@@ -54,12 +56,16 @@ fun loadFirebaseRestConfigFromPlist(
     val pollingIntervalMs = ((dictionary[POLLING_INTERVAL_KEY] as? NSNumber)?.longLongValue)?.toLong()
         ?: DEFAULT_POLLING_INTERVAL_MS
 
+    val invitesCollection = (dictionary[INVITES_COLLECTION_KEY] as? String)
+        ?: DEFAULT_INVITES_COLLECTION
+
     return FirebaseRestConfig(
         projectId = projectId,
         apiKey = apiKey,
         usersCollection = usersCollection,
         messagesCollection = messagesCollection,
         conversationsCollection = conversationsCollection,
+        invitesCollection = invitesCollection,
         websocketEndpoint = websocketEndpoint,
         pollingIntervalMs = pollingIntervalMs
     )

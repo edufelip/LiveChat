@@ -15,7 +15,8 @@ data class ContactUI(
                     this.id == it.id &&
                             this.name == it.name &&
                             this.description == it.description &&
-                            this.phoneNo == it.photo
+                            this.phoneNo == it.phoneNo &&
+                            this.photo == it.photo
                     )
         } ?: return false
     }
@@ -37,5 +38,15 @@ fun Contact.toContactUI(): ContactUI {
         phoneNo = this.phoneNo,
         description = this.description,
         photo = this.photo,
+    )
+}
+
+fun ContactUI.toDomain(): Contact {
+    return Contact(
+        id = id,
+        name = name,
+        phoneNo = phoneNo,
+        description = description,
+        photo = photo
     )
 }

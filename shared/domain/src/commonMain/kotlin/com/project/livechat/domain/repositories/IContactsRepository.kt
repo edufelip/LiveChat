@@ -13,4 +13,6 @@ interface IContactsRepository {
     suspend fun addContactToLocal(contact: Contact)
 
     suspend fun updateContacts(contacts: List<Contact>)
+
+    suspend fun inviteContact(contact: Contact): Boolean
 }

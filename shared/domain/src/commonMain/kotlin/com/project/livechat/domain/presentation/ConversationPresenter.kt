@@ -31,7 +31,8 @@ class ConversationPresenter(
 ) {
 
     private val _uiState = MutableStateFlow(ConversationUiState())
-    val uiState: CStateFlow<ConversationUiState> = _uiState.asStateFlow().asCStateFlow()
+    val state = _uiState.asStateFlow()
+    val uiState: CStateFlow<ConversationUiState> = state.asCStateFlow()
 
     private var observeJob: Job? = null
 

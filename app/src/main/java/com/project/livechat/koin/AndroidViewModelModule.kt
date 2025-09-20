@@ -9,8 +9,8 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val androidViewModelModule = module {
-    viewModel { ContactsViewModel(get(), get()) }
+    viewModel { ContactsViewModel(get()) }
     viewModel { PermissionViewModel() }
-    viewModel { HomeViewModel() }
+    viewModel { HomeViewModel(get()) }
     viewModel { (stateHandle: SavedStateHandle) -> OnBoardingViewModel(stateHandle, get(), get()) }
 }

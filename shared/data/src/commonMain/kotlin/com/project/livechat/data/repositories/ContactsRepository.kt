@@ -29,4 +29,8 @@ class ContactsRepository(
     override suspend fun updateContacts(contacts: List<Contact>) {
         localData.updateContact(contacts)
     }
+
+    override suspend fun inviteContact(contact: Contact): Boolean {
+        return remoteData.inviteContact(contact)
+    }
 }

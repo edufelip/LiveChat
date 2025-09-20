@@ -8,19 +8,26 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.project.livechat.ui.navigation.builder.AuthenticationScreen
 import com.project.livechat.ui.navigation.builder.HomeScreen
+import com.project.livechat.ui.navigation.builder.authenticationRoute
 import com.project.livechat.ui.navigation.builder.contactsRoute
 import com.project.livechat.ui.navigation.builder.homeRoute
 import com.project.livechat.ui.navigation.builder.onBoardingRoute
 import com.project.livechat.ui.theme.LiveChatTheme
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
+    private val firebaseAuth: FirebaseAuth by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,17 +38,25 @@ class MainActivity : ComponentActivity() {
             LiveChatTheme {
                 UpdateSystemBars(window = window)
                 val navController = rememberNavController()
+                val startDestination = remember {
+                    if (firebaseAuth.currentUser == null) {
+                        AuthenticationScreen
+                    } else {
+                        HomeScreen
+                    }
+                }
                 NavHost(
                     navController = navController,
-                    startDestination = HomeScreen,
+                    startDestination = startDestination,
                 ) {
-                    onBoardingRoute(
-                        navHostController = navController
-                    )
-                    homeRoute(
+                    authenticationRoute(
                         navHostController = navController,
                         onBackPressedDispatcher = onBackPressedDispatcher
                     )
+                    onBoardingRoute(
+                        navHostController = navController
+                    )
+                    homeRoute(navHostController = navController)
                     contactsRoute(
                         navHostController = navController,
                     )

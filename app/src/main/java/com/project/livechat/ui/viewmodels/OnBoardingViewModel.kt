@@ -74,7 +74,10 @@ class OnBoardingViewModel(
             }
 
             is NumberVerificationFormEvent.PhoneCodeChanged -> {
-                screenState = screenState.copy(phoneCode = event.code)
+                screenState = screenState.copy(
+                    phoneCode = event.dialCode,
+                    countryIso = event.isoCode
+                )
                 resetFormError()
             }
 

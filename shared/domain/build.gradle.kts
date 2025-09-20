@@ -27,6 +27,11 @@ kotlin {
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.libphonenumber)
+            }
+        }
         val iosMain by creating {
             dependsOn(commonMain)
             iosX64Main.dependsOn(this)
