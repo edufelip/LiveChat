@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +40,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,9 +53,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +69,12 @@ import com.project.livechat.ui.theme.LiveChatTheme
 import com.project.livechat.ui.viewmodels.OnBoardingViewModel
 import java.util.Locale
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+
+private val phoneNumberUtilInstance: PhoneNumberUtil by lazy { PhoneNumberUtil.getInstance() }
+private val countryOptionsCache: List<CountryOption> by lazy {
+    buildCountryOptions(phoneNumberUtilInstance)
+}
 
 @Composable
 fun OnBoardingNumberVerification(
@@ -122,8 +133,8 @@ private fun NumberVerificationContent(
     val displayFont = FontFamily.Serif
 
     val scope = rememberCoroutineScope()
-    val phoneNumberUtil = remember { PhoneNumberUtil.getInstance() }
-    val countryOptions = remember { buildCountryOptions(phoneNumberUtil) }
+    val phoneNumberUtil = phoneNumberUtilInstance
+    val countryOptions = remember { countryOptionsCache }
     var dropdownExpanded by rememberSaveable { mutableStateOf(false) }
     val selectedCountry = remember(state.countryIso, countryOptions) {
         countryOptions.firstOrNull { option ->
@@ -312,12 +323,31 @@ private fun PhoneInputRow(
             DropdownMenu(
                 expanded = dropdownExpanded,
                 onDismissRequest = onDismissDropdown,
-                modifier = Modifier
-                    .width(240.dp)
-                    .heightIn(max = 320.dp)
+                modifier = Modifier.width(240.dp)
             ) {
-                LazyColumn {
-                    items(countryOptions, key = { it.isoCode }) { option ->
+                val scrollState = rememberScrollState()
+                val density = LocalDensity.current
+                val itemHeightPx = remember { mutableIntStateOf(0) }
+                LaunchedEffect(dropdownExpanded, selectedCountry) {
+                    if (dropdownExpanded) {
+                        val index = countryOptions.indexOfFirst {
+                            it.isoCode.equals(selectedCountry.isoCode, ignoreCase = true)
+                        }
+                        if (index >= 0) {
+                            val fallbackHeight = with(density) { 48.dp.toPx() }
+                            val measuredHeightPx = itemHeightPx.value.takeIf { it > 0 }?.toFloat() ?: fallbackHeight
+                            val target = index * measuredHeightPx
+                            scrollState.scrollTo(target.roundToInt().coerceAtLeast(0))
+                        }
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(scrollState)
+                ) {
+                    countryOptions.forEach { option ->
                         DropdownMenuItem(
                             text = {
                                 Text(
@@ -325,17 +355,26 @@ private fun PhoneInputRow(
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             },
-                            onClick = { onCountrySelected(option) }
+                            onClick = { onCountrySelected(option) },
+                            modifier = Modifier.onGloballyPositioned { coordinates ->
+                                if (itemHeightPx.value == 0) {
+                                    itemHeightPx.value = coordinates.size.height
+                                }
+                            }
                         )
                     }
                 }
             }
         }
 
+        val phoneFieldValue = TextFieldValue(
+            text = formattedNumber,
+            selection = TextRange(formattedNumber.length)
+        )
         OutlinedTextField(
-            value = formattedNumber,
+            value = phoneFieldValue,
             onValueChange = { input ->
-                onPhoneNumberChanged(input.filter(Char::isDigit).take(15))
+                onPhoneNumberChanged(input.text.filter(Char::isDigit).take(15))
             },
             modifier = Modifier
                 .weight(1f)
@@ -405,7 +444,8 @@ private fun buildCountryOptions(
         .mapNotNull { iso ->
             val dialCode = phoneNumberUtil.getCountryCodeForRegion(iso)
             if (dialCode == 0) return@mapNotNull null
-            val displayName = Locale("", iso).displayCountry.takeIf { it.isNotBlank() } ?: iso
+            val displayLocale = Locale.Builder().setRegion(iso.uppercase()).build()
+            val displayName = displayLocale.displayCountry.takeIf { it.isNotBlank() } ?: iso
             CountryOption(
                 isoCode = iso.uppercase(),
                 dialCode = dialCode.toString(),
@@ -430,7 +470,7 @@ private fun formatPhoneNumber(
             formatted = formatter.inputDigit(char)
         }
         formatted
-    } catch (error: Exception) {
+    } catch (_: Exception) {
         digits
     }
 }

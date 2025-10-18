@@ -3,12 +3,11 @@ package com.project.livechat.ui.widgets
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -53,12 +52,12 @@ fun SwipeableItemWithActions(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = modifier
+                .align(Alignment.CenterStart)
+                .fillMaxHeight()
                 .onSizeChanged {
                     contextMenuWidth = it.width.toFloat()
                 },
