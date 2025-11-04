@@ -10,6 +10,10 @@ plugins {
 
 kotlin {
     androidTarget()
+
+val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bom:${libs.versions.firebase.get()}")
+
+
     val iosX64 = iosX64()
     val iosArm64 = iosArm64()
     val iosSimulatorArm64 = iosSimulatorArm64()
@@ -41,6 +45,8 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
+                implementation(firebaseBom)
+                implementation("com.google.firebase:firebase-auth")
                 implementation(libs.sqldelight.android.driver)
                 implementation(libs.ktor.client.okhttp)
             }
@@ -74,7 +80,7 @@ kotlin {
                 implementation(libs.sqldelight.jdbc.driver)
             }
         }
-}
+    }
 
     listOf(iosX64, iosArm64, iosSimulatorArm64).forEach { target ->
         target.binaries.framework {
@@ -83,7 +89,6 @@ kotlin {
             xcFramework.add(this)
         }
     }
-
 
     jvmToolchain(17)
 }

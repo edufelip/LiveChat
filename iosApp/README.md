@@ -1,35 +1,44 @@
-# LiveChat iOS
+# LiveChat iOS packaging module
 
-This folder contains a SwiftUI client that consumes the shared Kotlin Multiplatform data and domain layers.
+This Gradle module produces the iOS application bundle around the Compose Multiplatform UI exposed by `:composeApp`.
 
-## Project layout
+## Build & run on the simulator
 
-- `LiveChatIOSApp.swift` – SwiftUI entry point bootstrapping Koin and wiring the root view
-- `Conversations/` – Conversation screen, view model, and message bubble components
-- `Support/` – Helpers for starting Koin, adapting Kotlin collections, and other shared utilities
+```
+./gradlew :iosApp:iosSimulatorArm64DebugRun
+```
 
-## Getting started
+The task will:
+1. Compile the Kotlin/Native executable for the `iosSimulatorArm64` target.
+2. Bundle the result together with `Info.plist` into `build/ios/simulator/debug/LiveChat.app`.
+3. Install and launch the `.app` in the configured simulator (defaults to `iPhone 15 Pro`).
 
-1. Generate the shared Kotlin framework:
+To target a different simulator, pass a `IOS_SIMULATOR_DEVICE` property:
 
-   ```bash
-   ./gradlew :shared:data:assembleLiveChatSharedReleaseXCFramework
-   ```
+```
+./gradlew :iosApp:iosSimulatorArm64DebugRun -PIOS_SIMULATOR_DEVICE="iPhone 14"
+```
 
-   This produces `shared/data/build/XCFrameworks/release/LiveChatShared.xcframework` which can be added to the Xcode project.
+## Artifacts
 
-2. Create an Xcode project (or workspace) and add the contents of `iosApp/`.
+- Bundled `.app`: `build/ios/simulator/debug/LiveChat.app`
+- Raw executable: `build/bin/iosSimulatorArm64/debugExecutable/LiveChat.kexe`
+- XCFramework for Xcode integration: run `./gradlew :composeApp:assembleLiveChatComposeXCFramework` and consume the output from `../composeApp/build/XCFrameworks`
 
-3. Add `LiveChatShared.xcframework` to the Xcode project and make sure it is linked with the application target.
+## Xcode target
 
-4. Update the placeholder values in `LiveChatIOSApp.swift` with the real Firebase REST configuration and default conversation identifier.
+An Xcode project is now available under `iosApp/LiveChatIOS.xcodeproj`. It embeds the `LiveChatCompose.xcframework` exposed by the shared Compose module and launches the Kotlin UI via `MainViewController()`. Before opening the project, generate the framework:
 
-5. Run on an iOS simulator or device.
+```
+./gradlew :composeApp:assembleLiveChatComposeXCFramework
+```
 
-## Session management
+Then open `iosApp/LiveChatIOS.xcodeproj` in Xcode. The project expects code signing to be configured locally (set a development team under the “Signing & Capabilities” tab) and will look for the XCFramework under `composeApp/build/XCFrameworks`. Re-run the Gradle task whenever you make changes to the shared code to refresh the framework that Xcode links against.
 
-`KoinHolder.updateSession(userId:idToken:)` updates the shared `InMemoryUserSessionProvider`. Call this as soon as the user logs in so that outgoing messages have a sender.
+The Xcode target currently uses an iOS 17.2 deployment target to stay compatible with the Compose Multiplatform runtime. If Apple updates the SDK version baked into the generated frameworks, raise the deployment target accordingly. The project links `libsqlite3` and searches the SDK’s `System/Library/SubFrameworks` directory so that Compose’s transitively required system frameworks (e.g. `UIUtilities`) resolve at link time. `Info.plist` already enables `CADisableMinimumFrameDurationOnPhone` so Compose’s frame-rate sanity check passes. At launch the app will call `FirebaseApp.configure()` whenever the FirebaseCore SDK is available (the import is wrapped in `#if canImport(FirebaseCore)` so the project still builds without the framework). No asset catalog is bundled by default; drop one into `iosApp/LiveChatIOS/` and add it to the target if you need custom icons or launch images.
 
-## Conversation lifecycle
+### Firebase setup
 
-`ConversationViewModel` wraps the shared `ConversationPresenter`. It subscribes to the presenter flow, maps messages into Swift-friendly view models, and handles send/refresh requests from the SwiftUI layer.
+- Copy your environment-specific `GoogleService-Info.plist` into `iosApp/LiveChatIOS/`. The file is git-ignored by default so secrets stay out of source control.
+- If you omit the file, the app still launches (Compose bootstraps with dummy config), but Firebase services will be unavailable.
+- Additional Firebase SDKs can be linked via Swift Package Manager if needed; re-run `FirebaseApp.configure()` only happens when `FirebaseCore` is present.

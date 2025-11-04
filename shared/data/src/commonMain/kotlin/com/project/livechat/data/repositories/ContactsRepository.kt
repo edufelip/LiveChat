@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 class ContactsRepository(
     private val remoteData: IContactsRemoteData,
-    private val localData: IContactsLocalData
+    private val localData: IContactsLocalData,
 ) : IContactsRepository {
     override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> {
         return remoteData.checkContacts(phoneContacts)

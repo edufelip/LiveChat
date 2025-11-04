@@ -16,7 +16,6 @@ class CheckRegisteredContactsUseCase(
         phoneContacts: List<Contact>,
         localDbContacts: List<Contact>,
     ): Flow<Contact> {
-
         val contactsOnlyInLocalDb = mutableListOf<Contact>()
         val contactsOnlyInPhone = mutableListOf<Contact>()
         val innerList = mutableListOf<Contact>()
@@ -30,14 +29,17 @@ class CheckRegisteredContactsUseCase(
             contactsOnlyInLocalDb.remove(foundContact)
             contactsOnlyInPhone.remove(foundContact)
             innerList.add(foundContact)
-            if (foundContact.name != local.name)
+            if (foundContact.name != local.name) {
                 contactsToBeUpdated.add(foundContact)
+            }
         }
 
-        if (contactsOnlyInLocalDb.isNotEmpty())
+        if (contactsOnlyInLocalDb.isNotEmpty()) {
             repository.removeContactsFromLocal(contactsOnlyInLocalDb)
-        if (contactsToBeUpdated.isNotEmpty())
+        }
+        if (contactsToBeUpdated.isNotEmpty()) {
             repository.updateContacts(contactsToBeUpdated)
+        }
 
         val alreadyCheckedFlow = flow { innerList.forEach { emit(it) } }
         val checkContactsFlow = repository.checkRegisteredContacts(contactsOnlyInPhone)
@@ -47,7 +49,8 @@ class CheckRegisteredContactsUseCase(
         }
 
         return merge(
-            alreadyCheckedFlow, checkContactsFlow
+            alreadyCheckedFlow,
+            checkContactsFlow,
         ).flowOn(Dispatchers.Default)
-   }
+    }
 }

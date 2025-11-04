@@ -7,6 +7,7 @@ import com.project.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.project.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.project.livechat.domain.utils.CStateFlow
 import com.project.livechat.domain.utils.asCStateFlow
+import com.project.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -16,15 +17,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
 class ConversationListPresenter(
     private val observeConversationSummaries: ObserveConversationSummariesUseCase,
     private val markConversationRead: MarkConversationReadUseCase,
     private val setConversationPinned: SetConversationPinnedUseCase,
-    private val scope: CoroutineScope = MainScope()
+    private val scope: CoroutineScope = MainScope(),
 ) {
-
     private val _uiState = MutableStateFlow(ConversationListUiState(isLoading = true))
     val uiState = _uiState.asStateFlow()
     val cState: CStateFlow<ConversationListUiState> = uiState.asCStateFlow()
@@ -43,7 +42,7 @@ class ConversationListPresenter(
                         state.copy(
                             conversations = filterSummaries(state.searchQuery, summaries),
                             isLoading = false,
-                            errorMessage = null
+                            errorMessage = null,
                         )
                     }
                 }
@@ -55,7 +54,7 @@ class ConversationListPresenter(
             val trimmed = query.trim()
             state.copy(
                 searchQuery = trimmed,
-                conversations = filterSummaries(trimmed, cachedSummaries)
+                conversations = filterSummaries(trimmed, cachedSummaries),
             )
         }
     }
@@ -72,8 +71,11 @@ class ConversationListPresenter(
         }
     }
 
-    fun togglePinned(conversationId: String, pinned: Boolean) {
-        val timestamp = if (pinned) Clock.System.now().toEpochMilliseconds() else null
+    fun togglePinned(
+        conversationId: String,
+        pinned: Boolean,
+    ) {
+        val timestamp = if (pinned) currentEpochMillis() else null
         scope.launch {
             runCatching {
                 setConversationPinned(conversationId, pinned, timestamp)
@@ -83,7 +85,10 @@ class ConversationListPresenter(
         }
     }
 
-    private fun filterSummaries(query: String, items: List<ConversationSummary>): List<ConversationSummary> {
+    private fun filterSummaries(
+        query: String,
+        items: List<ConversationSummary>,
+    ): List<ConversationSummary> {
         if (query.isBlank()) return items.sortedWith(summaryComparator)
         val lower = query.lowercase()
         return items.filter {
@@ -92,13 +97,14 @@ class ConversationListPresenter(
         }.sortedWith(summaryComparator)
     }
 
-    private val summaryComparator = Comparator<ConversationSummary> { a, b ->
-        when {
-            a.isPinned && !b.isPinned -> -1
-            !a.isPinned && b.isPinned -> 1
-            else -> b.lastMessage.createdAt.compareTo(a.lastMessage.createdAt)
+    private val summaryComparator =
+        Comparator<ConversationSummary> { a, b ->
+            when {
+                a.isPinned && !b.isPinned -> -1
+                !a.isPinned && b.isPinned -> 1
+                else -> b.lastMessage.createdAt.compareTo(a.lastMessage.createdAt)
+            }
         }
-    }
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }

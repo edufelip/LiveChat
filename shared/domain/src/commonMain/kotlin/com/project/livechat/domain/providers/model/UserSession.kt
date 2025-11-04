@@ -4,5 +4,5 @@ data class UserSession(
     val userId: String,
     val idToken: String,
     val refreshToken: String? = null,
-    val expiresAtEpochMillis: Long? = null
+    val expiresAtEpochMillis: Long? = null,
 )

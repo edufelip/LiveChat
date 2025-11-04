@@ -19,3 +19,4 @@ local.properties
 **/AGENTS.md
 .kotlin/
 .project_context
+iosApp/LiveChatIOS/GoogleService-Info.plist

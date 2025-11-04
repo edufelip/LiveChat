@@ -21,25 +21,24 @@ class ContactsPresenter(
     private val getLocalContactsUseCase: GetLocalContactsUseCase,
     private val checkRegisteredContactsUseCase: CheckRegisteredContactsUseCase,
     private val inviteContactUseCase: InviteContactUseCase,
-    private val scope: CoroutineScope = MainScope()
+    private val scope: CoroutineScope = MainScope(),
 ) {
-
-    private val _uiState = MutableStateFlow(ContactsUiState(isLoading = true))
-    val state = _uiState.asStateFlow()
+    private val mutableState = MutableStateFlow(ContactsUiState(isLoading = true))
+    val state = mutableState.asStateFlow()
     val cState: CStateFlow<ContactsUiState> = state.asCStateFlow()
 
     init {
         scope.launch {
             getLocalContactsUseCase()
                 .catch { throwable ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = throwable.message) }
+                    mutableState.update { it.copy(isLoading = false, errorMessage = throwable.message) }
                 }
                 .collectLatest { contacts ->
-                    _uiState.update { state ->
+                    mutableState.update { state ->
                         state.copy(
                             localContacts = contacts,
                             validatedContacts = contacts,
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                 }
@@ -48,22 +47,22 @@ class ContactsPresenter(
 
     fun syncContacts(phoneContacts: List<Contact>) {
         scope.launch {
-            val localContacts = _uiState.value.localContacts
-            _uiState.update { it.copy(isSyncing = true, validatedContacts = emptyList(), errorMessage = null) }
+            val localContacts = mutableState.value.localContacts
+            mutableState.update { it.copy(isSyncing = true, validatedContacts = emptyList(), errorMessage = null) }
             runCatching {
                 checkRegisteredContactsUseCase(phoneContacts, localContacts)
             }.onSuccess { flow ->
                 flow.catch { throwable ->
-                    _uiState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
+                    mutableState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
                 }.collect { contact ->
-                    _uiState.update { state ->
+                    mutableState.update { state ->
                         val updated = (state.validatedContacts + contact).distinctBy { it.phoneNo }
                         state.copy(validatedContacts = updated)
                     }
                 }
-                _uiState.update { it.copy(isSyncing = false) }
+                mutableState.update { it.copy(isSyncing = false) }
             }.onFailure { throwable ->
-                _uiState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
+                mutableState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
             }
         }
     }
@@ -73,13 +72,13 @@ class ContactsPresenter(
             runCatching {
                 inviteContactUseCase(contact)
             }.onFailure { throwable ->
-                _uiState.update { it.copy(errorMessage = throwable.message) }
+                mutableState.update { it.copy(errorMessage = throwable.message) }
             }
         }
     }
 
     fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
+        mutableState.update { it.copy(errorMessage = null) }
     }
 
     fun close() {

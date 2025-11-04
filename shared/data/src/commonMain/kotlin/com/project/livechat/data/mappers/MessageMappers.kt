@@ -6,35 +6,38 @@ import com.project.livechat.domain.models.MessageStatus
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.project.livechat.shared.data.database.Messages
 
-fun Messages.toDomain(): Message = Message(
-    id = id,
-    conversationId = conversation_id,
-    senderId = sender_id,
-    body = body,
-    createdAt = created_at,
-    status = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT),
-    localTempId = local_temp_id
-)
+fun Messages.toDomain(): Message =
+    Message(
+        id = id,
+        conversationId = conversation_id,
+        senderId = sender_id,
+        body = body,
+        createdAt = created_at,
+        status = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT),
+        localTempId = local_temp_id,
+    )
 
-fun Message.toInsertParams(): InsertMessageParams = InsertMessageParams(
-    id = id,
-    conversationId = conversationId,
-    senderId = senderId,
-    body = body,
-    createdAt = createdAt,
-    status = status,
-    localTempId = localTempId
-)
+fun Message.toInsertParams(): InsertMessageParams =
+    InsertMessageParams(
+        id = id,
+        conversationId = conversationId,
+        senderId = senderId,
+        body = body,
+        createdAt = createdAt,
+        status = status,
+        localTempId = localTempId,
+    )
 
-fun MessageDraft.toPendingMessage(status: MessageStatus = MessageStatus.SENDING): Message = Message(
-    id = localId,
-    conversationId = conversationId,
-    senderId = senderId,
-    body = body,
-    createdAt = createdAt,
-    status = status,
-    localTempId = localId
-)
+fun MessageDraft.toPendingMessage(status: MessageStatus = MessageStatus.SENDING): Message =
+    Message(
+        id = localId,
+        conversationId = conversationId,
+        senderId = senderId,
+        body = body,
+        createdAt = createdAt,
+        status = status,
+        localTempId = localId,
+    )
 
 data class InsertMessageParams(
     val id: String,
@@ -43,7 +46,7 @@ data class InsertMessageParams(
     val body: String,
     val createdAt: Long,
     val status: MessageStatus,
-    val localTempId: String?
+    val localTempId: String?,
 )
 
 fun LiveChatDatabase.insertMessage(params: InsertMessageParams) {
@@ -54,7 +57,7 @@ fun LiveChatDatabase.insertMessage(params: InsertMessageParams) {
         body = params.body,
         created_at = params.createdAt,
         status = params.status.name,
-        local_temp_id = params.localTempId
+        local_temp_id = params.localTempId,
     )
 }
 

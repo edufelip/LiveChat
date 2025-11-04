@@ -1,12 +1,22 @@
-val snapshotVersion : String? = System.getenv("COMPOSE_SNAPSHOT_ID")
+val snapshotVersion: String? = System.getenv("COMPOSE_SNAPSHOT_ID")
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
         gradlePluginPortal()
-        google()
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -15,11 +25,21 @@ dependencyResolutionManagement {
             maven { url = uri("https://androidx.dev/snapshots/builds/$it/artifacts/repository/") }
         }
 
-        google()
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
-rootProject.name = "Live Chat"
-include(":app")
+
+rootProject.name = "LiveChat"
+
 include(":shared:data")
 include(":shared:domain")
+include(":composeApp")
+include(":iosApp")

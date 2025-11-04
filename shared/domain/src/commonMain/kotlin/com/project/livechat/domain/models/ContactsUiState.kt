@@ -5,5 +5,5 @@ data class ContactsUiState(
     val validatedContacts: List<Contact> = emptyList(),
     val isLoading: Boolean = false,
     val isSyncing: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )

@@ -1,10 +1,10 @@
 [versions]
-accompanist = "0.36.0"
+accompanist = "0.37.3"
 gradle = "8.13.0"
 google-services = "4.4.4"
 androidx-activity-compose = "1.11.0"
 androidx-appcompat = "1.7.1"
-androidx-compose-bom = "2025.10.00"
+androidx-compose-bom = "2025.10.01"
 androidx-corektx = "1.17.0"
 androidx-lifecycle-compose = "2.9.4"
 androidx-lifecycle-runtime-compose = "2.9.4"
@@ -26,8 +26,17 @@ jupiter = "6.0.0"
 turbine = "1.2.1"
 composeNavigation = "2.9.5"
 serialization = "1.9.0"
-libphonenumber = "9.0.16"
+libphonenumber = "9.0.17"
 kotlinDateTime = "0.7.1"
+compose-multiplatform = "1.9.1"
+spotless = "6.25.0"
+
+# @keep
+minSdk = "24"
+# @keep
+targetSdk = "36"
+# @keep
+compileSdk = "36"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -95,5 +104,7 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

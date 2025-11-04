@@ -5,7 +5,7 @@ data class Contact(
     val name: String,
     val phoneNo: String,
     val description: String? = null,
-    val photo: String? = null
+    val photo: String? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         val contact = other as? Contact ?: return false
