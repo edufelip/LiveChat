@@ -5,5 +5,5 @@ data class ConversationUiState(
     val messages: List<Message> = emptyList(),
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )

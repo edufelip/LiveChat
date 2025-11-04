@@ -9,34 +9,36 @@ import com.project.livechat.domain.useCases.SendMessageUseCase
 import com.project.livechat.domain.useCases.SyncConversationUseCase
 import com.project.livechat.domain.utils.CStateFlow
 import com.project.livechat.domain.utils.asCStateFlow
+import com.project.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
 import kotlin.random.Random
-import kotlinx.datetime.Clock
 
 class ConversationPresenter(
     private val observeConversationUseCase: ObserveConversationUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val syncConversationUseCase: SyncConversationUseCase,
     private val userSessionProvider: UserSessionProvider,
-    private val scope: CoroutineScope = MainScope()
+    private val scope: CoroutineScope = MainScope(),
 ) {
-
     private val _uiState = MutableStateFlow(ConversationUiState())
     val state = _uiState.asStateFlow()
     val uiState: CStateFlow<ConversationUiState> = state.asCStateFlow()
 
     private var observeJob: Job? = null
 
-    fun start(conversationId: String, pageSize: Int = IMessagesRepository.DEFAULT_PAGE_SIZE) {
+    fun start(
+        conversationId: String,
+        pageSize: Int = IMessagesRepository.DEFAULT_PAGE_SIZE,
+    ) {
         if (conversationId.isBlank()) return
         val currentId = _uiState.value.conversationId
         if (currentId == conversationId) return
@@ -45,31 +47,32 @@ class ConversationPresenter(
             it.copy(
                 conversationId = conversationId,
                 isLoading = true,
-                errorMessage = null
+                errorMessage = null,
             )
         }
 
         observeJob?.cancel()
-        observeJob = scope.launch {
-            observeConversationUseCase(conversationId, pageSize)
-                .catch { throwable ->
-                    _uiState.update { state ->
-                        state.copy(
-                            isLoading = false,
-                            errorMessage = throwable.message ?: "Failed to observe conversation"
-                        )
+        observeJob =
+            scope.launch {
+                observeConversationUseCase(conversationId, pageSize)
+                    .catch { throwable ->
+                        _uiState.update { state ->
+                            state.copy(
+                                isLoading = false,
+                                errorMessage = throwable.message ?: "Failed to observe conversation",
+                            )
+                        }
                     }
-                }
-                .collect { messages ->
-                    _uiState.update { state ->
-                        state.copy(
-                            messages = messages,
-                            isLoading = false,
-                            errorMessage = null
-                        )
+                    .collect { messages ->
+                        _uiState.update { state ->
+                            state.copy(
+                                messages = messages,
+                                isLoading = false,
+                                errorMessage = null,
+                            )
+                        }
                     }
-                }
-        }
+            }
 
         scope.launch {
             runCatching {
@@ -78,7 +81,7 @@ class ConversationPresenter(
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Failed to load conversation"
+                        errorMessage = throwable.message ?: "Failed to load conversation",
                     )
                 }
             }.onSuccess {
@@ -105,7 +108,7 @@ class ConversationPresenter(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Failed to refresh conversation"
+                        errorMessage = throwable.message ?: "Failed to refresh conversation",
                     )
                 }
             }
@@ -126,8 +129,8 @@ class ConversationPresenter(
                 return@launch
             }
 
-            val timestamp = Clock.System.now().toEpochMilliseconds()
-            val localId = "ios-${timestamp}-${Random.nextInt()}"
+            val timestamp = currentEpochMillis()
+            val localId = "ios-$timestamp-${Random.nextInt()}"
 
             _uiState.update { it.copy(isSending = true, errorMessage = null) }
             runCatching {
@@ -137,14 +140,14 @@ class ConversationPresenter(
                         senderId = senderId,
                         body = body,
                         localId = localId,
-                        createdAt = timestamp
-                    )
+                        createdAt = timestamp,
+                    ),
                 )
             }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(
                         isSending = false,
-                        errorMessage = throwable.message ?: "Failed to send message"
+                        errorMessage = throwable.message ?: "Failed to send message",
                     )
                 }
                 return@launch
@@ -158,6 +161,10 @@ class ConversationPresenter(
         observeJob?.cancel()
         observeJob = null
         _uiState.value = ConversationUiState()
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
     fun close() {

@@ -26,12 +26,12 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -39,18 +39,22 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.ExperimentalTime
 
 private const val DEFAULT_POLLING_LIMIT = 50
 
+@OptIn(ExperimentalTime::class)
 class FirebaseMessagesRemoteData(
     private val httpClient: HttpClient,
     private val config: FirebaseRestConfig,
     private val sessionProvider: UserSessionProvider,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val json: Json = Json { ignoreUnknownKeys = true }
+    private val json: Json = Json { ignoreUnknownKeys = true },
 ) : IMessagesRemoteData {
-
-    override fun observeConversation(conversationId: String, sinceEpochMillis: Long?): Flow<List<Message>> =
+    override fun observeConversation(
+        conversationId: String,
+        sinceEpochMillis: Long?,
+    ): Flow<List<Message>> =
         channelFlow {
             if (!config.isConfigured) {
                 close()
@@ -71,25 +75,28 @@ class FirebaseMessagesRemoteData(
         if (!config.isConfigured) error("Firebase projectId is missing – cannot send message")
 
         return withContext(dispatcher) {
-            val request = FirestoreCreateDocumentRequest(
-                fields = mapOf(
-                    FIELD_CONVERSATION_ID to FirestoreValue(stringValue = draft.conversationId),
-                    FIELD_SENDER_ID to FirestoreValue(stringValue = draft.senderId),
-                    FIELD_BODY to FirestoreValue(stringValue = draft.body),
-                    FIELD_CREATED_AT to FirestoreValue(integerValue = draft.createdAt.toString()),
-                    FIELD_STATUS to FirestoreValue(stringValue = MessageStatus.SENT.name),
-                    FIELD_LOCAL_TEMP_ID to FirestoreValue(stringValue = draft.localId)
+            val request =
+                FirestoreCreateDocumentRequest(
+                    fields =
+                        mapOf(
+                            FIELD_CONVERSATION_ID to FirestoreValue(stringValue = draft.conversationId),
+                            FIELD_SENDER_ID to FirestoreValue(stringValue = draft.senderId),
+                            FIELD_BODY to FirestoreValue(stringValue = draft.body),
+                            FIELD_CREATED_AT to FirestoreValue(integerValue = draft.createdAt.toString()),
+                            FIELD_STATUS to FirestoreValue(stringValue = MessageStatus.SENT.name),
+                            FIELD_LOCAL_TEMP_ID to FirestoreValue(stringValue = draft.localId),
+                        ),
                 )
-            )
 
-            val response: HttpResponse = httpClient.post("${config.documentsEndpoint}/${config.messagesCollection}") {
-                parameter("key", config.apiKey)
-                sessionProvider.refreshSession(false)?.idToken?.let { token ->
-                    header(HttpHeaders.Authorization, "Bearer $token")
+            val response: HttpResponse =
+                httpClient.post("${config.documentsEndpoint}/${config.messagesCollection}") {
+                    parameter("key", config.apiKey)
+                    sessionProvider.refreshSession(false)?.idToken?.let { token ->
+                        header(HttpHeaders.Authorization, "Bearer $token")
+                    }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
                 }
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }
 
             val bodyText = response.bodyAsText()
             val document = json.decodeFromString(FirestoreDocument.serializer(), bodyText)
@@ -97,7 +104,10 @@ class FirebaseMessagesRemoteData(
         }
     }
 
-    override suspend fun pullHistorical(conversationId: String, sinceEpochMillis: Long?): List<Message> {
+    override suspend fun pullHistorical(
+        conversationId: String,
+        sinceEpochMillis: Long?,
+    ): List<Message> {
         val accessToken = sessionProvider.refreshSession(false)?.idToken
         return fetchMessages(conversationId, sinceEpochMillis, accessToken)
     }
@@ -105,7 +115,7 @@ class FirebaseMessagesRemoteData(
     private suspend fun ProducerScope<List<Message>>.observeViaPolling(
         conversationId: String,
         sinceEpochMillis: Long?,
-        accessToken: String?
+        accessToken: String?,
     ) {
         var latestTimestamp = sinceEpochMillis
         while (currentCoroutineContext().isActive && !isClosedForSend) {
@@ -121,16 +131,21 @@ class FirebaseMessagesRemoteData(
     private suspend fun ProducerScope<List<Message>>.observeViaWebSocket(
         websocketEndpoint: String,
         conversationId: String,
-        accessToken: String?
+        accessToken: String?,
     ) {
         var session: WebSocketSession? = null
         try {
-            session = httpClient.webSocketSession(urlString = "$websocketEndpoint/$conversationId") {
-                accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
-            }
+            session =
+                httpClient.webSocketSession(urlString = "$websocketEndpoint/$conversationId") {
+                    accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+                }
 
             accessToken?.let {
-                val payload = json.encodeToString(WebSocketHandshake.serializer(), WebSocketHandshake(token = it, conversationId = conversationId))
+                val payload =
+                    json.encodeToString(
+                        WebSocketHandshake.serializer(),
+                        WebSocketHandshake(token = it, conversationId = conversationId),
+                    )
                 session.send(payload)
             }
 
@@ -157,55 +172,65 @@ class FirebaseMessagesRemoteData(
     private suspend fun fetchMessages(
         conversationId: String,
         sinceEpochMillis: Long?,
-        accessToken: String?
-    ): List<Message> = withContext(dispatcher) {
-        if (!config.isConfigured) return@withContext emptyList()
+        accessToken: String?,
+    ): List<Message> =
+        withContext(dispatcher) {
+            if (!config.isConfigured) return@withContext emptyList()
 
-        val structuredQuery = StructuredQuery(
-            from = listOf(CollectionSelector(collectionId = config.messagesCollection)),
-            where = buildWhere(conversationId, sinceEpochMillis),
-            orderBy = listOf(Order(field = FieldReference(fieldPath = FIELD_CREATED_AT))),
-            limit = DEFAULT_POLLING_LIMIT
-        )
+            val structuredQuery =
+                StructuredQuery(
+                    from = listOf(CollectionSelector(collectionId = config.messagesCollection)),
+                    where = buildWhere(conversationId, sinceEpochMillis),
+                    orderBy = listOf(Order(field = FieldReference(fieldPath = FIELD_CREATED_AT))),
+                    limit = DEFAULT_POLLING_LIMIT,
+                )
 
-        val request = RunQueryRequest(structuredQuery)
+            val request = RunQueryRequest(structuredQuery)
 
-        val responses: List<RunQueryResponse> = httpClient.post(config.queryEndpoint) {
-            parameter("key", config.apiKey)
-            accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
+            val responses: List<RunQueryResponse> =
+                httpClient.post(config.queryEndpoint) {
+                    parameter("key", config.apiKey)
+                    accessToken?.let { header(HttpHeaders.Authorization, "Bearer $it") }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }.body()
 
-        responses.mapNotNull { response ->
-            response.document?.toDomainMessage()
+            responses.mapNotNull { response ->
+                response.document?.toDomainMessage()
+            }
         }
-    }
 
-    private fun buildWhere(conversationId: String, sinceEpochMillis: Long?): Where {
-        val conversationFilter = FieldFilter(
-            field = FieldReference(fieldPath = FIELD_CONVERSATION_ID),
-            op = "EQUAL",
-            value = FirestoreValue(stringValue = conversationId)
-        )
-
-        val createdAtFilter = sinceEpochMillis?.let {
+    private fun buildWhere(
+        conversationId: String,
+        sinceEpochMillis: Long?,
+    ): Where {
+        val conversationFilter =
             FieldFilter(
-                field = FieldReference(fieldPath = FIELD_CREATED_AT),
-                op = "GREATER_THAN",
-                value = FirestoreValue(integerValue = it.toString())
+                field = FieldReference(fieldPath = FIELD_CONVERSATION_ID),
+                op = "EQUAL",
+                value = FirestoreValue(stringValue = conversationId),
             )
-        }
+
+        val createdAtFilter =
+            sinceEpochMillis?.let {
+                FieldFilter(
+                    field = FieldReference(fieldPath = FIELD_CREATED_AT),
+                    op = "GREATER_THAN",
+                    value = FirestoreValue(integerValue = it.toString()),
+                )
+            }
 
         return if (createdAtFilter != null) {
             Where(
-                compositeFilter = CompositeFilter(
-                    op = "AND",
-                    filters = listOf(
-                        Filter(fieldFilter = conversationFilter),
-                        Filter(fieldFilter = createdAtFilter)
-                    )
-                )
+                compositeFilter =
+                    CompositeFilter(
+                        op = "AND",
+                        filters =
+                            listOf(
+                                Filter(fieldFilter = conversationFilter),
+                                Filter(fieldFilter = createdAtFilter),
+                            ),
+                    ),
             )
         } else {
             Where(fieldFilter = conversationFilter)
@@ -214,9 +239,10 @@ class FirebaseMessagesRemoteData(
 
     private fun FirestoreDocument.toDomainMessage(): Message {
         val fields = fields ?: emptyMap()
-        val status = fields[FIELD_STATUS]?.stringValue?.let {
-            runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT)
-        } ?: MessageStatus.SENT
+        val status =
+            fields[FIELD_STATUS]?.stringValue?.let {
+                runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT)
+            } ?: MessageStatus.SENT
 
         val idFromName = name?.substringAfterLast('/') ?: fields[FIELD_LOCAL_TEMP_ID]?.stringValue ?: ""
         return Message(
@@ -226,23 +252,24 @@ class FirebaseMessagesRemoteData(
             body = fields[FIELD_BODY]?.stringValue.orEmpty(),
             createdAt = fields[FIELD_CREATED_AT]?.asLong() ?: 0L,
             status = status,
-            localTempId = fields[FIELD_LOCAL_TEMP_ID]?.stringValue
+            localTempId = fields[FIELD_LOCAL_TEMP_ID]?.stringValue,
         )
     }
 
-    private fun FirestoreValue.asLong(): Long? = integerValue?.toLongOrNull() ?: timestampValue?.let { timestamp ->
-        runCatching { Instant.parse(timestamp).toEpochMilliseconds() }.getOrNull()
-    }
+    private fun FirestoreValue.asLong(): Long? =
+        integerValue?.toLongOrNull() ?: timestampValue?.let { timestamp ->
+            runCatching { Instant.parse(timestamp).toEpochMilliseconds() }.getOrNull()
+        }
 
     @Serializable
     private data class WebSocketHandshake(
         @SerialName("token") val token: String,
-        @SerialName("conversationId") val conversationId: String
+        @SerialName("conversationId") val conversationId: String,
     )
 
     @Serializable
     private data class RunQueryRequest(
-        @SerialName("structuredQuery") val structuredQuery: StructuredQuery
+        @SerialName("structuredQuery") val structuredQuery: StructuredQuery,
     )
 
     @Serializable
@@ -250,70 +277,70 @@ class FirebaseMessagesRemoteData(
         val from: List<CollectionSelector>,
         val where: Where,
         val orderBy: List<Order>,
-        val limit: Int
+        val limit: Int,
     )
 
     @Serializable
     private data class CollectionSelector(
-        @SerialName("collectionId") val collectionId: String
+        @SerialName("collectionId") val collectionId: String,
     )
 
     @Serializable
     private data class Order(
         val field: FieldReference,
-        val direction: String = "ASCENDING"
+        val direction: String = "ASCENDING",
     )
 
     @Serializable
     private data class FieldReference(
-        @SerialName("fieldPath") val fieldPath: String
+        @SerialName("fieldPath") val fieldPath: String,
     )
 
     @Serializable
     private data class Where(
         @SerialName("fieldFilter") val fieldFilter: FieldFilter? = null,
-        @SerialName("compositeFilter") val compositeFilter: CompositeFilter? = null
+        @SerialName("compositeFilter") val compositeFilter: CompositeFilter? = null,
     )
 
     @Serializable
     private data class CompositeFilter(
         val op: String,
-        val filters: List<Filter>
+        val filters: List<Filter>,
     )
 
     @Serializable
     private data class Filter(
-        @SerialName("fieldFilter") val fieldFilter: FieldFilter? = null
+        @SerialName("fieldFilter") val fieldFilter: FieldFilter? = null,
     )
 
     @Serializable
     private data class FieldFilter(
         val field: FieldReference,
         val op: String,
-        val value: FirestoreValue
+        val value: FirestoreValue,
     )
 
     @Serializable
     private data class RunQueryResponse(
-        val document: FirestoreDocument? = null
+        val document: FirestoreDocument? = null,
     )
 
     @Serializable
     private data class FirestoreDocument(
         val name: String? = null,
-        val fields: Map<String, FirestoreValue>? = null
+        val fields: Map<String, FirestoreValue>? = null,
     )
 
     @Serializable
     private data class FirestoreCreateDocumentRequest(
-        val fields: Map<String, FirestoreValue>
+        val fields: Map<String, FirestoreValue>,
     )
 
     @Serializable
     private data class FirestoreValue(
         @SerialName("stringValue") val stringValue: String? = null,
         @SerialName("integerValue") val integerValue: String? = null,
-        @SerialName("timestampValue") val timestampValue: String? = null
+        @SerialName("timestampValue") val timestampValue: String? = null,
     )
 
     private companion object {

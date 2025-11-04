@@ -5,7 +5,7 @@ enum class MessageStatus {
     SENT,
     DELIVERED,
     READ,
-    ERROR
+    ERROR,
 }
 
 data class Message(
@@ -15,7 +15,7 @@ data class Message(
     val body: String,
     val createdAt: Long,
     val status: MessageStatus,
-    val localTempId: String? = null
+    val localTempId: String? = null,
 )
 
 data class MessageDraft(
@@ -23,5 +23,5 @@ data class MessageDraft(
     val senderId: String,
     val body: String,
     val localId: String,
-    val createdAt: Long
+    val createdAt: Long,
 )

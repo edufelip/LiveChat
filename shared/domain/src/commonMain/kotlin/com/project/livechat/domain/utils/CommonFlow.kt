@@ -15,11 +15,12 @@ class Closeable(private val onClose: () -> Unit) {
 class CFlow<T>(private val origin: Flow<T>) {
     fun watch(block: (T) -> Unit): Closeable {
         val scope = MainScope()
-        val job = scope.launch {
-            origin.collect { value ->
-                block(value)
+        val job =
+            scope.launch {
+                origin.collect { value ->
+                    block(value)
+                }
             }
-        }
         return Closeable {
             job.cancel()
             scope.cancel()
@@ -33,11 +34,12 @@ class CStateFlow<T>(private val origin: StateFlow<T>) {
 
     fun watch(block: (T) -> Unit): Closeable {
         val scope: CoroutineScope = MainScope()
-        val job = scope.launch {
-            origin.collect { value ->
-                block(value)
+        val job =
+            scope.launch {
+                origin.collect { value ->
+                    block(value)
+                }
             }
-        }
         return Closeable {
             job.cancel()
             scope.cancel()

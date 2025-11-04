@@ -16,9 +16,8 @@ import kotlinx.coroutines.flow.map
 
 class ContactsLocalDataSource(
     private val database: LiveChatDatabase,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IContactsLocalData {
-
     private val queries = database.contactsQueries
 
     override fun getLocalContacts(): Flow<List<Contact>> {

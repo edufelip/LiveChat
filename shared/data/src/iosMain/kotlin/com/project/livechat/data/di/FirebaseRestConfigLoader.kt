@@ -26,38 +26,48 @@ private const val INVITES_COLLECTION_KEY = "FIRESTORE_INVITES_COLLECTION"
 fun loadFirebaseRestConfigFromPlist(
     bundle: NSBundle = NSBundle.mainBundle,
     resourceName: String = "GoogleService-Info",
-    usersCollectionOverride: String? = null
+    usersCollectionOverride: String? = null,
 ): FirebaseRestConfig {
-    val path = bundle.pathForResource(resourceName, ofType = "plist")
-        ?: error("$resourceName.plist not found in bundle. Ensure Firebase configuration is copied to the iOS target.")
+    val path =
+        bundle.pathForResource(resourceName, ofType = "plist")
+            ?: error("$resourceName.plist not found in bundle. Ensure Firebase configuration is copied to the iOS target.")
 
-    val dictionary = NSDictionary.dictionaryWithContentsOfFile(path)
-        ?: error("Unable to read $resourceName.plist. Check that it has a valid plist structure.")
+    val dictionary =
+        NSDictionary.dictionaryWithContentsOfFile(path)
+            ?: error("Unable to read $resourceName.plist. Check that it has a valid plist structure.")
 
-    val projectId = dictionary[PROJECT_ID_KEY] as? String
-        ?: error("PROJECT_ID is missing from $resourceName.plist.")
+    val projectId =
+        dictionary[PROJECT_ID_KEY] as? String
+            ?: error("PROJECT_ID is missing from $resourceName.plist.")
 
-    val apiKey = dictionary[API_KEY_KEY] as? String
-        ?: error("API_KEY is missing from $resourceName.plist.")
+    val apiKey =
+        dictionary[API_KEY_KEY] as? String
+            ?: error("API_KEY is missing from $resourceName.plist.")
 
-    val usersCollection = usersCollectionOverride
-        ?: (dictionary[USERS_COLLECTION_KEY] as? String)
-        ?: DEFAULT_USERS_COLLECTION
+    val usersCollection =
+        usersCollectionOverride
+            ?: (dictionary[USERS_COLLECTION_KEY] as? String)
+            ?: DEFAULT_USERS_COLLECTION
 
-    val messagesCollection = (dictionary[MESSAGES_COLLECTION_KEY] as? String)
-        ?: DEFAULT_MESSAGES_COLLECTION
+    val messagesCollection =
+        (dictionary[MESSAGES_COLLECTION_KEY] as? String)
+            ?: DEFAULT_MESSAGES_COLLECTION
 
-    val conversationsCollection = (dictionary[CONVERSATIONS_COLLECTION_KEY] as? String)
-        ?: DEFAULT_CONVERSATIONS_COLLECTION
+    val conversationsCollection =
+        (dictionary[CONVERSATIONS_COLLECTION_KEY] as? String)
+            ?: DEFAULT_CONVERSATIONS_COLLECTION
 
-    val websocketEndpoint = (dictionary[WEBSOCKET_ENDPOINT_KEY] as? String)
-        ?: DEFAULT_WEBSOCKET_ENDPOINT
+    val websocketEndpoint =
+        (dictionary[WEBSOCKET_ENDPOINT_KEY] as? String)
+            ?: DEFAULT_WEBSOCKET_ENDPOINT
 
-    val pollingIntervalMs = ((dictionary[POLLING_INTERVAL_KEY] as? NSNumber)?.longLongValue)?.toLong()
-        ?: DEFAULT_POLLING_INTERVAL_MS
+    val pollingIntervalMs =
+        ((dictionary[POLLING_INTERVAL_KEY] as? NSNumber)?.longLongValue)?.toLong()
+            ?: DEFAULT_POLLING_INTERVAL_MS
 
-    val invitesCollection = (dictionary[INVITES_COLLECTION_KEY] as? String)
-        ?: DEFAULT_INVITES_COLLECTION
+    val invitesCollection =
+        (dictionary[INVITES_COLLECTION_KEY] as? String)
+            ?: DEFAULT_INVITES_COLLECTION
 
     return FirebaseRestConfig(
         projectId = projectId,
@@ -67,6 +77,6 @@ fun loadFirebaseRestConfigFromPlist(
         conversationsCollection = conversationsCollection,
         invitesCollection = invitesCollection,
         websocketEndpoint = websocketEndpoint,
-        pollingIntervalMs = pollingIntervalMs
+        pollingIntervalMs = pollingIntervalMs,
     )
 }

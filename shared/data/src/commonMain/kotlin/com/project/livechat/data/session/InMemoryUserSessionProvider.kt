@@ -11,9 +11,8 @@ import kotlinx.coroutines.withContext
 
 class InMemoryUserSessionProvider(
     initialSession: UserSession? = null,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : UserSessionProvider {
-
     private val sessionState = MutableStateFlow(initialSession)
 
     override val session: Flow<UserSession?>

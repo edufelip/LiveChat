@@ -12,10 +12,11 @@ import com.project.livechat.shared.data.database.LiveChatDatabase
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-val sharedDataModule: Module = module {
-    single { LiveChatDatabase(get()) }
-    single<IContactsLocalData> { ContactsLocalDataSource(get()) }
-    single<IContactsRepository> { ContactsRepository(get(), get()) }
-    single<IMessagesLocalData> { MessagesLocalDataSource(get()) }
-    single<IMessagesRepository> { MessagesRepository(get(), get(), get()) }
-}
+val sharedDataModule: Module =
+    module {
+        single { LiveChatDatabase(get()) }
+        single<IContactsLocalData> { ContactsLocalDataSource(get()) }
+        single<IContactsRepository> { ContactsRepository(get(), get()) }
+        single<IMessagesLocalData> { MessagesLocalDataSource(get()) }
+        single<IMessagesRepository> { MessagesRepository(get(), get(), get()) }
+    }

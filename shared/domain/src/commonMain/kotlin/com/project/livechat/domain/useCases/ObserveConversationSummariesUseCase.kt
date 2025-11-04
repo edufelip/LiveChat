@@ -5,7 +5,7 @@ import com.project.livechat.domain.repositories.IMessagesRepository
 import kotlinx.coroutines.flow.Flow
 
 class ObserveConversationSummariesUseCase(
-    private val repository: IMessagesRepository
+    private val repository: IMessagesRepository,
 ) {
     operator fun invoke(): Flow<List<ConversationSummary>> = repository.observeConversationSummaries()
 }

@@ -10,7 +10,7 @@ import org.koin.dsl.KoinAppDeclaration
 fun initSharedKoin(
     platformModules: List<Module>,
     backendModules: List<Module> = listOf(firebaseBackendModule),
-    appDeclaration: KoinAppDeclaration = {}
+    appDeclaration: KoinAppDeclaration = {},
 ): KoinApplication {
     val allModules = platformModules + backendModules + sharedDataModule + sharedDomainModule
     return startKoin {

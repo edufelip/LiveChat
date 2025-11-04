@@ -89,6 +89,13 @@ APP_HOME=$( cd "${APP_HOME:-./}" > /dev/null && pwd -P ) || exit
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
 
+# Fallback JAVA_HOME if the current environment points to a missing JDK.
+PREFERRED_JAVA_HOME="/Users/eduardosantos/Library/Java/JavaVirtualMachines/jbr-17.0.9/Contents/Home"
+if [ -n "$JAVA_HOME" ] && [ ! -x "$JAVA_HOME/bin/java" ] && [ -x "$PREFERRED_JAVA_HOME/bin/java" ]; then
+    JAVA_HOME="$PREFERRED_JAVA_HOME"
+    export JAVA_HOME
+fi
+
 warn () {
     echo "$*"
 } >&2
