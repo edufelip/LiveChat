@@ -1,6 +1,8 @@
 package com.project.livechat.composeapp.ui.app
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -8,6 +10,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.preview.PreviewFixtures
+import com.project.livechat.composeapp.ui.theme.LiveChatTheme
 import com.project.livechat.composeapp.ui.features.onboarding.OnboardingFlowScreen
 import com.project.livechat.composeapp.ui.features.home.view.HomeScreen
 import com.project.livechat.composeapp.ui.state.collectState
@@ -21,18 +24,22 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun LiveChatApp(
     modifier: Modifier = Modifier,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
+    onShareInvite: (String) -> Unit = {},
 ) {
-    MaterialTheme {
+    LiveChatTheme {
+        val contentModifier = modifier.windowInsetsPadding(WindowInsets.safeDrawing)
         if (LocalInspectionMode.current) {
             HomeScreen(
-                modifier = modifier,
+                modifier = contentModifier,
                 state = HomeUiState(),
                 onSelectTab = {},
                 onOpenConversation = {},
+                onStartConversationWithContact = {},
+                onShareInvite = onShareInvite,
                 onBackFromConversation = {},
                 phoneContactsProvider = phoneContactsProvider,
             )
-            return@MaterialTheme
+            return
         }
 
         val presenter = rememberAppPresenter()
@@ -41,15 +48,20 @@ fun LiveChatApp(
         when (state.destination) {
             AppDestination.Onboarding ->
                 OnboardingFlowScreen(
+                    modifier = contentModifier,
                     onFinished = { presenter.onOnboardingFinished() },
                 )
 
             is AppDestination.Home ->
                 HomeScreen(
-                    modifier = modifier,
+                    modifier = contentModifier,
                     state = state.home,
                     onSelectTab = presenter::selectTab,
                     onOpenConversation = presenter::openConversation,
+                    onStartConversationWithContact = { contact ->
+                        presenter.openConversation(contact.phoneNo)
+                    },
+                    onShareInvite = onShareInvite,
                     onBackFromConversation = presenter::closeConversation,
                     phoneContactsProvider = phoneContactsProvider,
                 )
@@ -66,6 +78,8 @@ private fun LiveChatAppPreview() {
             state = HomeUiState(),
             onSelectTab = {},
             onOpenConversation = {},
+            onStartConversationWithContact = {},
+            onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
         )
@@ -81,6 +95,8 @@ private fun HomeScreenConversationsPreview() {
             state = HomeUiState(),
             onSelectTab = {},
             onOpenConversation = {},
+            onStartConversationWithContact = {},
+            onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
         )
@@ -96,6 +112,8 @@ private fun HomeScreenDetailPreview() {
             state = HomeUiState(activeConversationId = PreviewFixtures.conversationUiState.conversationId),
             onSelectTab = {},
             onOpenConversation = {},
+            onStartConversationWithContact = {},
+            onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
         )
