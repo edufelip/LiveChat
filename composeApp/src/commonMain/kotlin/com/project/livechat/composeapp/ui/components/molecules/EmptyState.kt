@@ -19,13 +19,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun EmptyState(
     message: String,
     modifier: Modifier = Modifier,
-    tone: Color = Color.Gray,
+    tone: Color? = null,
 ) {
+    val resolvedTone = tone ?: MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
-            color = tone,
+            color = resolvedTone,
         )
     }
 }

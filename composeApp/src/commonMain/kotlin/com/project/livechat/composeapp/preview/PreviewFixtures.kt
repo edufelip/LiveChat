@@ -88,15 +88,15 @@ object PreviewFixtures {
 
     val contacts: List<Contact> =
         listOf(
-            Contact(id = 1, name = "Ava Harper", phoneNo = "+1 555 0100", description = "Designer", photo = null),
-            Contact(id = 2, name = "Brandon Diaz", phoneNo = "+1 555 0101", description = "Product Manager", photo = null),
-            Contact(id = 3, name = "Chioma Ade", phoneNo = "+1 555 0102", description = "iOS Engineer", photo = null),
+            Contact(id = 1, name = "Ava Harper", phoneNo = "+1 555 0100", description = "Designer", photo = null, isRegistered = true),
+            Contact(id = 2, name = "Brandon Diaz", phoneNo = "+1 555 0101", description = "Product Manager", photo = null, isRegistered = true),
+            Contact(id = 3, name = "Chioma Ade", phoneNo = "+1 555 0102", description = "iOS Engineer", photo = null, isRegistered = false),
         )
 
     val contactsState =
         ContactsUiState(
             localContacts = contacts,
-            validatedContacts = contacts.take(2),
+            validatedContacts = contacts.filter { it.isRegistered },
             isLoading = false,
             isSyncing = false,
             errorMessage = null,
@@ -105,5 +105,5 @@ object PreviewFixtures {
     val contactsLoadingState = contactsState.copy(localContacts = emptyList(), validatedContacts = emptyList(), isLoading = true)
     val contactsErrorState = contactsState.copy(errorMessage = "Invite failed")
 
-    val badgeColors = listOf(Color(0xFF2F9D62), Color(0xFF635BFF))
+    val badgeColors = listOf(Color(0xFF64C7A8), Color(0xFF82D4B8))
 }

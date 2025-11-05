@@ -37,6 +37,25 @@ https://github.com/edufelip/live-chat_android.git
 - `:shared:domain` — Models, use cases, validation utilities, shared Koin module.
 - `:composeApp` — Compose Multiplatform UI, organised into `ui/app`, `ui/features`, `ui/components`, `ui/state`, and `ui/util` packages following an atomic design breakdown.
 
+### Theming
+- The entire UI now runs through a `LiveChatTheme` wrapper (Compose Multiplatform) built on a pastel green palette. Shapes and typography are centralised under `ui/theme`.
+- Platform colour selection is abstracted via a `PlatformColorSchemeStrategy`. Android’s actual strategy opts into Material You when available; iOS and other targets fall back to the shared pastel palette.
+- Preview helpers reuse the same theme, guaranteeing screenshots and design reviews match runtime output.
+- Components reference `MaterialTheme` tokens instead of hard-coded colours. Empty states, badges, and the contacts screen now draw from `colorScheme` for consistent styling.
+
+### Contacts Sync & Permissions
+- A cross-platform `ContactsPermissionManager` abstraction lives in `composeApp/contacts`. The Android actual requests `READ_CONTACTS` at runtime via `ActivityResultContracts`, while the iOS actual simply returns granted—matching the system behaviour.
+- `ContactsRoute` requests permission on entry and kicks off a sync when granted. The sync path calls into shared presenters/use cases, keeping the logic consistent across platforms.
+- `CheckRegisteredContactsUseCase` now diff-checks the on-device list against the cached SQDelight table:
+  - Removes contacts that disappeared from the phone.
+  - Inserts new phone contacts into the local store.
+  - Updates changed display info.
+  - Hits Firebase (through `IContactsRemoteData`) to determine which contacts are registered and persists the flag in SQL.
+- The `contacts` table gained an `is_registered` column (`shared/data/.../contacts.sq` + migration `002_add_is_registered_column.sqm`) so the UI can render verified users immediately on later visits.
+- The shared `ContactsPresenter` exposes `ContactsEvent` emissions for navigation and invites. The Compose UI marks LiveChat users as tappable rows (opening conversations) and shows an `Invite` button for others.
+- Invite requests build a reusable message (currently “Hi … https://www.google.com”) via `InviteContactUseCase` and surface it through platform share sheets (`Intent.ACTION_SEND` on Android, `UIActivityViewController` on iOS).
+- Tests cover the diff logic (`CheckRegisteredContactsUseCaseTest`), presenter state/event flow (`ContactsPresenterTest`), and invite copy (`InviteContactUseCaseTest`) in `shared/domain/src/commonTest`.
+
 ### Compose Multiplatform iOS Client
 The iOS experience is now entirely Compose Multiplatform. There are two ways to work with it:
 
@@ -96,6 +115,7 @@ On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatfo
 - **Atomic Compose components**: Reusable building blocks live in `composeApp/src/commonMain/kotlin/com/project/livechat/composeapp/ui/components` and `app/src/main/java/com/project/livechat/ui/components`, grouped into `atoms`, `molecules`, `organisms`, and `dialogs`. Each component includes a local preview to simplify iteration.
 - **Feature-oriented packages**: Screens and screen-specific state/route composables sit inside `ui/features/<feature-name>/**` on both the shared and Android modules (e.g., `ui/features/conversations/list`, `ui/features/contacts/screens`).
 - **Presenter bridge**: Shared presenters are exposed through expect/actual helpers in `composeApp/ui/state/PresenterHooks.kt`, now backed by Koin on both iOS and Android via `IosKoinBridge` and `AndroidKoinBridge`.
+- **Animated navigation**: Tab switches (Chats ↔ Contacts) run through `AnimatedContent`, providing directional fades/slides that align with the new theme.
 - **Firebase setup**: The Google Services Gradle plugin runs inside `:composeApp`. Drop `google-services.json` into `composeApp/src/<buildType>/` (or directly under `composeApp/src/`) before running Gradle so the plugin can merge Firebase credentials.
 
 ## Layout Preview

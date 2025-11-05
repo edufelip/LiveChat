@@ -1,5 +1,12 @@
 package com.project.livechat.composeapp.ui.features.home.view
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,13 +33,15 @@ import com.project.livechat.domain.models.HomeDestination
 import com.project.livechat.domain.models.HomeTab
 import com.project.livechat.domain.models.HomeUiState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 internal fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
     onSelectTab: (HomeTab) -> Unit,
     onOpenConversation: (String) -> Unit,
+    onStartConversationWithContact: (Contact) -> Unit,
+    onShareInvite: (String) -> Unit,
     onBackFromConversation: () -> Unit,
     phoneContactsProvider: () -> List<Contact>,
 ) {
@@ -74,24 +83,48 @@ internal fun HomeScreen(
             }
         },
     ) { padding ->
-        when (destination) {
-            is HomeDestination.ConversationDetail ->
-                ConversationDetailRoute(
-                    modifier = Modifier.padding(padding),
-                    conversationId = destination.conversationId,
-                )
+        AnimatedContent(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
+            targetState = destination,
+            transitionSpec = {
+                val direction =
+                    when {
+                        targetState.animationOrder() > initialState.animationOrder() -> 1
+                        targetState.animationOrder() < initialState.animationOrder() -> -1
+                        else -> 0
+                    }
+                if (direction == 0) {
+                    fadeIn() togetherWith fadeOut()
+                } else {
+                    (slideInHorizontally { fullWidth -> fullWidth / 4 * direction } + fadeIn()) togetherWith
+                        (slideOutHorizontally { fullWidth -> -fullWidth / 4 * direction } + fadeOut())
+                }
+            },
+            label = "homeDestinationTransition",
+        ) { target ->
+            when (target) {
+                is HomeDestination.ConversationDetail ->
+                    ConversationDetailRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        conversationId = target.conversationId,
+                    )
 
-            HomeDestination.ConversationList ->
-                ConversationListRoute(
-                    modifier = Modifier.padding(padding),
-                    onConversationSelected = onOpenConversation,
-                )
+                HomeDestination.ConversationList ->
+                    ConversationListRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        onConversationSelected = onOpenConversation,
+                    )
 
-            HomeDestination.Contacts ->
-                ContactsRoute(
-                    modifier = Modifier.padding(padding),
-                    phoneContactsProvider = phoneContactsProvider,
-                )
+                HomeDestination.Contacts ->
+                    ContactsRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        phoneContactsProvider = phoneContactsProvider,
+                        onContactSelected = onStartConversationWithContact,
+                        onShareInvite = onShareInvite,
+                    )
+            }
         }
     }
 }
@@ -101,4 +134,11 @@ private fun topBarTitle(destination: HomeDestination): String =
         is HomeDestination.ConversationDetail -> "Conversation"
         HomeDestination.ConversationList -> "Chats"
         HomeDestination.Contacts -> "Contacts"
+    }
+
+private fun HomeDestination.animationOrder(): Int =
+    when (this) {
+        is HomeDestination.ConversationDetail -> 2
+        HomeDestination.ConversationList -> 0
+        HomeDestination.Contacts -> 1
     }
