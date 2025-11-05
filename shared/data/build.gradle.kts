@@ -34,6 +34,7 @@ val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bo
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.multiplatform.settings)
             }
         }
         val commonTest by getting {

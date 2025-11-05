@@ -10,14 +10,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import com.project.livechat.data.session.InMemoryUserSessionProvider
+import com.project.livechat.domain.models.AppUiState
 import com.project.livechat.domain.models.ContactsUiState
 import com.project.livechat.domain.models.ConversationListUiState
 import com.project.livechat.domain.models.ConversationUiState
+import com.project.livechat.domain.presentation.AppPresenter
 import com.project.livechat.domain.presentation.ContactsPresenter
 import com.project.livechat.domain.presentation.ConversationListPresenter
 import com.project.livechat.domain.presentation.ConversationPresenter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+
+@Composable
+internal fun rememberAppPresenter(): AppPresenter {
+    val presenter =
+        remember {
+            provideAppPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun AppPresenter.collectState(): State<AppUiState> = this.state.collectAsComposeState()
 
 @Composable
 internal fun rememberConversationListPresenter(): ConversationListPresenter {
@@ -92,3 +109,5 @@ internal expect fun provideConversationPresenter(): ConversationPresenter
 internal expect fun provideContactsPresenter(): ContactsPresenter
 
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
+
+internal expect fun provideAppPresenter(): AppPresenter

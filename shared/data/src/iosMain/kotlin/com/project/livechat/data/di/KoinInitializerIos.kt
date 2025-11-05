@@ -3,6 +3,7 @@ package com.project.livechat.data.di
 import com.project.livechat.data.backend.firebase.firebaseBackendModule
 import com.project.livechat.data.remote.FirebaseRestConfig
 import com.project.livechat.data.session.InMemoryUserSessionProvider
+import com.project.livechat.domain.presentation.AppPresenter
 import com.project.livechat.domain.presentation.ContactsPresenter
 import com.project.livechat.domain.presentation.ConversationListPresenter
 import com.project.livechat.domain.presentation.ConversationPresenter
@@ -21,6 +22,8 @@ object IosKoinBridge : KoinComponent {
     fun conversationListPresenter(): ConversationListPresenter = get()
 
     fun contactsPresenter(): ContactsPresenter = get()
+
+    fun appPresenter(): AppPresenter = get()
 }
 
 fun startKoinForiOS(

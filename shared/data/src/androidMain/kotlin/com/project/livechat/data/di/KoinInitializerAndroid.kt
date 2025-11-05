@@ -11,6 +11,8 @@ import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.project.livechat.shared.data.initSharedKoin
+import com.russhwolf.settings.Settings
+import com.russhwolf.settings.SharedPreferencesSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -58,6 +60,10 @@ fun androidPlatformModule(
         single { FirebaseUserSessionProvider(get()) }
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }
         single { AndroidSessionBridge(get(), get(), Dispatchers.Default) }
+        single<Settings> {
+            val prefs = context.getSharedPreferences(PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
+            SharedPreferencesSettings(prefs)
+        }
         single<SqlDriver> {
             AndroidSqliteDriver(
                 schema = LiveChatDatabase.Schema,
@@ -97,3 +103,4 @@ fun defaultHttpClient(): HttpClient =
     }
 
 private const val DEFAULT_DATABASE_NAME = "livechat.db"
+private const val PREFERENCES_FILE_NAME = "livechat_prefs"

@@ -29,7 +29,8 @@ internal fun OnboardingFlowScreen(
     modifier: Modifier = Modifier,
 ) {
     var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
-    var selectedCountry by rememberSaveable { mutableStateOf(CountryOption.default()) }
+    var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
+    val selectedCountry = remember(selectedCountryCode) { CountryOption.fromIsoCode(selectedCountryCode) }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     var phoneError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
@@ -111,7 +112,7 @@ internal fun OnboardingFlowScreen(
             currentSelection = selectedCountry,
             onDismiss = { showCountryPicker = false },
             onSelect = {
-                selectedCountry = it
+                selectedCountryCode = it.isoCode
                 showCountryPicker = false
             },
         )
