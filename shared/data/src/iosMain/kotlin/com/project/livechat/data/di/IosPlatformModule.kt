@@ -3,8 +3,10 @@ package com.project.livechat.data.di
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import com.project.livechat.data.remote.FirebaseRestConfig
+import com.project.livechat.data.repositories.UnsupportedPhoneAuthRepository
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
+import com.project.livechat.domain.repositories.IPhoneAuthRepository
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.russhwolf.settings.AppleSettings
 import com.russhwolf.settings.Settings
@@ -31,6 +33,7 @@ fun iosPlatformModule(
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
         single<Settings> { AppleSettings(NSUserDefaults.standardUserDefaults) }
+        single<IPhoneAuthRepository> { UnsupportedPhoneAuthRepository() }
     }
 
 fun defaultHttpClient(): HttpClient =

@@ -18,6 +18,7 @@ import com.project.livechat.domain.presentation.AppPresenter
 import com.project.livechat.domain.presentation.ContactsPresenter
 import com.project.livechat.domain.presentation.ConversationListPresenter
 import com.project.livechat.domain.presentation.ConversationPresenter
+import com.project.livechat.domain.presentation.PhoneAuthPresenter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 
@@ -93,6 +94,22 @@ internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
 }
 
 @Composable
+internal fun rememberPhoneAuthPresenter(): PhoneAuthPresenter {
+    val presenter =
+        remember {
+            providePhoneAuthPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun PhoneAuthPresenter.collectState(): State<com.project.livechat.domain.models.PhoneAuthUiState> =
+    this.uiState.collectAsComposeState()
+
+@Composable
 private fun <T> StateFlow<T>.collectAsComposeState(): State<T> {
     val flow = this
     val state = remember { mutableStateOf(flow.value) }
@@ -111,3 +128,5 @@ internal expect fun provideContactsPresenter(): ContactsPresenter
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
 
 internal expect fun provideAppPresenter(): AppPresenter
+
+internal expect fun providePhoneAuthPresenter(): PhoneAuthPresenter

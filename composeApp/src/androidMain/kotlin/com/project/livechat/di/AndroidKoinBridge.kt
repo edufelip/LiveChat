@@ -5,6 +5,7 @@ import com.project.livechat.domain.presentation.AppPresenter
 import com.project.livechat.domain.presentation.ContactsPresenter
 import com.project.livechat.domain.presentation.ConversationListPresenter
 import com.project.livechat.domain.presentation.ConversationPresenter
+import com.project.livechat.domain.presentation.PhoneAuthPresenter
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
@@ -18,4 +19,6 @@ object AndroidKoinBridge : KoinComponent {
     fun sessionProvider(): InMemoryUserSessionProvider = get()
 
     fun appPresenter(): AppPresenter = get()
+
+    fun phoneAuthPresenter(): PhoneAuthPresenter = get()
 }

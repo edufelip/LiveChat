@@ -6,6 +6,7 @@ import com.project.livechat.domain.presentation.AppPresenter
 import com.project.livechat.domain.presentation.ContactsPresenter
 import com.project.livechat.domain.presentation.ConversationListPresenter
 import com.project.livechat.domain.presentation.ConversationPresenter
+import com.project.livechat.domain.presentation.PhoneAuthPresenter
 
 internal actual fun provideConversationListPresenter(): ConversationListPresenter =
     AndroidKoinBridge.conversationListPresenter()
@@ -21,3 +22,6 @@ internal actual fun provideSessionProvider(): InMemoryUserSessionProvider =
 
 internal actual fun provideAppPresenter(): AppPresenter =
     AndroidKoinBridge.appPresenter()
+
+internal actual fun providePhoneAuthPresenter(): PhoneAuthPresenter =
+    AndroidKoinBridge.phoneAuthPresenter()

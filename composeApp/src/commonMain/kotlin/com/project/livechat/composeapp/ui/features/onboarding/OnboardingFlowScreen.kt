@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
@@ -19,8 +20,12 @@ import com.project.livechat.composeapp.ui.features.onboarding.dialogs.CountryPic
 import com.project.livechat.composeapp.ui.features.onboarding.steps.OTPStep
 import com.project.livechat.composeapp.ui.features.onboarding.steps.PhoneStep
 import com.project.livechat.composeapp.ui.features.onboarding.steps.SuccessStep
+import com.project.livechat.composeapp.ui.state.collectState
+import com.project.livechat.composeapp.ui.state.rememberPhoneAuthPresenter
 import com.project.livechat.composeapp.ui.util.isDigitsOnly
-import kotlinx.coroutines.delay
+import com.project.livechat.domain.auth.phone.model.PhoneAuthError
+import com.project.livechat.domain.auth.phone.model.PhoneNumber
+import com.project.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -28,28 +33,37 @@ internal fun OnboardingFlowScreen(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
+    val phoneAuthPresenter = rememberPhoneAuthPresenter()
+    val phoneAuthState by phoneAuthPresenter.collectState()
     var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
     val selectedCountry = remember(selectedCountryCode) { CountryOption.fromIsoCode(selectedCountryCode) }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
-    var phoneError by remember { mutableStateOf<String?>(null) }
+    var phoneInputError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
-    var countdown by rememberSaveable { mutableStateOf(60) }
-    var timerActive by rememberSaveable { mutableStateOf(false) }
     var showCountryPicker by remember { mutableStateOf(false) }
     val inspectionMode = LocalInspectionMode.current
+    val context = LocalContext.current
 
-    LaunchedEffect(timerActive, countdown, inspectionMode) {
-        if (!inspectionMode && timerActive && countdown > 0) {
-            while (countdown > 0 && timerActive) {
-                delay(1_000)
-                countdown -= 1
-            }
-            if (countdown <= 0) {
-                timerActive = false
-            }
-        }
+    LaunchedEffect(phoneAuthState.session?.verificationId) {
+        otp = ""
     }
+
+    val currentStep =
+        when {
+            phoneAuthState.isVerificationCompleted -> OnboardingStep.Success
+            phoneAuthState.session != null -> OnboardingStep.OTP
+            else -> OnboardingStep.PhoneEntry
+        }
+
+    val phoneErrorMessage =
+        phoneInputError
+            ?: phoneAuthState.error
+                ?.takeIf { phoneAuthState.session == null }
+                ?.toMessage()
+    val otpErrorMessage =
+        phoneAuthState.error
+            ?.takeIf { phoneAuthState.session != null }
+            ?.toMessage()
 
     Surface(
         modifier =
@@ -57,48 +71,68 @@ internal fun OnboardingFlowScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
     ) {
-        when (step) {
+        when (currentStep) {
             OnboardingStep.PhoneEntry ->
                 PhoneStep(
                     selectedCountry = selectedCountry,
                     phoneNumber = phoneNumber,
-                    phoneError = phoneError,
+                    phoneError = phoneErrorMessage,
+                    isLoading = phoneAuthState.isRequesting,
                     onPickCountry = { showCountryPicker = true },
                     onPhoneChanged = { input ->
                         phoneNumber = input.filter(Char::isDigit).take(20)
-                        phoneError = null
+                        phoneInputError = null
+                        phoneAuthPresenter.dismissError()
                     },
                     onContinue = {
                         if (!phoneNumber.isDigitsOnly() || phoneNumber.length < 7) {
-                            phoneError = "Please enter a valid phone number"
+                            phoneInputError = "Please enter a valid phone number"
                             return@PhoneStep
                         }
-                        step = OnboardingStep.OTP
-                        otp = ""
-                        countdown = 60
-                        timerActive = true
-                        phoneError = null
+                        if (inspectionMode) return@PhoneStep
+                        val presentationContext =
+                            runCatching { phoneAuthPresentationContext(context) }
+                                .getOrElse {
+                                    phoneInputError = "Unable to start verification"
+                                    return@PhoneStep
+                                }
+                        phoneAuthPresenter.startVerification(
+                            PhoneNumber(
+                                dialCode = selectedCountry.dialCode,
+                                nationalNumber = phoneNumber,
+                            ),
+                            presentationContext,
+                        )
                     },
                 )
 
             OnboardingStep.OTP ->
                 OTPStep(
                     otp = otp,
-                    countdown = countdown,
-                    timerActive = timerActive,
+                    countdown = phoneAuthState.countdownSeconds,
+                    canResend = phoneAuthState.canResend,
+                    isRequesting = phoneAuthState.isRequesting,
+                    isVerifying = phoneAuthState.isVerifying,
+                    errorMessage = otpErrorMessage,
                     onOtpChanged = { value ->
                         if (value.length <= 6 && value.all(Char::isDigit)) {
                             otp = value
+                            phoneAuthPresenter.dismissError()
                         }
                     },
                     onResend = {
-                        countdown = 60
-                        timerActive = true
+                        if (!inspectionMode) {
+                            phoneAuthState.session?.let {
+                                val presentationContext =
+                                    runCatching { phoneAuthPresentationContext(context) }.getOrNull()
+                                        ?: return@OTPStep
+                                phoneAuthPresenter.resendCode(presentationContext)
+                            }
+                        }
                     },
                     onVerify = {
-                        if (otp.length == 6) {
-                            timerActive = false
-                            step = OnboardingStep.Success
+                        if (!inspectionMode && otp.length == 6) {
+                            phoneAuthPresenter.verifyCode(otp)
                         }
                     },
                 )
@@ -127,3 +161,16 @@ private fun OnboardingFlowScreenPreview() {
         OnboardingFlowScreen(onFinished = {})
     }
 }
+
+private fun PhoneAuthError.toMessage(): String =
+    when (this) {
+        PhoneAuthError.InvalidPhoneNumber -> "Please enter a valid phone number"
+        PhoneAuthError.InvalidVerificationCode -> "Invalid verification code"
+        PhoneAuthError.TooManyRequests -> "Too many attempts. Try again later."
+        PhoneAuthError.QuotaExceeded -> "SMS quota exceeded. Please try again later."
+        PhoneAuthError.CodeExpired -> "The code has expired. Request a new one."
+        PhoneAuthError.NetworkError -> "Network error. Check your connection."
+        PhoneAuthError.ResendNotAvailable -> "You can request a new code shortly."
+        is PhoneAuthError.Configuration -> this.message ?: "Phone authentication is not configured."
+        is PhoneAuthError.Unknown -> this.message ?: "Unexpected error. Try again."
+    }

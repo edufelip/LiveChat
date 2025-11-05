@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -36,6 +38,7 @@ internal fun PhoneStep(
     selectedCountry: CountryOption,
     phoneNumber: String,
     phoneError: String?,
+    isLoading: Boolean,
     onPickCountry: () -> Unit,
     onPhoneChanged: (String) -> Unit,
     onContinue: () -> Unit,
@@ -104,14 +107,14 @@ internal fun PhoneStep(
                     placeholder = { Text("Digits only") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        supportingText = {
-                            if (phoneError != null) {
-                                Text(text = phoneError, color = MaterialTheme.colorScheme.error)
-                            } else {
-                                Spacer(modifier = Modifier.height(0.dp))
-                            }
-                        },
-                    )
+                    supportingText = {
+                        if (phoneError != null) {
+                            Text(text = phoneError, color = MaterialTheme.colorScheme.error)
+                        } else {
+                            Spacer(modifier = Modifier.height(0.dp))
+                        }
+                    },
+                )
                 }
             }
         }
@@ -119,9 +122,13 @@ internal fun PhoneStep(
         Button(
             modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = 40.dp),
             onClick = onContinue,
-            enabled = phoneNumber.isNotBlank(),
+            enabled = phoneNumber.isNotBlank() && !isLoading,
         ) {
-            Text("Continue")
+            if (isLoading) {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+            } else {
+                Text("Continue")
+            }
         }
     }
 }
@@ -135,6 +142,7 @@ private fun PhoneStepPreview() {
             selectedCountry = CountryOption.default(),
             phoneNumber = "5550100",
             phoneError = null,
+            isLoading = false,
             onPickCountry = {},
             onPhoneChanged = {},
             onContinue = {},

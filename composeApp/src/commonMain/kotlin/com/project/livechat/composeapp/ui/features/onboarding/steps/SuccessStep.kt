@@ -29,10 +29,9 @@ internal fun SuccessStep(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp)
-                .padding(top = 72.dp),
+                .padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
     ) {
         Text(
             text = "You're all set!",
