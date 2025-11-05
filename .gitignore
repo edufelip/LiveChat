@@ -20,3 +20,4 @@ local.properties
 .kotlin/
 .project_context
 iosApp/LiveChatIOS/GoogleService-Info.plist
+**/google-services.json

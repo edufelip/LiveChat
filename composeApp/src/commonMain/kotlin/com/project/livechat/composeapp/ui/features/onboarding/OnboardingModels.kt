@@ -17,6 +17,9 @@ data class CountryOption(
             )
 
         fun default(): CountryOption = defaults.first()
+
+        fun fromIsoCode(isoCode: String): CountryOption =
+            defaults.firstOrNull { it.isoCode == isoCode } ?: default()
     }
 }
 

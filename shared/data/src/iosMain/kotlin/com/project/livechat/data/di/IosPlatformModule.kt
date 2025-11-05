@@ -6,6 +6,8 @@ import com.project.livechat.data.remote.FirebaseRestConfig
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
 import com.project.livechat.shared.data.database.LiveChatDatabase
+import com.russhwolf.settings.AppleSettings
+import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -16,6 +18,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import platform.Foundation.NSUserDefaults
 
 fun iosPlatformModule(
     config: FirebaseRestConfig,
@@ -27,6 +30,7 @@ fun iosPlatformModule(
         single<SqlDriver> { NativeSqliteDriver(LiveChatDatabase.Schema, "livechat.db") }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
+        single<Settings> { AppleSettings(NSUserDefaults.standardUserDefaults) }
     }
 
 fun defaultHttpClient(): HttpClient =
