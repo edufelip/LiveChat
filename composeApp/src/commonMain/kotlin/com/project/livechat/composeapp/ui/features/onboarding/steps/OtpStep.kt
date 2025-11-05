@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,7 +26,10 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 internal fun OTPStep(
     otp: String,
     countdown: Int,
-    timerActive: Boolean,
+    canResend: Boolean,
+    isRequesting: Boolean,
+    isVerifying: Boolean,
+    errorMessage: String?,
     onOtpChanged: (String) -> Unit,
     onResend: () -> Unit,
     onVerify: () -> Unit,
@@ -35,7 +40,7 @@ internal fun OTPStep(
             modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 40.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -60,24 +65,35 @@ internal fun OTPStep(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (timerActive) {
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            if (canResend) {
+                TextButton(onClick = onResend, enabled = !isRequesting) {
+                    Text("Resend code")
+                }
+            } else {
                 Text(
                     text = "Resend available in ${countdown.coerceAtLeast(0)}s",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else {
-                TextButton(onClick = onResend) {
-                    Text("Resend code")
-                }
             }
         }
 
         Button(
             onClick = onVerify,
-            enabled = otp.length == 6,
+            enabled = otp.length == 6 && !isVerifying,
         ) {
-            Text("Verify")
+            if (isVerifying) {
+                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+            } else {
+                Text("Verify")
+            }
         }
     }
 }
@@ -90,7 +106,10 @@ private fun OtpStepPreview() {
         OTPStep(
             otp = "123456",
             countdown = 24,
-            timerActive = true,
+            canResend = false,
+            isRequesting = false,
+            isVerifying = false,
+            errorMessage = null,
             onOtpChanged = {},
             onResend = {},
             onVerify = {},

@@ -48,6 +48,7 @@ val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bo
             dependencies {
                 implementation(firebaseBom)
                 implementation("com.google.firebase:firebase-auth")
+                implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.sqldelight.android.driver)
                 implementation(libs.ktor.client.okhttp)
             }

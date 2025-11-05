@@ -5,10 +5,12 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.project.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.project.livechat.data.backend.firebase.firebaseBackendModule
 import com.project.livechat.data.session.FirebaseUserSessionProvider
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
+import com.project.livechat.domain.repositories.IPhoneAuthRepository
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import com.project.livechat.shared.data.initSharedKoin
 import com.russhwolf.settings.Settings
@@ -60,6 +62,7 @@ fun androidPlatformModule(
         single { FirebaseUserSessionProvider(get()) }
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }
         single { AndroidSessionBridge(get(), get(), Dispatchers.Default) }
+        single<IPhoneAuthRepository> { FirebasePhoneAuthRepository(get()) }
         single<Settings> {
             val prefs = context.getSharedPreferences(PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
             SharedPreferencesSettings(prefs)
