@@ -1,5 +1,7 @@
 package com.project.livechat.composeapp.ui.features.onboarding
 
+import com.project.livechat.composeapp.ui.features.onboarding.generated.GeneratedCountryOptions
+
 data class CountryOption(
     val isoCode: String,
     val name: String,
@@ -7,19 +9,26 @@ data class CountryOption(
     val flag: String,
 ) {
     companion object {
-        val defaults =
-            listOf(
-                CountryOption("US", "United States", "+1", "US"),
-                CountryOption("BR", "Brazil", "+55", "BR"),
-                CountryOption("GB", "United Kingdom", "+44", "UK"),
-                CountryOption("IN", "India", "+91", "IN"),
-                CountryOption("CA", "Canada", "+1", "CA"),
+        private val priorityIsoCodes = listOf("US", "CA", "BR")
+        private val countries: List<CountryOption> =
+            GeneratedCountryOptions.sortedWith(
+                compareBy<CountryOption> {
+                    val normalizedIso = it.isoCode.uppercase()
+                    val index = priorityIsoCodes.indexOf(normalizedIso)
+                    if (index >= 0) index else Int.MAX_VALUE
+                }.thenBy { it.name },
             )
 
-        fun default(): CountryOption = defaults.first()
+        val defaults: List<CountryOption>
+            get() = countries
+
+        fun default(): CountryOption =
+            countries.firstOrNull { it.isoCode.equals("US", ignoreCase = true) }
+                ?: countries.first()
 
         fun fromIsoCode(isoCode: String): CountryOption =
-            defaults.firstOrNull { it.isoCode == isoCode } ?: default()
+            countries.firstOrNull { it.isoCode.equals(isoCode, ignoreCase = true) }
+                ?: default()
     }
 }
 
