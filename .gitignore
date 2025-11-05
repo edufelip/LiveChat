@@ -16,7 +16,6 @@
 local.properties
 /.idea
 /docs/*
-**/AGENTS.md
 .kotlin/
 .project_context
 iosApp/LiveChatIOS/GoogleService-Info.plist
