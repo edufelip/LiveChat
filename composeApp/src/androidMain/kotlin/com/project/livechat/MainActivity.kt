@@ -1,15 +1,14 @@
 package com.project.livechat
 
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.project.livechat.composeapp.contacts.AndroidContactsProvider
 import com.project.livechat.composeapp.ui.app.LiveChatApp
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
@@ -22,10 +21,7 @@ class MainActivity : ComponentActivity() {
     private val sharedStrings = LiveChatStrings()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
+        setEdgeToEdgeAppearance()
 
         setContent {
             LiveChatApp(
@@ -105,6 +101,20 @@ class MainActivity : ComponentActivity() {
     private fun showSettingsSection(section: SettingsSection) {
         val message = "Opening ${section.title(sharedStrings.settings)} settings soon"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setEdgeToEdgeAppearance() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        val isDarkTheme =
+            (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+        controller.isAppearanceLightStatusBars = !isDarkTheme
+        controller.isAppearanceLightNavigationBars = !isDarkTheme
     }
 }
 
