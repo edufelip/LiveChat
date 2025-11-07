@@ -120,6 +120,7 @@ On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatfo
 - Conversation lists hide archived chats by default, add an `Archived` filter chip, and surface mute/archive toggles on each row so participant state stays manageable without opening the detail view.
 - Contacts invites now pass the target contact through `InviteShareRequest`, allowing Android/iOS share sheets to pre-fill SMS, WhatsApp, and email recipients whenever possible.
 - Conversation presenters now auto-dispatch read receipts: when `observeConversation` emits newer messages, we contrast them with the participant’s `lastReadSeq/lastReadAt` and call `MarkConversationReadUseCase`. This keeps delivery receipts, mute/archived UI, and unread badges in sync across detail and list presenters.
+- Because we only ship fresh installs today, SQLDelight migrations were folded into the base schema files—remove the old `.sqm` migration scripts whenever you tweak table definitions and update the main `.sq` instead.
 
 ### Firestore Security Rules Cheatsheet
 Keep the storage schema from `plan.md` locked down with the following baseline. The helper functions use brace bodies instead of assignment syntax, avoiding the `Unexpected '='` error you hit at lines 77/83:
