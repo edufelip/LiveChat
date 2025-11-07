@@ -15,7 +15,7 @@
 .cxx
 local.properties
 /.idea
-/docs/*
+docs/
 .kotlin/
 .project_context
 iosApp/LiveChatIOS/GoogleService-Info.plist

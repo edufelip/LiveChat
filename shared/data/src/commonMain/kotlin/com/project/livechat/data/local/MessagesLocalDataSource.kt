@@ -1,60 +1,55 @@
 package com.project.livechat.data.local
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.project.livechat.data.contracts.IMessagesLocalData
-import com.project.livechat.data.mappers.clearConversation
-import com.project.livechat.data.mappers.insertMessage
-import com.project.livechat.data.mappers.insertMessages
 import com.project.livechat.data.mappers.toDomain
-import com.project.livechat.data.mappers.toInsertParams
+import com.project.livechat.data.mappers.toEntity
 import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageStatus
 import com.project.livechat.domain.models.Participant
 import com.project.livechat.domain.models.ParticipantRole
 import com.project.livechat.domain.utils.currentEpochMillis
+import com.project.livechat.shared.data.database.ConversationStateDao
+import com.project.livechat.shared.data.database.ConversationStateEntity
+import com.project.livechat.shared.data.database.ConversationSummaryRow
 import com.project.livechat.shared.data.database.LiveChatDatabase
-import kotlinx.coroutines.flow.map
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
+import com.project.livechat.shared.data.database.MessagesDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 
 class MessagesLocalDataSource(
-    private val database: LiveChatDatabase,
+    database: LiveChatDatabase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesLocalData {
-    private val queries = database.messagesQueries
-    private val conversationStateQueries = database.conversation_stateQueries
+    private val messagesDao: MessagesDao = database.messagesDao()
+    private val conversationStateDao: ConversationStateDao = database.conversationStateDao()
 
     override fun observeMessages(
         conversationId: String,
         limit: Int,
-    ): Flow<List<Message>> {
-        return queries.getMessagesForConversation(conversationId)
-            .asFlow()
-            .mapToList(dispatcher)
+    ): Flow<List<Message>> =
+        messagesDao.observeMessages(conversationId)
             .map { rows ->
                 val mapped = rows.map { it.toDomain() }
                 if (mapped.size <= limit) mapped else mapped.takeLast(limit)
             }
-    }
 
     override suspend fun upsertMessages(messages: List<Message>) {
         if (messages.isEmpty()) return
         withContext(dispatcher) {
-            database.insertMessages(messages.toInsertParams())
+            messagesDao.insertAll(messages.map { it.toEntity() })
         }
     }
 
     override suspend fun insertOutgoingMessage(message: Message) {
         withContext(dispatcher) {
-            database.insertMessage(message.toInsertParams())
+            messagesDao.insert(message.toEntity())
         }
     }
 
@@ -64,11 +59,7 @@ class MessagesLocalDataSource(
         status: MessageStatus,
     ) {
         withContext(dispatcher) {
-            queries.updateMessageStatusByLocalId(
-                id = serverId,
-                status = status.name,
-                local_temp_id = localId,
-            )
+            messagesDao.updateStatusByLocalId(localId, serverId, status.name)
         }
     }
 
@@ -77,132 +68,110 @@ class MessagesLocalDataSource(
         status: MessageStatus,
     ) {
         withContext(dispatcher) {
-            queries.updateMessageStatus(
-                status = status.name,
-                id = messageId,
-            )
+            messagesDao.updateStatus(messageId, status.name)
         }
     }
 
-    override suspend fun latestTimestamp(conversationId: String): Long? {
-        return withContext(dispatcher) {
-            queries.getLatestMessageTimestamp(conversationId).executeAsOneOrNull()
-        }
-    }
+    override suspend fun latestTimestamp(conversationId: String): Long? =
+        withContext(dispatcher) { messagesDao.latestTimestamp(conversationId) }
 
     override suspend fun replaceConversation(
         conversationId: String,
         messages: List<Message>,
     ) {
         withContext(dispatcher) {
-            database.messagesQueries.transaction {
-                database.clearConversation(conversationId)
-                database.insertMessages(messages.toInsertParams())
+            messagesDao.clearConversation(conversationId)
+            if (messages.isNotEmpty()) {
+                messagesDao.insertAll(messages.map { it.toEntity() })
             }
         }
     }
 
-    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
-        return queries.getConversationSummaries {
-                conversationId,
-                messageId,
-                senderId,
-                body,
-                createdAt,
-                status,
-                lastReadAt,
-                isPinned,
-                pinnedAt,
-                muteUntil,
-                archived,
-                contactName,
-                contactPhoto,
-                unreadCount,
-            ->
-            val statusEnum = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT)
-            val muteValue = muteUntil
-            val isMuted = muteValue?.let { it > currentEpochMillis() } ?: false
-            val message =
-                Message(
-                    id = messageId,
-                    conversationId = conversationId,
-                    senderId = senderId,
-                    body = body,
-                    createdAt = createdAt,
-                    status = statusEnum,
-                    localTempId = null,
-                )
-            ConversationSummary(
-                conversationId = conversationId,
-                contactName = contactName,
-                contactPhoto = contactPhoto,
-                lastMessage = message,
-                unreadCount = unreadCount?.toInt() ?: 0,
-                isPinned = (isPinned ?: 0L) != 0L,
-                pinnedAt = pinnedAt,
-                lastReadAt = lastReadAt,
-                isMuted = isMuted,
-                muteUntil = muteValue,
-                isArchived = (archived ?: 0L) != 0L,
-            )
-        }
-            .asFlow()
-            .mapToList(dispatcher)
-    }
+    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> =
+        messagesDao.observeConversationSummaries()
+            .map { rows -> rows.map { it.toConversationSummary() } }
 
     override fun observeParticipant(conversationId: String): Flow<Participant?> =
-        conversationStateQueries.observeConversationState(conversationId)
-            .asFlow()
-            .mapToOneOrNull(dispatcher)
-            .map { row -> row?.toParticipant() }
+        conversationStateDao.observeConversationState(conversationId)
+            .map { state -> state?.toParticipant() }
 
     override suspend fun getParticipant(conversationId: String): Participant? =
-        withContext(dispatcher) {
-            conversationStateQueries.getConversationState(conversationId).executeAsOneOrNull()?.toParticipant()
-        }
+        withContext(dispatcher) { conversationStateDao.getConversationState(conversationId)?.toParticipant() }
 
     override suspend fun upsertParticipant(participant: Participant) {
         withContext(dispatcher) {
-            conversationStateQueries.insertOrReplaceConversationState(
-                conversation_id = participant.conversationId,
-                user_id = participant.userId,
-                role = participant.role.name,
-                joined_at = participant.joinedAt,
-                left_at = participant.leftAt,
-                last_read_at = participant.lastReadAt ?: 0L,
-                last_read_seq = participant.lastReadSeq,
-                mute_until = participant.muteUntil,
-                archived = if (participant.archived) 1L else 0L,
-                is_pinned = if (participant.pinned) 1L else 0L,
-                pinned_at = participant.pinnedAt,
-                settings = participant.settings.takeIf { it.isNotEmpty() }?.let { MetadataAdapter.encode(it) },
-            )
+            conversationStateDao.upsert(participant.toEntity())
         }
     }
 
-    private fun com.project.livechat.shared.data.database.Conversation_state.toParticipant(): Participant =
-        Participant(
-            conversationId = conversation_id,
-            userId = user_id,
-            role = runCatching { ParticipantRole.valueOf(role) }.getOrDefault(ParticipantRole.Member),
-            joinedAt = joined_at,
-            leftAt = left_at,
-            muteUntil = mute_until,
-            archived = (archived ?: 0L) != 0L,
-            pinned = (is_pinned ?: 0L) != 0L,
-            pinnedAt = pinned_at,
-            lastReadSeq = last_read_seq,
-            lastReadAt = last_read_at,
-            settings = settings?.let { MetadataAdapter.decode(it) } ?: emptyMap(),
+    private fun ConversationSummaryRow.toConversationSummary(): ConversationSummary {
+        val statusEnum = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT)
+        val lastMessage =
+            Message(
+                id = messageId,
+                conversationId = conversationId,
+                senderId = senderId,
+                body = body,
+                createdAt = createdAt,
+                status = statusEnum,
+                localTempId = null,
+            )
+        val muteValue = muteUntil
+        val isMuted = muteValue?.let { it > currentEpochMillis() } ?: false
+        return ConversationSummary(
+            conversationId = conversationId,
+            contactName = contactName,
+            contactPhoto = contactPhoto,
+            lastMessage = lastMessage,
+            unreadCount = unreadCount?.toInt() ?: 0,
+            isPinned = isPinned ?: false,
+            pinnedAt = pinnedAt,
+            lastReadAt = lastReadAt,
+            isMuted = isMuted,
+            muteUntil = muteValue,
+            isArchived = archived ?: false,
         )
-}
+    }
 
-private object MetadataAdapter {
-    private val json = Json { ignoreUnknownKeys = true }
-    private val serializer = MapSerializer(String.serializer(), String.serializer())
+    private fun ConversationStateEntity.toParticipant(): Participant =
+        Participant(
+            conversationId = conversationId,
+            userId = userId,
+            role = runCatching { ParticipantRole.valueOf(role) }.getOrDefault(ParticipantRole.Member),
+            joinedAt = joinedAt,
+            leftAt = leftAt,
+            muteUntil = muteUntil,
+            archived = archived,
+            pinned = isPinned,
+            pinnedAt = pinnedAt,
+            lastReadSeq = lastReadSeq,
+            lastReadAt = lastReadAt,
+            settings = settings?.let { SettingsAdapter.decode(it) } ?: emptyMap(),
+        )
 
-    fun encode(metadata: Map<String, String>): String = json.encodeToString(serializer, metadata)
+    private fun Participant.toEntity(): ConversationStateEntity =
+        ConversationStateEntity(
+            conversationId = conversationId,
+            userId = userId,
+            role = role.name,
+            joinedAt = joinedAt,
+            leftAt = leftAt,
+            lastReadAt = lastReadAt ?: 0L,
+            lastReadSeq = lastReadSeq,
+            muteUntil = muteUntil,
+            archived = archived,
+            isPinned = pinned,
+            pinnedAt = pinnedAt,
+            settings = settings.takeIf { it.isNotEmpty() }?.let { SettingsAdapter.encode(it) },
+        )
 
-    fun decode(raw: String): Map<String, String> =
-        runCatching { json.decodeFromString(serializer, raw) }.getOrDefault(emptyMap())
+    private object SettingsAdapter {
+        private val json = Json { ignoreUnknownKeys = true }
+        private val serializer = MapSerializer(String.serializer(), String.serializer())
+
+        fun encode(metadata: Map<String, String>): String = json.encodeToString(serializer, metadata)
+
+        fun decode(raw: String): Map<String, String> =
+            runCatching { json.decodeFromString(serializer, raw) }.getOrDefault(emptyMap())
+    }
 }

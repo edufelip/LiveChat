@@ -1,53 +1,68 @@
 package com.project.livechat.data.local
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
 import com.project.livechat.data.contracts.IContactsLocalData
-import com.project.livechat.data.mappers.insertContact
 import com.project.livechat.data.mappers.toDomain
-import com.project.livechat.data.mappers.toInsertParams
-import com.project.livechat.data.mappers.updateContact
+import com.project.livechat.data.mappers.toEntity
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.shared.data.database.LiveChatDatabase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 class ContactsLocalDataSource(
-    private val database: LiveChatDatabase,
+    database: LiveChatDatabase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IContactsLocalData {
-    private val queries = database.contactsQueries
+    private val contactsDao = database.contactsDao()
 
     override fun getLocalContacts(): Flow<List<Contact>> {
-        return queries.getAllContacts()
-            .asFlow()
-            .mapToList(dispatcher)
+        return contactsDao.observeContacts()
             .map { contacts -> contacts.map { it.toDomain() } }
     }
 
     override suspend fun removeContacts(contacts: List<Contact>) {
-        queries.transaction {
+        if (contacts.isEmpty()) return
+        withContext(dispatcher) {
             contacts.map { it.phoneNo }
                 .chunked(CHUNK_SIZE)
                 .forEach { phoneChunk ->
-                    queries.deleteContactsByPhone(phoneChunk)
+                    contactsDao.deleteContactsByPhone(phoneChunk)
                 }
         }
     }
 
     override suspend fun addContacts(contacts: List<Contact>) {
-        queries.transaction {
+        if (contacts.isEmpty()) return
+        withContext(dispatcher) {
             contacts.forEach { contact ->
-                database.insertContact(contact.toInsertParams())
+                val inserted = contactsDao.insert(contact.toEntity())
+                if (inserted == -1L) {
+                    contactsDao.updateContactByPhone(
+                        name = contact.name,
+                        description = contact.description,
+                        photo = contact.photo,
+                        isRegistered = contact.isRegistered,
+                        phoneNo = contact.phoneNo,
+                    )
+                }
             }
         }
     }
 
     override suspend fun updateContacts(contacts: List<Contact>) {
-        queries.transaction {
-            contacts.forEach { database.updateContact(it) }
+        if (contacts.isEmpty()) return
+        withContext(dispatcher) {
+            contacts.forEach { contact ->
+                contactsDao.updateContactByPhone(
+                    name = contact.name,
+                    description = contact.description,
+                    photo = contact.photo,
+                    isRegistered = contact.isRegistered,
+                    phoneNo = contact.phoneNo,
+                )
+            }
         }
     }
 

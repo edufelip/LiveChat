@@ -1,8 +1,6 @@
 package com.project.livechat.data.di
 
 import android.content.Context
-import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.project.livechat.data.auth.phone.FirebasePhoneAuthRepository
@@ -10,11 +8,13 @@ import com.project.livechat.data.backend.firebase.firebaseBackendModule
 import com.project.livechat.data.session.FirebaseUserSessionProvider
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
+import com.project.livechat.domain.repositories.IOnboardingStatusRepository
 import com.project.livechat.domain.repositories.IPhoneAuthRepository
+import com.project.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.project.livechat.shared.data.database.LiveChatDatabase
+import com.project.livechat.shared.data.database.buildLiveChatDatabase
+import com.project.livechat.shared.data.database.createAndroidDatabaseBuilder
 import com.project.livechat.shared.data.initSharedKoin
-import com.russhwolf.settings.Settings
-import com.russhwolf.settings.SharedPreferencesSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -63,17 +63,8 @@ fun androidPlatformModule(
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }
         single { AndroidSessionBridge(get(), get(), Dispatchers.Default) }
         single<IPhoneAuthRepository> { FirebasePhoneAuthRepository(get()) }
-        single<Settings> {
-            val prefs = context.getSharedPreferences(PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)
-            SharedPreferencesSettings(prefs)
-        }
-        single<SqlDriver> {
-            AndroidSqliteDriver(
-                schema = LiveChatDatabase.Schema,
-                context = context,
-                name = DEFAULT_DATABASE_NAME,
-            )
-        }
+        single<LiveChatDatabase> { buildLiveChatDatabase(createAndroidDatabaseBuilder(get())) }
+        single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 
 private fun firebaseRestConfig(app: FirebaseApp): com.project.livechat.data.remote.FirebaseRestConfig =
@@ -105,6 +96,3 @@ fun defaultHttpClient(): HttpClient =
         }
         install(WebSockets) { }
     }
-
-private const val DEFAULT_DATABASE_NAME = "livechat.db"
-private const val PREFERENCES_FILE_NAME = "livechat_prefs"
