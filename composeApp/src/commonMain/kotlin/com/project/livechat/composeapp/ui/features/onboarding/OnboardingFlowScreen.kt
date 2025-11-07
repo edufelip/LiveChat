@@ -20,6 +20,8 @@ import com.project.livechat.composeapp.ui.features.onboarding.dialogs.CountryPic
 import com.project.livechat.composeapp.ui.features.onboarding.steps.OTPStep
 import com.project.livechat.composeapp.ui.features.onboarding.steps.PhoneStep
 import com.project.livechat.composeapp.ui.features.onboarding.steps.SuccessStep
+import com.project.livechat.composeapp.ui.resources.OnboardingStrings
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.state.collectState
 import com.project.livechat.composeapp.ui.state.rememberPhoneAuthPresenter
 import com.project.livechat.composeapp.ui.util.isDigitsOnly
@@ -33,6 +35,7 @@ internal fun OnboardingFlowScreen(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings()
     val phoneAuthPresenter = rememberPhoneAuthPresenter()
     val phoneAuthState by phoneAuthPresenter.collectState()
     var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
@@ -59,11 +62,11 @@ internal fun OnboardingFlowScreen(
         phoneInputError
             ?: phoneAuthState.error
                 ?.takeIf { phoneAuthState.session == null }
-                ?.toMessage()
+                ?.toMessage(strings.onboarding)
     val otpErrorMessage =
         phoneAuthState.error
             ?.takeIf { phoneAuthState.session != null }
-            ?.toMessage()
+            ?.toMessage(strings.onboarding)
 
     Surface(
         modifier =
@@ -86,14 +89,14 @@ internal fun OnboardingFlowScreen(
                     },
                     onContinue = {
                         if (!phoneNumber.isDigitsOnly() || phoneNumber.length < 7) {
-                            phoneInputError = "Please enter a valid phone number"
+                            phoneInputError = strings.onboarding.invalidPhoneError
                             return@PhoneStep
                         }
                         if (inspectionMode) return@PhoneStep
                         val presentationContext =
                             runCatching { phoneAuthPresentationContext(context) }
                                 .getOrElse {
-                                    phoneInputError = "Unable to start verification"
+                                    phoneInputError = strings.onboarding.startVerificationError
                                     return@PhoneStep
                                 }
                         phoneAuthPresenter.startVerification(
@@ -162,15 +165,15 @@ private fun OnboardingFlowScreenPreview() {
     }
 }
 
-private fun PhoneAuthError.toMessage(): String =
+private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =
     when (this) {
-        PhoneAuthError.InvalidPhoneNumber -> "Please enter a valid phone number"
-        PhoneAuthError.InvalidVerificationCode -> "Invalid verification code"
-        PhoneAuthError.TooManyRequests -> "Too many attempts. Try again later."
-        PhoneAuthError.QuotaExceeded -> "SMS quota exceeded. Please try again later."
-        PhoneAuthError.CodeExpired -> "The code has expired. Request a new one."
-        PhoneAuthError.NetworkError -> "Network error. Check your connection."
-        PhoneAuthError.ResendNotAvailable -> "You can request a new code shortly."
-        is PhoneAuthError.Configuration -> this.message ?: "Phone authentication is not configured."
-        is PhoneAuthError.Unknown -> this.message ?: "Unexpected error. Try again."
+        PhoneAuthError.InvalidPhoneNumber -> strings.invalidPhoneError
+        PhoneAuthError.InvalidVerificationCode -> strings.invalidVerificationCode
+        PhoneAuthError.TooManyRequests -> strings.tooManyRequests
+        PhoneAuthError.QuotaExceeded -> strings.quotaExceeded
+        PhoneAuthError.CodeExpired -> strings.codeExpired
+        PhoneAuthError.NetworkError -> strings.networkError
+        PhoneAuthError.ResendNotAvailable -> strings.resendNotAvailable
+        is PhoneAuthError.Configuration -> this.message ?: strings.configurationError
+        is PhoneAuthError.Unknown -> this.message ?: strings.unknownError
     }

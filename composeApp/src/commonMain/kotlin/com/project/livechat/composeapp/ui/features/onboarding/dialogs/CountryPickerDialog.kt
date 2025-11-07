@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.ui.features.onboarding.CountryOption
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -35,6 +36,7 @@ internal fun CountryPickerDialog(
     onDismiss: () -> Unit,
     onSelect: (CountryOption) -> Unit,
 ) {
+    val strings = liveChatStrings().onboarding
     val countries = remember { CountryOption.defaults }
     var query by remember { mutableStateOf("") }
     val filteredCountries =
@@ -57,7 +59,7 @@ internal fun CountryPickerDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select your country") },
+        title = { Text(strings.countryPickerTitle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextField(
@@ -65,7 +67,7 @@ internal fun CountryPickerDialog(
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    placeholder = { Text("Search by country or code") },
+                    placeholder = { Text(strings.countryPickerSearchPlaceholder) },
                 )
 
                 LazyColumn(
@@ -79,7 +81,7 @@ internal fun CountryPickerDialog(
                     if (filteredCountries.isEmpty()) {
                         item {
                             Text(
-                                text = "No countries found",
+                                text = strings.countryPickerEmpty,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -113,7 +115,7 @@ internal fun CountryPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text(strings.countryPickerClose)
             }
         },
     )

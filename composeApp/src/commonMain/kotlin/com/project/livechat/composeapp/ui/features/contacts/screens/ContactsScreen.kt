@@ -16,6 +16,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -116,7 +117,10 @@ private fun EmptyContactsState(
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(
+            MaterialTheme.spacing.md,
+            alignment = Alignment.CenterVertically,
+        ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -254,7 +258,7 @@ private fun InviteHistoryRow(record: InviteHistoryItem) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Divider()
+        HorizontalDivider()
     }
 }
 
