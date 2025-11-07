@@ -32,6 +32,9 @@ fun ConversationListRoute(
             onSearch = {},
             onConversationSelected = {},
             onTogglePin = { _, _ -> },
+            onToggleMute = { _, _ -> },
+            onToggleArchive = { _, _ -> },
+            onFilterSelected = {},
         )
         return
     }
@@ -75,6 +78,13 @@ fun ConversationListRoute(
         onTogglePin = { summary, pinned ->
             presenter.togglePinned(summary.conversationId, pinned)
         },
+        onToggleMute = { summary, muted ->
+            presenter.toggleMuted(summary.conversationId, muted)
+        },
+        onToggleArchive = { summary, archived ->
+            presenter.toggleArchived(summary.conversationId, archived)
+        },
+        onFilterSelected = { presenter.setFilter(it) },
     )
 }
 

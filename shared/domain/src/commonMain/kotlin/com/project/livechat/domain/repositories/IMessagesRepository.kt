@@ -23,6 +23,7 @@ interface IMessagesRepository {
     suspend fun markConversationAsRead(
         conversationId: String,
         lastReadAt: Long,
+        lastReadSeq: Long? = null,
     )
 
     suspend fun setConversationPinned(

@@ -1,12 +1,15 @@
 package com.project.livechat.domain.presentation
 
 import com.project.livechat.domain.models.ConversationUiState
+import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageDraft
 import com.project.livechat.domain.providers.UserSessionProvider
 import com.project.livechat.domain.repositories.IMessagesRepository
 import com.project.livechat.domain.useCases.ObserveConversationUseCase
 import com.project.livechat.domain.useCases.SendMessageUseCase
 import com.project.livechat.domain.useCases.SyncConversationUseCase
+import com.project.livechat.domain.useCases.ObserveParticipantUseCase
+import com.project.livechat.domain.useCases.MarkConversationReadUseCase
 import com.project.livechat.domain.utils.CStateFlow
 import com.project.livechat.domain.utils.asCStateFlow
 import com.project.livechat.domain.utils.currentEpochMillis
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -26,6 +30,8 @@ class ConversationPresenter(
     private val observeConversationUseCase: ObserveConversationUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val syncConversationUseCase: SyncConversationUseCase,
+    private val observeParticipantUseCase: ObserveParticipantUseCase,
+    private val markConversationReadUseCase: MarkConversationReadUseCase,
     private val userSessionProvider: UserSessionProvider,
     private val scope: CoroutineScope = MainScope(),
 ) {
@@ -34,6 +40,10 @@ class ConversationPresenter(
     val uiState: CStateFlow<ConversationUiState> = state.asCStateFlow()
 
     private var observeJob: Job? = null
+    private var participantJob: Job? = null
+    private var markReadJob: Job? = null
+    private var lastMarkedReadSeq: Long? = null
+    private var lastMarkedReadAt: Long = 0L
 
     fun start(
         conversationId: String,
@@ -48,8 +58,16 @@ class ConversationPresenter(
                 conversationId = conversationId,
                 isLoading = true,
                 errorMessage = null,
+                participant = null,
+                isMuted = false,
+                muteUntil = null,
+                isArchived = false,
             )
         }
+        lastMarkedReadSeq = null
+        lastMarkedReadAt = 0L
+        markReadJob?.cancel()
+        markReadJob = null
 
         observeJob?.cancel()
         observeJob =
@@ -71,6 +89,32 @@ class ConversationPresenter(
                                 errorMessage = null,
                             )
                         }
+                        maybeMarkConversationRead(messages)
+                    }
+            }
+
+        participantJob?.cancel()
+        participantJob =
+            scope.launch {
+                observeParticipantUseCase(conversationId)
+                    .catch { throwable ->
+                        _uiState.update { state ->
+                            state.copy(errorMessage = state.errorMessage ?: throwable.message)
+                        }
+                    }
+                    .collectLatest { participant ->
+                        val mutedUntil = participant?.muteUntil
+                        val isMuted =
+                            mutedUntil?.let { it > currentEpochMillis() } ?: false
+                        _uiState.update { state ->
+                            state.copy(
+                                participant = participant,
+                                isMuted = isMuted,
+                                muteUntil = mutedUntil,
+                                isArchived = participant?.archived ?: false,
+                            )
+                        }
+                        maybeMarkConversationRead(_uiState.value.messages)
                     }
             }
 
@@ -90,6 +134,65 @@ class ConversationPresenter(
                 }
             }
         }
+    }
+
+    private fun maybeMarkConversationRead(messages: List<Message>) {
+        if (messages.isEmpty()) return
+        val conversationId = _uiState.value.conversationId
+        if (conversationId.isBlank()) return
+        val latest = messages.maxByOrNull { it.createdAt } ?: return
+        val latestSeq = latest.messageSeq
+        val participant = _uiState.value.participant
+        val participantSeq = participant?.lastReadSeq
+        val participantReadAt = participant?.lastReadAt ?: 0L
+        val knownSeq = listOfNotNull(participantSeq, lastMarkedReadSeq).maxOrNull()
+
+        val alreadyAcknowledgedBySeq =
+            latestSeq != null && knownSeq != null && latestSeq <= knownSeq
+        val alreadyAcknowledgedByTime =
+            latestSeq == null && latest.createdAt <= maxOf(participantReadAt, lastMarkedReadAt)
+
+        if (alreadyAcknowledgedBySeq || alreadyAcknowledgedByTime) return
+
+        dispatchMarkConversationRead(conversationId, latest.createdAt, latestSeq)
+    }
+
+    private fun dispatchMarkConversationRead(
+        conversationId: String,
+        lastReadAt: Long,
+        lastReadSeq: Long?,
+    ) {
+        markReadJob?.cancel()
+        markReadJob =
+            scope.launch {
+                runCatching {
+                    markConversationReadUseCase(conversationId, lastReadAt, lastReadSeq)
+                }.onSuccess {
+                    lastReadSeq?.let { seq ->
+                        val baseline = lastMarkedReadSeq ?: Long.MIN_VALUE
+                        lastMarkedReadSeq = maxOf(baseline, seq)
+                    }
+                    lastMarkedReadAt = maxOf(lastMarkedReadAt, lastReadAt)
+                    _uiState.update { state ->
+                        val participant = state.participant
+                        if (participant == null) {
+                            state
+                        } else {
+                            state.copy(
+                                participant =
+                                    participant.copy(
+                                        lastReadSeq = lastReadSeq ?: participant.lastReadSeq,
+                                        lastReadAt = maxOf(participant.lastReadAt ?: 0L, lastReadAt),
+                                    ),
+                            )
+                        }
+                    }
+                }.onFailure { throwable ->
+                    _uiState.update { state ->
+                        state.copy(errorMessage = state.errorMessage ?: throwable.message)
+                    }
+                }
+            }
     }
 
     fun refresh() {
@@ -160,6 +263,12 @@ class ConversationPresenter(
     fun stop() {
         observeJob?.cancel()
         observeJob = null
+        participantJob?.cancel()
+        participantJob = null
+        markReadJob?.cancel()
+        markReadJob = null
+        lastMarkedReadSeq = null
+        lastMarkedReadAt = 0L
         _uiState.value = ConversationUiState()
     }
 

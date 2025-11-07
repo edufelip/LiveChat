@@ -1,9 +1,12 @@
 package com.project.livechat.domain.presentation
 
+import com.project.livechat.domain.models.ConversationFilter
 import com.project.livechat.domain.models.ConversationListUiState
 import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.useCases.MarkConversationReadUseCase
 import com.project.livechat.domain.useCases.ObserveConversationSummariesUseCase
+import com.project.livechat.domain.useCases.SetConversationArchivedUseCase
+import com.project.livechat.domain.useCases.SetConversationMutedUseCase
 import com.project.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.project.livechat.domain.utils.CStateFlow
 import com.project.livechat.domain.utils.asCStateFlow
@@ -22,6 +25,8 @@ class ConversationListPresenter(
     private val observeConversationSummaries: ObserveConversationSummariesUseCase,
     private val markConversationRead: MarkConversationReadUseCase,
     private val setConversationPinned: SetConversationPinnedUseCase,
+    private val setConversationMuted: SetConversationMutedUseCase,
+    private val setConversationArchived: SetConversationArchivedUseCase,
     private val scope: CoroutineScope = MainScope(),
 ) {
     private val _uiState = MutableStateFlow(ConversationListUiState(isLoading = true))
@@ -40,7 +45,7 @@ class ConversationListPresenter(
                     cachedSummaries = summaries
                     _uiState.update { state ->
                         state.copy(
-                            conversations = filterSummaries(state.searchQuery, summaries),
+                            conversations = filterSummaries(state.searchQuery, state.selectedFilter, summaries),
                             isLoading = false,
                             errorMessage = null,
                         )
@@ -54,17 +59,31 @@ class ConversationListPresenter(
             val trimmed = query.trim()
             state.copy(
                 searchQuery = trimmed,
-                conversations = filterSummaries(trimmed, cachedSummaries),
+                conversations = filterSummaries(trimmed, state.selectedFilter, cachedSummaries),
             )
+        }
+    }
+
+    fun setFilter(filter: ConversationFilter) {
+        _uiState.update { state ->
+            if (state.selectedFilter == filter) {
+                state
+            } else {
+                state.copy(
+                    selectedFilter = filter,
+                    conversations = filterSummaries(state.searchQuery, filter, cachedSummaries),
+                )
+            }
         }
     }
 
     fun markConversationAsRead(conversationId: String) {
         val summary = cachedSummaries.find { it.conversationId == conversationId } ?: return
         val lastReadAt = summary.lastMessage.createdAt
+        val lastReadSeq = summary.lastMessage.messageSeq
         scope.launch {
             runCatching {
-                markConversationRead(conversationId, lastReadAt)
+                markConversationRead(conversationId, lastReadAt, lastReadSeq)
             }.onFailure { throwable ->
                 _uiState.update { it.copy(errorMessage = throwable.message) }
             }
@@ -85,13 +104,49 @@ class ConversationListPresenter(
         }
     }
 
+    fun toggleMuted(
+        conversationId: String,
+        muted: Boolean,
+    ) {
+        val muteUntil = if (muted) currentEpochMillis() + DEFAULT_MUTE_DURATION_MS else null
+        scope.launch {
+            runCatching {
+                setConversationMuted(conversationId, muteUntil)
+            }.onFailure { throwable ->
+                _uiState.update { it.copy(errorMessage = throwable.message) }
+            }
+        }
+    }
+
+    fun toggleArchived(
+        conversationId: String,
+        archived: Boolean,
+    ) {
+        scope.launch {
+            runCatching {
+                setConversationArchived(conversationId, archived)
+            }.onFailure { throwable ->
+                _uiState.update { it.copy(errorMessage = throwable.message) }
+            }
+        }
+    }
+
     private fun filterSummaries(
         query: String,
+        filter: ConversationFilter,
         items: List<ConversationSummary>,
     ): List<ConversationSummary> {
-        if (query.isBlank()) return items.sortedWith(summaryComparator)
+        val (archived, active) = items.partition { it.isArchived }
+        val filtered =
+            when (filter) {
+                ConversationFilter.All -> active
+                ConversationFilter.Unread -> active.filter { it.unreadCount > 0 }
+                ConversationFilter.Pinned -> active.filter { it.isPinned }
+                ConversationFilter.Archived -> archived
+            }
+        if (query.isBlank()) return filtered.sortedWith(summaryComparator)
         val lower = query.lowercase()
-        return items.filter {
+        return filtered.filter {
             it.displayName.lowercase().contains(lower) ||
                 it.lastMessage.body.lowercase().contains(lower)
         }.sortedWith(summaryComparator)
@@ -105,6 +160,10 @@ class ConversationListPresenter(
                 else -> b.lastMessage.createdAt.compareTo(a.lastMessage.createdAt)
             }
         }
+
+    companion object {
+        private const val DEFAULT_MUTE_DURATION_MS = 7L * 24 * 60 * 60 * 1000 // 7 days
+    }
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }

@@ -21,6 +21,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun ConversationListRow(
     summary: ConversationSummary,
     onTogglePin: (ConversationSummary, Boolean) -> Unit,
+    onToggleMute: (ConversationSummary, Boolean) -> Unit,
+    onToggleArchive: (ConversationSummary, Boolean) -> Unit,
     onClick: (ConversationSummary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -39,6 +41,18 @@ fun ConversationListRow(
                         contentDescription = if (summary.isPinned) "Unpin" else "Pin",
                     )
                 }
+                IconButton(onClick = { onToggleMute(summary, !summary.isMuted) }) {
+                    Icon(
+                        imageVector = if (summary.isMuted) AppIcons.muted else AppIcons.mute,
+                        contentDescription = if (summary.isMuted) "Unmute" else "Mute",
+                    )
+                }
+                IconButton(onClick = { onToggleArchive(summary, !summary.isArchived) }) {
+                    Icon(
+                        imageVector = if (summary.isArchived) AppIcons.unarchive else AppIcons.archive,
+                        contentDescription = if (summary.isArchived) "Unarchive" else "Archive",
+                    )
+                }
             },
             onClick = { onClick(summary) },
             highlight = summary.isPinned,
@@ -54,6 +68,8 @@ private fun ConversationListRowPreview() {
         ConversationListRow(
             summary = PreviewFixtures.conversationListState.conversations.first(),
             onTogglePin = { _, _ -> },
+            onToggleMute = { _, _ -> },
+            onToggleArchive = { _, _ -> },
             onClick = {},
         )
     }

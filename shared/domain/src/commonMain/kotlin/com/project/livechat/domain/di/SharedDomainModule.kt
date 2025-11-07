@@ -13,9 +13,12 @@ import com.project.livechat.domain.useCases.GetLocalContactsUseCase
 import com.project.livechat.domain.useCases.InviteContactUseCase
 import com.project.livechat.domain.useCases.MarkConversationReadUseCase
 import com.project.livechat.domain.useCases.ObserveConversationSummariesUseCase
-import com.project.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.project.livechat.domain.useCases.ObserveConversationUseCase
+import com.project.livechat.domain.useCases.ObserveParticipantUseCase
+import com.project.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.project.livechat.domain.useCases.SendMessageUseCase
+import com.project.livechat.domain.useCases.SetConversationArchivedUseCase
+import com.project.livechat.domain.useCases.SetConversationMutedUseCase
 import com.project.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.project.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.project.livechat.domain.useCases.SyncConversationUseCase
@@ -35,19 +38,22 @@ val sharedDomainModule: Module =
         factory { InviteContactUseCase(get<IContactsRepository>()) }
         factory { ObserveConversationUseCase(get()) }
         factory { ObserveConversationSummariesUseCase(get()) }
+        factory { ObserveParticipantUseCase(get()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { SendMessageUseCase(get()) }
         factory { SyncConversationUseCase(get()) }
         factory { MarkConversationReadUseCase(get()) }
         factory { SetConversationPinnedUseCase(get()) }
+        factory { SetConversationMutedUseCase(get()) }
+        factory { SetConversationArchivedUseCase(get()) }
         factory { SetOnboardingCompleteUseCase(get()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
         factory { ClearPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
-        factory { ConversationPresenter(get(), get(), get(), get()) }
-        factory { ConversationListPresenter(get(), get(), get()) }
-        factory { ContactsPresenter(get(), get(), get()) }
+        factory { ConversationPresenter(get(), get(), get(), get(), get(), get()) }
+        factory { ConversationListPresenter(get(), get(), get(), get(), get()) }
+        factory { ContactsPresenter(get(), get(), get(), get()) }
         factory { PhoneAuthPresenter(get(), get(), get(), get()) }
         factory { AppPresenter(get(), get()) }
     }
