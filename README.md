@@ -9,12 +9,21 @@ LiveChat is a Kotlin Multiplatform chat experience geared toward organizing conv
 - **Presentation (iOS)**: Compose Multiplatform running from the `composeApp` module. The UI consumes shared presenters (`ConversationListPresenter`, `ConversationPresenter`, `ContactsPresenter`) directly via Koin through expect/actual hooks.
 - **Dependency Injection**: [Koin](https://insert-koin.io/) for both Android and shared modules (Hilt removed).
 - **State/Data**: Kotlin Coroutines/Flows. Legacy Android ViewModels still live under `app/src/main/java/com/project/livechat/ui/viewmodels`, but the `:composeApp` entry now consumes shared presenters directly.
-- **Persistence**: [SQDelight](https://cashapp.github.io/sqldelight/) schema defined under `shared/data/src/commonMain/sqldelight` with drivers provided per platform.
+- **Persistence**: [Room](https://developer.android.com/training/data-storage/room) configured for Kotlin Multiplatform with bundled SQLite drivers and shared entities/DAOs under `shared/data/src/commonMain`.
 - **Remote**:
   - Android uses Firebase Auth for phone verification and resolves Firestore clients from the shared `firebaseBackendModule`. Configuration is pulled from `google-services.json` at runtime.
   - iOS reuses the same backend module with a Darwin `HttpClient`; supply credentials via `GoogleService-Info.plist` or pass a manual `FirebaseRestConfig`.
 - **Backend Abstraction**: Koin boots with a configurable backend module list. The default `firebaseBackendModule` wires Firestore/Realtime listeners today, but you can replace it with your own implementation that provides `IContactsRemoteData`, `IMessagesRemoteData`, and `UserSessionProvider` bindings for a dedicated service.
-- **Testing**: Shared MPP tests cover the SQDelight data source and Koin bootstrap (`shared/data/src/commonTest`). Android instrumented tests were removed during the migration; add new ones as needed.
+- **Testing**: Shared MPP tests cover the SQDelight data source and Koin bootstrap (`shared/data/src/commonTest`). Android instrumented tests were removed during the migration; add new ones as needed. Onboarding persistence now ships dedicated domain + Android unit tests to keep the DataStore snapshot path verified.
+
+### Test Batches (Onboarding Persistence)
+Run these tasks anytime onboarding storage or presenters change:
+
+```bash
+./gradlew :shared:domain:test
+./gradlew :shared:data:test
+```
+Together they cover the AppPresenter snapshot logic plus the shared Room persistence layer across Android/iOS targets.
 
 ## Getting Started
 Clone this repository and open the root project in **Android Studio** (Kotlin Multiplatform support enabled).
@@ -97,7 +106,7 @@ Configuration pointers:
 
 - Drop your platform credentials into `iosApp/LiveChatIOS/GoogleService-Info.plist`. The path is git-ignored by default; copy your Firebase file locally if you need Analytics/Auth in the Xcode build.
 
-You can still generate the shared SQLDelight XCFramework for other native integrations:
+You can still generate the shared Room-powered XCFramework for other native integrations:
 
   ```bash
   ./gradlew :shared:data:assembleLiveChatSharedReleaseXCFramework
@@ -105,22 +114,22 @@ You can still generate the shared SQLDelight XCFramework for other native integr
 
 ### Dependency Graph
 Koin now bootstraps in `LiveChatApplication` via `startKoinForAndroid`, wiring:
-- `androidPlatformModule` (Firebase App/Auth, SQLDelight driver, HTTP client, session provider) plus any extra backend modules you pass in.
+- `androidPlatformModule` (Firebase App/Auth, Room DB builder with bundled SQLite, HTTP client, session provider) plus any extra backend modules you pass in.
 - `firebaseBackendModule` (Firestore contacts/messages clients, session provider bindings).
 - Shared modules from `:shared:data` and `:shared:domain`.
 
-On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatformModule` (Darwin HTTP client, native SQLDelight driver, in-memory session provider) plus the backend module list you provide—defaulting to `firebaseBackendModule`.
+On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatformModule` (Darwin HTTP client, Room builder backed by the bundled driver, in-memory session provider) plus the backend module list you provide—defaulting to `firebaseBackendModule`.
 
 ### Messaging Model Snapshot
 - The shared `Message` entity now tracks delivery sequencing (`messageSeq`), ack timestamps (`serverAckAt`), rich content typing (`MessageContentType`), encrypted payloads (`ciphertext`), attachments, reply/thread pointers, and lifecycle metadata (`editedAt`, `deletedForAllAt`, `metadata`). UI presenters keep using the same APIs while getting the extra context for roadmap features like threads or E2EE.
-- `messages.sq` mirrors those fields, so SQDelight persists ciphertext, sequences, and moderation markers without losing compatibility with existing queries. `MessagesLocalDataSource` and its mapper were updated to read/write the new columns.
+- The Room entities mirror those fields, so the bundled SQLite database persists ciphertext, sequences, and moderation markers without losing compatibility with existing queries. `MessagesLocalDataSource` and its mapper were updated to read/write the new columns.
 - Spec-aligned primitives for conversations, participants, receipts, and reactions now live under `shared/domain/.../ConversationModels.kt` and `MessageArtifacts.kt` to support upcoming roadmap work (pinned messages, delivery receipts, etc.).
 - Remote adapters now exchange the richer envelope with Firestore (content type, ciphertext, attachments, reply/thread metadata). SQLite already stores the same schema, so new delivery receipts or E2EE payloads travel end-to-end without extra migrations.
 - A dedicated `ConversationParticipantsRepository` exposes participant state (mute, archived, pinned, read markers) via shared flows so presenters and future delivery-receipt logic can rely on a single source of truth.
 - Conversation lists hide archived chats by default, add an `Archived` filter chip, and surface mute/archive toggles on each row so participant state stays manageable without opening the detail view.
 - Contacts invites now pass the target contact through `InviteShareRequest`, allowing Android/iOS share sheets to pre-fill SMS, WhatsApp, and email recipients whenever possible.
 - Conversation presenters now auto-dispatch read receipts: when `observeConversation` emits newer messages, we contrast them with the participant’s `lastReadSeq/lastReadAt` and call `MarkConversationReadUseCase`. This keeps delivery receipts, mute/archived UI, and unread badges in sync across detail and list presenters.
-- Because we only ship fresh installs today, SQLDelight migrations were folded into the base schema files—remove the old `.sqm` migration scripts whenever you tweak table definitions and update the main `.sq` instead.
+- Because we only ship fresh installs today, Room simply uses destructive migrations (schema export lives under `shared/data/schemas`). Update the entity definitions whenever you tweak tables and let the bundled driver recreate the DB on install.
 
 ### Firestore Security Rules Cheatsheet
 Keep the storage schema from `plan.md` locked down with the following baseline. The helper functions use brace bodies instead of assignment syntax, avoiding the `Unexpected '='` error you hit at lines 77/83:

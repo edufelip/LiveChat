@@ -2,6 +2,7 @@ package com.project.livechat.domain.presentation
 
 import com.project.livechat.domain.models.AppUiState
 import com.project.livechat.domain.models.HomeTab
+import com.project.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.project.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.project.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.project.livechat.domain.utils.CStateFlow
@@ -18,9 +19,10 @@ import kotlinx.coroutines.launch
 class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
+    getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
     private val scope: CoroutineScope = MainScope(),
 ) {
-    private val mutableState = MutableStateFlow(AppUiState())
+    private val mutableState = MutableStateFlow(AppUiState(isOnboardingComplete = getOnboardingStatusSnapshot()))
     val state = mutableState.asStateFlow()
     val cState: CStateFlow<AppUiState> = state.asCStateFlow()
 

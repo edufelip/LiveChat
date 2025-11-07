@@ -1,5 +1,6 @@
 package com.project.livechat.shared.data
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.project.livechat.data.contracts.IContactsRemoteData
 import com.project.livechat.data.contracts.IMessagesRemoteData
 import com.project.livechat.domain.models.Contact
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.runner.RunWith
 import org.koin.core.KoinApplication
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -21,6 +23,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
+@RunWith(AndroidJUnit4::class)
 class KoinInitializationTest {
     private var koinApplication: KoinApplication? = null
 
@@ -31,33 +34,32 @@ class KoinInitializationTest {
     }
 
     @Test
-    fun initSharedKoinProvidesDependencies() =
-        runTest {
-            val driver = createTestSqlDriver()
-            val platformModule =
-                module {
-                    single { driver }
-                    single<UserSessionProvider> { StubUserSessionProvider }
-                }
+    fun initSharedKoinProvidesDependencies() = runTest {
+        val database = createTestDatabase()
+        val platformModule =
+            module {
+                single { database }
+                single<UserSessionProvider> { StubUserSessionProvider }
+            }
 
-            val backendModule =
-                module {
-                    single<IContactsRemoteData> { StubContactsRemoteData }
-                    single<IMessagesRemoteData> { StubMessagesRemoteData }
-                }
+        val backendModule =
+            module {
+                single<IContactsRemoteData> { StubContactsRemoteData }
+                single<IMessagesRemoteData> { StubMessagesRemoteData }
+            }
 
-            koinApplication =
-                initSharedKoin(
-                    platformModules = listOf(platformModule),
-                    backendModules = listOf(backendModule),
-                )
+        koinApplication =
+            initSharedKoin(
+                platformModules = listOf(platformModule),
+                backendModules = listOf(backendModule),
+            )
 
-            val koin = koinApplication!!.koin
-            assertNotNull(koin.get<LiveChatDatabase>())
-            assertNotNull(koin.get<IContactsRepository>())
+        val koin = koinApplication!!.koin
+        assertNotNull(koin.get<LiveChatDatabase>())
+        assertNotNull(koin.get<IContactsRepository>())
 
-            driver.close()
-        }
+        database.close()
+    }
 
     private object StubContactsRemoteData : IContactsRemoteData {
         override fun checkContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()

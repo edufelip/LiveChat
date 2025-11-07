@@ -7,7 +7,6 @@ import com.project.livechat.domain.models.CipherInfo
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageContentType
 import com.project.livechat.domain.models.MessageStatus
-import com.project.livechat.shared.data.database.LiveChatDatabase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -17,17 +16,15 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalCoroutinesApi::class)
 class MessagesLocalDataSourceTest {
     @Test
-    fun insertOutgoingMessagePersistsExtendedFields() =
-        runTest {
-            val driver = createTestSqlDriver()
-            val database = LiveChatDatabase(driver)
+    fun insertOutgoingMessagePersistsExtendedFields() = runTest {
+        val database = createIosTestDatabase()
         val dispatcher = StandardTestDispatcher(testScheduler)
         val dataSource = MessagesLocalDataSource(database, dispatcher = dispatcher)
         val message =
             Message(
                 id = "local-1",
-                    conversationId = "conversation-1",
-                    senderId = "user-123",
+                conversationId = "conversation-1",
+                senderId = "user-123",
                 body = "Encrypted payload",
                 createdAt = 1000L,
                 status = MessageStatus.SENDING,
@@ -60,13 +57,13 @@ class MessagesLocalDataSourceTest {
 
         dataSource.insertOutgoingMessage(message)
 
-        val storedRow = database.messagesQueries.getMessagesForConversation("conversation-1").executeAsList().first()
-            assertEquals(42L, storedRow.message_seq)
-            assertEquals("Encrypted", storedRow.content_type)
+        val storedRow = database.messagesDao().getMessages("conversation-1").first()
+        assertEquals(42L, storedRow.messageSeq)
+        assertEquals("Encrypted", storedRow.contentType)
         assertEquals("cipher-text", storedRow.ciphertext)
-        assertEquals("local-0", storedRow.reply_to_message_id)
-        assertEquals("root-thread", storedRow.thread_root_id)
-        assertEquals(1020L, storedRow.edited_at)
+        assertEquals("local-0", storedRow.replyToMessageId)
+        assertEquals("root-thread", storedRow.threadRootId)
+        assertEquals(1020L, storedRow.editedAt)
 
         val domain = storedRow.toDomain()
         assertEquals(MessageContentType.Encrypted, domain.contentType)
@@ -76,6 +73,7 @@ class MessagesLocalDataSourceTest {
         assertEquals("root-thread", domain.threadRootId)
         assertEquals(1, domain.attachments.size)
         assertEquals("sms", domain.metadata["channel"])
-        driver.close()
+
+        database.close()
     }
 }

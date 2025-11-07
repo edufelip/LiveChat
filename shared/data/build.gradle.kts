@@ -5,7 +5,8 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
 }
 
 kotlin {
@@ -25,15 +26,14 @@ kotlin {
                 api(project(":shared:domain"))
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
-                implementation(libs.sqldelight.runtime)
-                implementation(libs.sqldelight.coroutines)
+                implementation(libs.androidx.room.runtime)
+                implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.multiplatform.settings)
             }
         }
         val commonTest by getting {
@@ -48,8 +48,8 @@ kotlin {
                 implementation(firebaseBom)
                 implementation("com.google.firebase:firebase-auth")
                 implementation(libs.kotlinx.coroutines.play.services)
-                implementation(libs.sqldelight.android.driver)
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.androidx.room.sqlite.wrapper)
             }
         }
         val iosX64Main by getting
@@ -61,9 +61,7 @@ kotlin {
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
-                implementation(libs.sqldelight.native.driver)
                 implementation(libs.ktor.client.darwin)
-                implementation(libs.multiplatform.settings)
             }
         }
 
@@ -79,7 +77,10 @@ kotlin {
 
         val androidUnitTest by getting {
             dependencies {
-                implementation(libs.sqldelight.jdbc.driver)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.robolectric)
             }
         }
     }
@@ -109,10 +110,13 @@ android {
     }
 }
 
-sqldelight {
-    databases {
-        create("LiveChatDatabase") {
-            packageName.set("com.project.livechat.shared.data.database")
-        }
-    }
+dependencies {
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosX64", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }

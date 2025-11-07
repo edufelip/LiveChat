@@ -2,6 +2,7 @@ package com.project.livechat.domain.presentation
 
 import com.project.livechat.domain.models.HomeTab
 import com.project.livechat.domain.repositories.IOnboardingStatusRepository
+import com.project.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.project.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.project.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +28,19 @@ class AppPresenterTest {
                 repository.setOnboardingComplete(true)
                 presenterScope.advanceUntilIdle()
 
+                assertTrue(presenter.state.value.isOnboardingComplete)
+            } finally {
+                presenter.close()
+            }
+        }
+
+    @Test
+    fun initialSnapshotSeedsAppUiState() =
+        runTest {
+            val repository = FakeOnboardingRepository(initiallyComplete = true)
+            val presenterScope = TestScope(testScheduler)
+            val presenter = newPresenter(repository, presenterScope)
+            try {
                 assertTrue(presenter.state.value.isOnboardingComplete)
             } finally {
                 presenter.close()
@@ -87,6 +101,7 @@ class AppPresenterTest {
     ) = AppPresenter(
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
+        getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
         scope = scope,
     )
 
@@ -101,6 +116,8 @@ class AppPresenterTest {
         override suspend fun setOnboardingComplete(complete: Boolean) {
             state.value = complete
         }
+
+        override fun currentStatus(): Boolean = state.value
 
         val currentValue: Boolean
             get() = state.value

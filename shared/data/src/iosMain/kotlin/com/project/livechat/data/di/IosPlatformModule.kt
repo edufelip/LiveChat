@@ -1,15 +1,15 @@
 package com.project.livechat.data.di
 
-import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import com.project.livechat.data.remote.FirebaseRestConfig
+import com.project.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.project.livechat.data.repositories.UnsupportedPhoneAuthRepository
 import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
+import com.project.livechat.domain.repositories.IOnboardingStatusRepository
 import com.project.livechat.domain.repositories.IPhoneAuthRepository
 import com.project.livechat.shared.data.database.LiveChatDatabase
-import com.russhwolf.settings.Settings
-import com.russhwolf.settings.NSUserDefaultsSettings
+import com.project.livechat.shared.data.database.buildLiveChatDatabase
+import com.project.livechat.shared.data.database.createIosDatabaseBuilder
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -20,7 +20,6 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import platform.Foundation.NSUserDefaults
 
 fun iosPlatformModule(
     config: FirebaseRestConfig,
@@ -29,11 +28,11 @@ fun iosPlatformModule(
     module {
         single { config }
         single { httpClient }
-        single<SqlDriver> { NativeSqliteDriver(LiveChatDatabase.Schema, "livechat.db") }
+        single<LiveChatDatabase> { buildLiveChatDatabase(createIosDatabaseBuilder()) }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
-        single<Settings> { NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults) }
         single<IPhoneAuthRepository> { UnsupportedPhoneAuthRepository() }
+        single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 
 fun defaultHttpClient(): HttpClient =

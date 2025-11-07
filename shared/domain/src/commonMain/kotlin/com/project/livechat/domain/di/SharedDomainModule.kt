@@ -12,6 +12,7 @@ import com.project.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.project.livechat.domain.useCases.GetLocalContactsUseCase
 import com.project.livechat.domain.useCases.InviteContactUseCase
 import com.project.livechat.domain.useCases.MarkConversationReadUseCase
+import com.project.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.project.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.project.livechat.domain.useCases.ObserveConversationUseCase
 import com.project.livechat.domain.useCases.ObserveParticipantUseCase
@@ -40,6 +41,7 @@ val sharedDomainModule: Module =
         factory { ObserveConversationSummariesUseCase(get()) }
         factory { ObserveParticipantUseCase(get()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
+        factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { SendMessageUseCase(get()) }
         factory { SyncConversationUseCase(get()) }
         factory { MarkConversationReadUseCase(get()) }
@@ -55,5 +57,5 @@ val sharedDomainModule: Module =
         factory { ConversationListPresenter(get(), get(), get(), get(), get()) }
         factory { ContactsPresenter(get(), get(), get(), get()) }
         factory { PhoneAuthPresenter(get(), get(), get(), get()) }
-        factory { AppPresenter(get(), get()) }
+        factory { AppPresenter(get(), get(), get()) }
     }
