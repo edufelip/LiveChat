@@ -25,6 +25,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.ui.app.navigation.defaultHomeTabs
 import com.project.livechat.composeapp.ui.features.contacts.ContactsRoute
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
@@ -66,6 +67,7 @@ internal fun HomeScreen(
                     Text(
                         text = topBarTitle(destination, strings),
                         style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(top = 8.dp, start = 8.dp)
                     )
                 },
                 navigationIcon = {
@@ -79,7 +81,7 @@ internal fun HomeScreen(
             )
         },
         bottomBar = {
-            NavigationBar(modifier = Modifier.navigationBarsPadding()) {
+            NavigationBar {
                 tabs.forEach { tabItem ->
                     NavigationBarItem(
                         selected = state.selectedTab == tabItem.tab,

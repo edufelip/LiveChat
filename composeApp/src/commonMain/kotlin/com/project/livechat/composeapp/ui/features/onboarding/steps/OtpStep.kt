@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -37,6 +38,7 @@ internal fun OTPStep(
     onVerify: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings().onboarding
     Column(
         modifier =
             modifier
@@ -47,12 +49,12 @@ internal fun OTPStep(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
             Text(
-                text = "Enter the 6-digit code",
+                text = strings.otpTitle,
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = "We just sent a verification code to your number.",
+                text = strings.otpSubtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
@@ -63,7 +65,7 @@ internal fun OTPStep(
             OutlinedTextField(
                 value = otp,
                 onValueChange = onOtpChanged,
-                label = { Text("Code") },
+                label = { Text(strings.otpFieldLabel) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -80,11 +82,11 @@ internal fun OTPStep(
                     enabled = !isRequesting,
                     modifier = Modifier.heightIn(min = 48.dp),
                 ) {
-                    Text("Resend code")
+                    Text(strings.resendCta)
                 }
             } else {
                 Text(
-                    text = "Resend available in ${countdown.coerceAtLeast(0)}s",
+                    text = strings.resendCountdownLabel(countdown),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -99,7 +101,7 @@ internal fun OTPStep(
             if (isVerifying) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
             } else {
-                Text("Verify")
+                Text(strings.verifyCta)
             }
         }
     }
