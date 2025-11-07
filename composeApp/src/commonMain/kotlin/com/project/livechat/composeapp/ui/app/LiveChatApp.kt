@@ -1,8 +1,5 @@
 package com.project.livechat.composeapp.ui.app
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -30,7 +27,7 @@ fun LiveChatApp(
     onOpenSettingsSection: (SettingsSection) -> Unit = {},
 ) {
     LiveChatTheme {
-        val contentModifier = modifier.windowInsetsPadding(WindowInsets.safeDrawing)
+        val contentModifier = modifier
         if (LocalInspectionMode.current) {
             HomeScreen(
                 modifier = contentModifier,

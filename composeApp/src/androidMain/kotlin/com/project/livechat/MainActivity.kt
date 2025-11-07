@@ -7,8 +7,7 @@ import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.activity.enableEdgeToEdge
 import com.project.livechat.composeapp.contacts.AndroidContactsProvider
 import com.project.livechat.composeapp.ui.app.LiveChatApp
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
@@ -16,14 +15,14 @@ import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSect
 import com.project.livechat.composeapp.ui.features.settings.screens.title
 import com.project.livechat.composeapp.ui.resources.LiveChatStrings
 import com.project.livechat.domain.models.InviteChannel
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
     private val sharedStrings = LiveChatStrings()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setEdgeToEdgeAppearance()
-
         setContent {
+            enableEdgeToEdge()
             LiveChatApp(
                 phoneContactsProvider = {
                     AndroidContactsProvider.fetch(applicationContext)
@@ -54,7 +53,7 @@ class MainActivity : ComponentActivity() {
                 InviteChannel.Sms ->
                     Intent(Intent.ACTION_SENDTO).apply {
                         val smsUri = phoneNumber?.let { "smsto:${Uri.encode(it)}" } ?: "smsto:"
-                        data = Uri.parse(smsUri)
+                        data = smsUri.toUri()
                         putExtra("sms_body", request.message)
                         phoneNumber?.let { putExtra("address", it) }
                     }
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
                 InviteChannel.Email ->
                     Intent(Intent.ACTION_SENDTO).apply {
                         val encoded = emailAddress?.let { Uri.encode(it) } ?: ""
-                        data = Uri.parse("mailto:$encoded")
+                        data = "mailto:$encoded".toUri()
                         emailAddress?.let { putExtra(Intent.EXTRA_EMAIL, arrayOf(it)) }
                         putExtra(Intent.EXTRA_SUBJECT, "Join me on LiveChat")
                         putExtra(Intent.EXTRA_TEXT, request.message)
@@ -101,20 +100,6 @@ class MainActivity : ComponentActivity() {
     private fun showSettingsSection(section: SettingsSection) {
         val message = "Opening ${section.title(sharedStrings.settings)} settings soon"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun setEdgeToEdgeAppearance() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        val isDarkTheme =
-            (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-        controller.isAppearanceLightStatusBars = !isDarkTheme
-        controller.isAppearanceLightNavigationBars = !isDarkTheme
     }
 }
 

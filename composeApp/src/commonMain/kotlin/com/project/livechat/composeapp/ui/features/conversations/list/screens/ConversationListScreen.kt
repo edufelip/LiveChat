@@ -72,7 +72,7 @@ fun ConversationListScreen(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
-            items(ConversationFilter.values()) { filter ->
+            items(ConversationFilter.entries.toTypedArray()) { filter ->
                 FilterChip(
                     selected = selectedFilter == filter,
                     onClick = { onFilterSelected(filter) },
