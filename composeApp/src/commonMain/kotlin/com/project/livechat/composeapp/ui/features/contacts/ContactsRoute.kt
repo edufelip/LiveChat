@@ -22,6 +22,8 @@ import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.preview.PreviewFixtures
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
 import com.project.livechat.composeapp.ui.features.contacts.screens.ContactsScreen
+import com.project.livechat.composeapp.ui.resources.LiveChatStrings
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.state.collectState
 import com.project.livechat.composeapp.ui.state.rememberContactsPresenter
 import com.project.livechat.composeapp.ui.theme.spacing
@@ -40,6 +42,7 @@ fun ContactsRoute(
     onShareInvite: (InviteShareRequest) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
         ContactsScreen(
             modifier = modifier,
@@ -74,7 +77,7 @@ fun ContactsRoute(
             val result = permissionManager.ensurePermission()
             permissionStatus.value = result
             if (result == PermissionState.Denied) {
-                permissionError.value = "Enable contacts permission to sync your phonebook."
+                permissionError.value = strings.contacts.permissionDeniedMessage
             }
         }
     }
@@ -109,6 +112,7 @@ fun ContactsRoute(
 
     if (pendingInvite != null) {
         InviteChannelDialog(
+            strings = strings,
             onDismiss = { pendingInvite = null },
             onChannelSelected = { channel ->
                 pendingInvite?.let { contact ->
@@ -138,7 +142,7 @@ fun ContactsRoute(
                     }
                     PermissionState.Denied -> {
                         permissionStatus.value = PermissionState.Denied
-                        permissionError.value = "Enable contacts permission to sync your phonebook."
+                        permissionError.value = strings.contacts.permissionDeniedMessage
                     }
                 }
             }
@@ -158,12 +162,13 @@ fun ContactsRoute(
 
 @Composable
 private fun InviteChannelDialog(
+    strings: LiveChatStrings,
     onDismiss: () -> Unit,
     onChannelSelected: (InviteChannel) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Invite via") },
+        title = { Text(strings.contacts.inviteDialogTitle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
                 InviteChannel.DefaultOptions.forEach { channel ->
@@ -176,7 +181,7 @@ private fun InviteChannelDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(strings.contacts.inviteDialogCancel)
             }
         },
     )

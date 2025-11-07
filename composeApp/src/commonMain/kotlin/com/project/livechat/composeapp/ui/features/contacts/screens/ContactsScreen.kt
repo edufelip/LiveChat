@@ -36,6 +36,8 @@ import com.project.livechat.composeapp.ui.components.atoms.SectionHeader
 import com.project.livechat.composeapp.ui.components.molecules.ErrorBanner
 import com.project.livechat.composeapp.ui.components.molecules.LoadingState
 import com.project.livechat.composeapp.ui.components.molecules.RowWithActions
+import com.project.livechat.composeapp.ui.resources.LiveChatStrings
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.theme.spacing
 import com.project.livechat.composeapp.ui.util.formatAsTime
 import com.project.livechat.domain.models.Contact
@@ -55,6 +57,7 @@ fun ContactsScreen(
     showSyncButton: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings()
     val hasContacts = state.localContacts.isNotEmpty() || state.validatedContacts.isNotEmpty()
     val invitedPhones =
         remember(state.inviteHistory) { state.inviteHistory.map { it.contact.phoneNo }.toSet() }
@@ -82,8 +85,8 @@ fun ContactsScreen(
                     .pullRefresh(pullRefreshState),
         ) {
             when {
-                state.isLoading -> LoadingState("Loading contacts…")
-                !hasContacts -> EmptyContactsState(showSyncButton, state.isSyncing, onSync)
+                state.isLoading -> LoadingState(strings.contacts.loading)
+                !hasContacts -> EmptyContactsState(strings, showSyncButton, state.isSyncing, onSync)
                 else ->
                     ContactsListContent(
                         state = state,
@@ -106,6 +109,7 @@ fun ContactsScreen(
 
 @Composable
 private fun EmptyContactsState(
+    strings: LiveChatStrings,
     showSyncButton: Boolean,
     isSyncing: Boolean,
     onSync: () -> Unit,
@@ -116,7 +120,7 @@ private fun EmptyContactsState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "No contacts synced yet",
+            text = strings.contacts.emptyState,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -129,17 +133,17 @@ private fun EmptyContactsState(
                 modifier =
                     Modifier
                         .heightIn(min = 48.dp)
-                        .semantics {
-                            if (isSyncing) {
-                                stateDescription = "Syncing contacts"
-                            }
-                        },
+                            .semantics {
+                                if (isSyncing) {
+                                    stateDescription = strings.contacts.syncingStateDescription
+                                }
+                            },
             ) {
-                Text(if (isSyncing) "Syncing…" else "Sync Contacts")
+                Text(if (isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
             }
         } else if (isSyncing) {
             Text(
-                text = "Syncing…",
+                text = strings.contacts.syncing,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
@@ -157,6 +161,7 @@ private fun ContactsListContent(
     onInvite: (Contact) -> Unit,
     onContactSelected: (Contact) -> Unit,
 ) {
+    val strings = liveChatStrings()
     val contacts =
         remember(state.localContacts, state.validatedContacts) {
             (state.localContacts + state.validatedContacts)
@@ -180,11 +185,11 @@ private fun ContactsListContent(
                             .heightIn(min = 48.dp)
                             .semantics {
                                 if (state.isSyncing) {
-                                    stateDescription = "Syncing contacts"
+                                    stateDescription = strings.contacts.syncingStateDescription
                                 }
                             },
                 ) {
-                    Text(if (state.isSyncing) "Syncing…" else "Sync Contacts")
+                    Text(if (state.isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
                 }
             }
         }
@@ -197,14 +202,22 @@ private fun ContactsListContent(
                 subtitle = contact.phoneNo,
                 endContent = {
                     when {
-                        isValidated -> Badge(text = "On LiveChat", tint = MaterialTheme.colorScheme.primary)
-                        invited -> Badge(text = "Invited", tint = MaterialTheme.colorScheme.tertiary)
+                        isValidated ->
+                            Badge(
+                                text = strings.contacts.onLiveChatBadge,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        invited ->
+                            Badge(
+                                text = strings.contacts.invitedBadge,
+                                tint = MaterialTheme.colorScheme.tertiary,
+                            )
                         else ->
                             TextButton(
                                 onClick = { onInvite(contact) },
                                 modifier = Modifier.heightIn(min = 48.dp),
                             ) {
-                                Text("Invite")
+                                Text(strings.contacts.inviteCta)
                             }
                     }
                 },
@@ -215,7 +228,7 @@ private fun ContactsListContent(
         }
 
         if (state.inviteHistory.isNotEmpty()) {
-            item { SectionHeader(title = "Invite history") }
+            item { SectionHeader(title = strings.contacts.inviteHistoryTitle) }
             items(state.inviteHistory, key = { it.id }) { record ->
                 InviteHistoryRow(record)
             }

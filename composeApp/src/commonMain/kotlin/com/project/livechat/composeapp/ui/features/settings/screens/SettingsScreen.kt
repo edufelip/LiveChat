@@ -15,21 +15,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.resources.SettingsStrings
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-enum class SettingsSection(val title: String, val description: String) {
-    Account("Account", "Profile, status, and linked phone number"),
-    Notifications("Notifications", "Mute, schedule quiet hours, sounds"),
-    Appearance("Appearance", "Themes, typography scale, accessibility"),
-    Privacy("Privacy", "Blocked contacts, invite preferences"),
+enum class SettingsSection {
+    Account,
+    Notifications,
+    Appearance,
+    Privacy,
 }
+
+fun SettingsSection.title(strings: SettingsStrings): String =
+    when (this) {
+        SettingsSection.Account -> strings.accountTitle
+        SettingsSection.Notifications -> strings.notificationsTitle
+        SettingsSection.Appearance -> strings.appearanceTitle
+        SettingsSection.Privacy -> strings.privacyTitle
+    }
+
+fun SettingsSection.description(strings: SettingsStrings): String =
+    when (this) {
+        SettingsSection.Account -> strings.accountDescription
+        SettingsSection.Notifications -> strings.notificationsDescription
+        SettingsSection.Appearance -> strings.appearanceDescription
+        SettingsSection.Privacy -> strings.privacyDescription
+    }
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     onSectionSelected: (SettingsSection) -> Unit = {},
 ) {
+    val strings = liveChatStrings()
     val sections = remember { SettingsSection.values() }
 
     Column(
@@ -40,7 +59,7 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         Text(
-            text = "Make LiveChat yours",
+            text = strings.settings.screenTitle,
             style = MaterialTheme.typography.titleMedium,
         )
         sections.forEach { section ->
@@ -56,11 +75,11 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
                 ) {
                     Text(
-                        text = section.title,
+                        text = section.title(strings.settings),
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
-                        text = section.description,
+                        text = section.description(strings.settings),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

@@ -32,6 +32,8 @@ import com.project.livechat.composeapp.ui.features.conversations.detail.Conversa
 import com.project.livechat.composeapp.ui.features.conversations.list.ConversationListRoute
 import com.project.livechat.composeapp.ui.features.settings.SettingsRoute
 import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
+import com.project.livechat.composeapp.ui.resources.LiveChatStrings
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.domain.models.HomeDestination
 import com.project.livechat.domain.models.HomeTab
@@ -50,6 +52,7 @@ internal fun HomeScreen(
     phoneContactsProvider: () -> List<Contact>,
     onOpenSettingsSection: (SettingsSection) -> Unit,
 ) {
+    val strings = liveChatStrings()
     val topBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
     val tabs = remember { defaultHomeTabs }
@@ -61,14 +64,14 @@ internal fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = topBarTitle(destination),
+                        text = topBarTitle(destination, strings),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 navigationIcon = {
                     if (destination is HomeDestination.ConversationDetail) {
                         TextButton(onClick = onBackFromConversation) {
-                            Text("Back")
+                            Text(strings.home.backCta)
                         }
                     }
                 },
@@ -81,8 +84,8 @@ internal fun HomeScreen(
                     NavigationBarItem(
                         selected = state.selectedTab == tabItem.tab,
                         onClick = { onSelectTab(tabItem.tab) },
-                        icon = { Icon(tabItem.icon, contentDescription = tabItem.label) },
-                        label = { Text(tabItem.label) },
+                        icon = { Icon(tabItem.icon, contentDescription = tabItem.labelSelector(strings.home)) },
+                        label = { Text(tabItem.labelSelector(strings.home)) },
                     )
                 }
             }
@@ -149,12 +152,15 @@ internal fun HomeScreen(
     }
 }
 
-private fun topBarTitle(destination: HomeDestination): String =
+private fun topBarTitle(
+    destination: HomeDestination,
+    strings: LiveChatStrings,
+): String =
     when (destination) {
-        is HomeDestination.ConversationDetail -> "Conversation"
-        HomeDestination.ConversationList -> "Chats"
-        HomeDestination.Contacts -> "Contacts"
-        HomeDestination.Settings -> "Settings"
+        is HomeDestination.ConversationDetail -> strings.home.conversationTitle
+        HomeDestination.ConversationList -> strings.home.chatsTab
+        HomeDestination.Contacts -> strings.home.contactsTab
+        HomeDestination.Settings -> strings.home.settingsTab
     }
 
 private fun HomeDestination.animationOrder(): Int =

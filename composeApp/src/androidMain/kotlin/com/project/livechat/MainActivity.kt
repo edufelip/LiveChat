@@ -14,9 +14,12 @@ import com.project.livechat.composeapp.contacts.AndroidContactsProvider
 import com.project.livechat.composeapp.ui.app.LiveChatApp
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
 import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
+import com.project.livechat.composeapp.ui.features.settings.screens.title
+import com.project.livechat.composeapp.ui.resources.LiveChatStrings
 import com.project.livechat.domain.models.InviteChannel
 
 class MainActivity : ComponentActivity() {
+    private val sharedStrings = LiveChatStrings()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -100,7 +103,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showSettingsSection(section: SettingsSection) {
-        val message = "Opening ${section.title} settings soon"
+        val message = "Opening ${section.title(sharedStrings.settings)} settings soon"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
