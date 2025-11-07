@@ -10,9 +10,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -25,8 +29,13 @@ fun LoadingState(
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
+            modifier =
+                Modifier.semantics {
+                    contentDescription = message
+                    liveRegion = LiveRegionMode.Polite
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
             CircularProgressIndicator()
             Text(message, style = MaterialTheme.typography.bodyMedium)

@@ -3,6 +3,7 @@ package com.project.livechat.composeapp.ui.features.onboarding.steps
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.theme.spacing
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -29,9 +31,9 @@ internal fun SuccessStep(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 40.dp),
+                .padding(horizontal = MaterialTheme.spacing.xxl, vertical = MaterialTheme.spacing.xxxl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xl, Alignment.CenterVertically),
     ) {
         Text(
             text = "You're all set!",
@@ -44,9 +46,12 @@ internal fun SuccessStep(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
         )
-        Button(onClick = {
-            scope.launch { onFinished() }
-        }) {
+        Button(
+            onClick = {
+                scope.launch { onFinished() }
+            },
+            modifier = Modifier.heightIn(min = 48.dp),
+        ) {
             Text("Start chatting")
         }
     }

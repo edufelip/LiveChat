@@ -20,7 +20,6 @@ class AppPresenter(
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
     private val scope: CoroutineScope = MainScope(),
 ) {
-
     private val mutableState = MutableStateFlow(AppUiState())
     val state = mutableState.asStateFlow()
     val cState: CStateFlow<AppUiState> = state.asCStateFlow()

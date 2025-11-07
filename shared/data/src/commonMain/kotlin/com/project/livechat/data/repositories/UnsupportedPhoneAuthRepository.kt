@@ -13,20 +13,17 @@ class UnsupportedPhoneAuthRepository : IPhoneAuthRepository {
     override fun requestVerification(
         phoneNumber: PhoneNumber,
         presentationContext: PhoneAuthPresentationContext,
-    ): Flow<PhoneAuthEvent> =
-        flow { throw UnsupportedOperationException("Phone auth not supported on this platform") }
+    ): Flow<PhoneAuthEvent> = flow { throw UnsupportedOperationException("Phone auth not supported on this platform") }
 
     override suspend fun verifyCode(
         session: PhoneVerificationSession,
         code: String,
-    ): PhoneAuthResult =
-        throw UnsupportedOperationException("Phone auth not supported on this platform")
+    ): PhoneAuthResult = throw UnsupportedOperationException("Phone auth not supported on this platform")
 
     override fun resendVerification(
         session: PhoneVerificationSession,
         presentationContext: PhoneAuthPresentationContext,
-    ): Flow<PhoneAuthEvent> =
-        flow { throw UnsupportedOperationException("Phone auth not supported on this platform") }
+    ): Flow<PhoneAuthEvent> = flow { throw UnsupportedOperationException("Phone auth not supported on this platform") }
 
     override fun clearActiveSession() {
         // no-op

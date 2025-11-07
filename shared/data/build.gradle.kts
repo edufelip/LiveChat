@@ -11,8 +11,7 @@ plugins {
 kotlin {
     androidTarget()
 
-val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bom:${libs.versions.firebase.get()}")
-
+    val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bom:${libs.versions.firebase.get()}")
 
     val iosX64 = iosX64()
     val iosArm64 = iosArm64()
@@ -64,6 +63,7 @@ val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bo
             dependencies {
                 implementation(libs.sqldelight.native.driver)
                 implementation(libs.ktor.client.darwin)
+                implementation(libs.multiplatform.settings)
             }
         }
 

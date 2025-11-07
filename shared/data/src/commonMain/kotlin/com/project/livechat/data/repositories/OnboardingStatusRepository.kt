@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 class OnboardingStatusRepository(
     private val settings: Settings,
 ) : IOnboardingStatusRepository {
-
     private val state = MutableStateFlow(settings.getBoolean(ONBOARDING_COMPLETE_KEY, false))
 
     override val onboardingComplete: Flow<Boolean> = state.asStateFlow()

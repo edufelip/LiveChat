@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -39,11 +41,11 @@ internal fun OTPStep(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterVertically),
+                .padding(horizontal = MaterialTheme.spacing.xl, vertical = MaterialTheme.spacing.xxxl),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
             Text(
                 text = "Enter the 6-digit code",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
@@ -57,7 +59,7 @@ internal fun OTPStep(
             )
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
             OutlinedTextField(
                 value = otp,
                 onValueChange = onOtpChanged,
@@ -73,7 +75,11 @@ internal fun OTPStep(
                 )
             }
             if (canResend) {
-                TextButton(onClick = onResend, enabled = !isRequesting) {
+                TextButton(
+                    onClick = onResend,
+                    enabled = !isRequesting,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
                     Text("Resend code")
                 }
             } else {
@@ -88,6 +94,7 @@ internal fun OTPStep(
         Button(
             onClick = onVerify,
             enabled = otp.length == 6 && !isVerifying,
+            modifier = Modifier.heightIn(min = 48.dp),
         ) {
             if (isVerifying) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))

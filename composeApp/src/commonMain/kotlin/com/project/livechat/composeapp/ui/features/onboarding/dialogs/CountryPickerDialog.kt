@@ -17,11 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
@@ -37,19 +37,20 @@ internal fun CountryPickerDialog(
 ) {
     val countries = remember { CountryOption.defaults }
     var query by remember { mutableStateOf("") }
-    val filteredCountries = remember(query, countries) {
-        val trimmed = query.trim()
-        if (trimmed.isEmpty()) {
-            countries
-        } else {
-            val needle = trimmed.lowercase()
-            countries.filter { option ->
-                option.name.lowercase().contains(needle) ||
-                    option.dialCode.contains(needle) ||
-                    option.isoCode.lowercase().contains(needle)
+    val filteredCountries =
+        remember(query, countries) {
+            val trimmed = query.trim()
+            if (trimmed.isEmpty()) {
+                countries
+            } else {
+                val needle = trimmed.lowercase()
+                countries.filter { option ->
+                    option.name.lowercase().contains(needle) ||
+                        option.dialCode.contains(needle) ||
+                        option.isoCode.lowercase().contains(needle)
+                }
             }
         }
-    }
     val listState = rememberLazyListState()
     LaunchedEffect(query) {
         listState.scrollToItem(0)

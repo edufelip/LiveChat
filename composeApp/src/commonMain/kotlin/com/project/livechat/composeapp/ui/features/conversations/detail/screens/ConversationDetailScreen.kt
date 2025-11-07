@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,6 +21,7 @@ import com.project.livechat.composeapp.ui.components.molecules.LoadingState
 import com.project.livechat.composeapp.ui.features.conversations.detail.components.ComposerBar
 import com.project.livechat.composeapp.ui.features.conversations.detail.components.MessageBubble
 import com.project.livechat.composeapp.ui.features.conversations.detail.components.rememberLazyListStateWithAutoscroll
+import com.project.livechat.composeapp.ui.util.formatAsTime
 import com.project.livechat.domain.models.ConversationUiState
 import com.project.livechat.domain.models.Message
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -39,6 +42,23 @@ fun ConversationDetailScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        if (state.isArchived) {
+            Text(
+                text = "Archived conversation",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.isMuted) {
+            val muteLabel =
+                state.muteUntil?.let { "Muted until ${it.formatAsTime()}" } ?: "Muted conversation"
+            Text(
+                text = muteLabel,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         when {
             state.isLoading && state.messages.isEmpty() -> {
                 LoadingState(message = "Loading messages…")

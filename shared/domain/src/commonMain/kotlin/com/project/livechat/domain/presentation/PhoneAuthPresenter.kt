@@ -3,8 +3,8 @@ package com.project.livechat.domain.presentation
 import com.project.livechat.domain.auth.phone.model.PhoneAuthError
 import com.project.livechat.domain.auth.phone.model.PhoneAuthEvent
 import com.project.livechat.domain.auth.phone.model.PhoneAuthPresentationContext
-import com.project.livechat.domain.auth.phone.model.PhoneNumber
 import com.project.livechat.domain.auth.phone.model.PhoneAuthResult
+import com.project.livechat.domain.auth.phone.model.PhoneNumber
 import com.project.livechat.domain.models.PhoneAuthUiState
 import com.project.livechat.domain.useCases.phone.ClearPhoneVerificationUseCase
 import com.project.livechat.domain.useCases.phone.RequestPhoneVerificationUseCase
@@ -43,58 +43,59 @@ class PhoneAuthPresenter(
     ) {
         if (_uiState.value.isRequesting) return
         verificationJob?.cancel()
-        verificationJob = scope.launch {
-            requestVerification(phoneNumber, presentationContext)
-                .collectLatest { event ->
-                    when (event) {
-                        PhoneAuthEvent.Loading ->
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = true,
-                                    error = null,
-                                    isVerificationCompleted = false,
-                                )
+        verificationJob =
+            scope.launch {
+                requestVerification(phoneNumber, presentationContext)
+                    .collectLatest { event ->
+                        when (event) {
+                            PhoneAuthEvent.Loading ->
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = true,
+                                        error = null,
+                                        isVerificationCompleted = false,
+                                    )
+                                }
+
+                            is PhoneAuthEvent.CodeSent -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = false,
+                                        session = event.session,
+                                        countdownSeconds = DEFAULT_COUNTDOWN_SECONDS,
+                                        error = null,
+                                        isVerificationCompleted = false,
+                                    )
+                                }
+                                restartCountdown()
                             }
 
-                        is PhoneAuthEvent.CodeSent -> {
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = false,
-                                    session = event.session,
-                                    countdownSeconds = DEFAULT_COUNTDOWN_SECONDS,
-                                    error = null,
-                                    isVerificationCompleted = false,
-                                )
+                            is PhoneAuthEvent.VerificationCompleted -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = false,
+                                        isVerifying = false,
+                                        session = event.session,
+                                        isVerificationCompleted = true,
+                                        error = null,
+                                    )
+                                }
+                                stopCountdown()
                             }
-                            restartCountdown()
-                        }
 
-                        is PhoneAuthEvent.VerificationCompleted -> {
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = false,
-                                    isVerifying = false,
-                                    session = event.session,
-                                    isVerificationCompleted = true,
-                                    error = null,
-                                )
+                            is PhoneAuthEvent.Error -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = false,
+                                        isVerifying = false,
+                                        error = event.error,
+                                    )
+                                }
+                                stopCountdownIfNoSession()
                             }
-                            stopCountdown()
-                        }
-
-                        is PhoneAuthEvent.Error -> {
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = false,
-                                    isVerifying = false,
-                                    error = event.error,
-                                )
-                            }
-                            stopCountdownIfNoSession()
                         }
                     }
-                }
-        }
+            }
     }
 
     fun verifyCode(code: String) {
@@ -127,49 +128,50 @@ class PhoneAuthPresenter(
         val session = _uiState.value.session ?: return
         if (!_uiState.value.canResend) return
         verificationJob?.cancel()
-        verificationJob = scope.launch {
-            resendVerification(session, presentationContext)
-                .collectLatest { event ->
-                    when (event) {
-                        PhoneAuthEvent.Loading ->
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = true,
-                                    error = null,
-                                    isVerificationCompleted = false,
-                                )
+        verificationJob =
+            scope.launch {
+                resendVerification(session, presentationContext)
+                    .collectLatest { event ->
+                        when (event) {
+                            PhoneAuthEvent.Loading ->
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = true,
+                                        error = null,
+                                        isVerificationCompleted = false,
+                                    )
+                                }
+
+                            is PhoneAuthEvent.CodeSent -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = false,
+                                        session = event.session,
+                                        countdownSeconds = DEFAULT_COUNTDOWN_SECONDS,
+                                        error = null,
+                                    )
+                                }
+                                restartCountdown()
                             }
 
-                        is PhoneAuthEvent.CodeSent -> {
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = false,
-                                    session = event.session,
-                                    countdownSeconds = DEFAULT_COUNTDOWN_SECONDS,
-                                    error = null,
-                                )
-                            }
-                            restartCountdown()
-                        }
-
-                        is PhoneAuthEvent.Error ->
+                            is PhoneAuthEvent.Error ->
                                 _uiState.update {
                                     it.copy(isRequesting = false, error = event.error)
                                 }
 
-                        is PhoneAuthEvent.VerificationCompleted -> {
-                            _uiState.update {
-                                it.copy(
-                                    isRequesting = false,
-                                    isVerificationCompleted = true,
-                                    session = event.session,
-                                )
+                            is PhoneAuthEvent.VerificationCompleted -> {
+                                _uiState.update {
+                                    it.copy(
+                                        isRequesting = false,
+                                        isVerificationCompleted = true,
+                                        session = event.session,
+                                    )
+                                }
+                                stopCountdown()
                             }
-                            stopCountdown()
                         }
                     }
-                }
-        }
+            }
     }
 
     fun dismissError() {
@@ -186,12 +188,13 @@ class PhoneAuthPresenter(
 
     private fun restartCountdown() {
         countdownJob?.cancel()
-        countdownJob = scope.launch {
-            for (second in DEFAULT_COUNTDOWN_SECONDS downTo 0) {
-                _uiState.update { it.copy(countdownSeconds = second) }
-                delay(1_000)
+        countdownJob =
+            scope.launch {
+                for (second in DEFAULT_COUNTDOWN_SECONDS downTo 0) {
+                    _uiState.update { it.copy(countdownSeconds = second) }
+                    delay(1_000)
+                }
             }
-        }
     }
 
     private fun stopCountdown() {

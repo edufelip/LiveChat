@@ -78,8 +78,9 @@ fun androidPlatformModule(
 
 private fun firebaseRestConfig(app: FirebaseApp): com.project.livechat.data.remote.FirebaseRestConfig =
     com.project.livechat.data.remote.FirebaseRestConfig(
-        projectId = app.options.projectId
-            ?: error("Firebase projectId is missing. Check google-services.json."),
+        projectId =
+            app.options.projectId
+                ?: error("Firebase projectId is missing. Check google-services.json."),
         apiKey = app.options.apiKey ?: "",
     )
 

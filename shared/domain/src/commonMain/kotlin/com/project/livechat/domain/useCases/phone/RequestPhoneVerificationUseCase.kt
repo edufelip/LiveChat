@@ -12,6 +12,5 @@ class RequestPhoneVerificationUseCase(
     operator fun invoke(
         phoneNumber: PhoneNumber,
         presentationContext: PhoneAuthPresentationContext,
-    ): Flow<PhoneAuthEvent> =
-        repository.requestVerification(phoneNumber, presentationContext)
+    ): Flow<PhoneAuthEvent> = repository.requestVerification(phoneNumber, presentationContext)
 }

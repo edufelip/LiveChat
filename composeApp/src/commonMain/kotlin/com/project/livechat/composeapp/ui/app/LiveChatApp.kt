@@ -10,11 +10,13 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.preview.PreviewFixtures
-import com.project.livechat.composeapp.ui.theme.LiveChatTheme
-import com.project.livechat.composeapp.ui.features.onboarding.OnboardingFlowScreen
+import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
 import com.project.livechat.composeapp.ui.features.home.view.HomeScreen
+import com.project.livechat.composeapp.ui.features.onboarding.OnboardingFlowScreen
+import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
 import com.project.livechat.composeapp.ui.state.collectState
 import com.project.livechat.composeapp.ui.state.rememberAppPresenter
+import com.project.livechat.composeapp.ui.theme.LiveChatTheme
 import com.project.livechat.domain.models.AppDestination
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.domain.models.HomeUiState
@@ -24,7 +26,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun LiveChatApp(
     modifier: Modifier = Modifier,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
-    onShareInvite: (String) -> Unit = {},
+    onShareInvite: (InviteShareRequest) -> Unit = {},
+    onOpenSettingsSection: (SettingsSection) -> Unit = {},
 ) {
     LiveChatTheme {
         val contentModifier = modifier.windowInsetsPadding(WindowInsets.safeDrawing)
@@ -38,8 +41,9 @@ fun LiveChatApp(
                 onShareInvite = onShareInvite,
                 onBackFromConversation = {},
                 phoneContactsProvider = phoneContactsProvider,
+                onOpenSettingsSection = onOpenSettingsSection,
             )
-            return
+            return@LiveChatTheme
         }
 
         val presenter = rememberAppPresenter()
@@ -64,6 +68,7 @@ fun LiveChatApp(
                     onShareInvite = onShareInvite,
                     onBackFromConversation = presenter::closeConversation,
                     phoneContactsProvider = phoneContactsProvider,
+                    onOpenSettingsSection = onOpenSettingsSection,
                 )
         }
     }
@@ -82,6 +87,7 @@ private fun LiveChatAppPreview() {
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
+            onOpenSettingsSection = {},
         )
     }
 }
@@ -99,6 +105,7 @@ private fun HomeScreenConversationsPreview() {
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
+            onOpenSettingsSection = {},
         )
     }
 }
@@ -116,6 +123,7 @@ private fun HomeScreenDetailPreview() {
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { PreviewFixtures.contacts },
+            onOpenSettingsSection = {},
         )
     }
 }

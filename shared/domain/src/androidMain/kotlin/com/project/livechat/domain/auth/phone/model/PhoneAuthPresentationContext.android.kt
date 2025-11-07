@@ -7,11 +7,12 @@ import android.content.ContextWrapper
 actual class PhoneAuthPresentationContext internal constructor(val activity: Activity)
 
 actual fun phoneAuthPresentationContext(platformContext: Any?): PhoneAuthPresentationContext {
-    val activity = when (platformContext) {
-        is Activity -> platformContext
-        is Context -> platformContext.findActivity()
-        else -> null
-    } ?: error("PhoneAuthPresentationContext requires an Activity")
+    val activity =
+        when (platformContext) {
+            is Activity -> platformContext
+            is Context -> platformContext.findActivity()
+            else -> null
+        } ?: error("PhoneAuthPresentationContext requires an Activity")
     return PhoneAuthPresentationContext(activity)
 }
 

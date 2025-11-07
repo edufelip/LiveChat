@@ -2,6 +2,7 @@ package com.project.livechat.composeapp.ui.features.home.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -26,8 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.project.livechat.composeapp.ui.app.navigation.defaultHomeTabs
 import com.project.livechat.composeapp.ui.features.contacts.ContactsRoute
+import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
 import com.project.livechat.composeapp.ui.features.conversations.detail.ConversationDetailRoute
 import com.project.livechat.composeapp.ui.features.conversations.list.ConversationListRoute
+import com.project.livechat.composeapp.ui.features.settings.SettingsRoute
+import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.domain.models.HomeDestination
 import com.project.livechat.domain.models.HomeTab
@@ -41,9 +45,10 @@ internal fun HomeScreen(
     onSelectTab: (HomeTab) -> Unit,
     onOpenConversation: (String) -> Unit,
     onStartConversationWithContact: (Contact) -> Unit,
-    onShareInvite: (String) -> Unit,
+    onShareInvite: (InviteShareRequest) -> Unit,
     onBackFromConversation: () -> Unit,
     phoneContactsProvider: () -> List<Contact>,
+    onOpenSettingsSection: (SettingsSection) -> Unit,
 ) {
     val topBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
@@ -76,7 +81,7 @@ internal fun HomeScreen(
                     NavigationBarItem(
                         selected = state.selectedTab == tabItem.tab,
                         onClick = { onSelectTab(tabItem.tab) },
-                        icon = { Icon(tabItem.icon, contentDescription = null) },
+                        icon = { Icon(tabItem.icon, contentDescription = tabItem.label) },
                         label = { Text(tabItem.label) },
                     )
                 }
@@ -84,9 +89,10 @@ internal fun HomeScreen(
         },
     ) { padding ->
         AnimatedContent(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
             targetState = destination,
             transitionSpec = {
                 val direction =
@@ -96,10 +102,18 @@ internal fun HomeScreen(
                         else -> 0
                     }
                 if (direction == 0) {
-                    fadeIn() togetherWith fadeOut()
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
                 } else {
-                    (slideInHorizontally { fullWidth -> fullWidth / 4 * direction } + fadeIn()) togetherWith
-                        (slideOutHorizontally { fullWidth -> -fullWidth / 4 * direction } + fadeOut())
+                    (
+                        slideInHorizontally(
+                            animationSpec = tween(300),
+                        ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                    ) togetherWith
+                        (
+                            slideOutHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                        )
                 }
             },
             label = "homeDestinationTransition",
@@ -124,6 +138,12 @@ internal fun HomeScreen(
                         onContactSelected = onStartConversationWithContact,
                         onShareInvite = onShareInvite,
                     )
+
+                HomeDestination.Settings ->
+                    SettingsRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        onSectionSelected = onOpenSettingsSection,
+                    )
             }
         }
     }
@@ -134,11 +154,13 @@ private fun topBarTitle(destination: HomeDestination): String =
         is HomeDestination.ConversationDetail -> "Conversation"
         HomeDestination.ConversationList -> "Chats"
         HomeDestination.Contacts -> "Contacts"
+        HomeDestination.Settings -> "Settings"
     }
 
 private fun HomeDestination.animationOrder(): Int =
     when (this) {
-        is HomeDestination.ConversationDetail -> 2
+        is HomeDestination.ConversationDetail -> 3
         HomeDestination.ConversationList -> 0
         HomeDestination.Contacts -> 1
+        HomeDestination.Settings -> 2
     }

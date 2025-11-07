@@ -3,11 +3,16 @@ package com.project.livechat.composeapp.preview
 import androidx.compose.ui.graphics.Color
 import com.project.livechat.domain.models.Contact
 import com.project.livechat.domain.models.ContactsUiState
+import com.project.livechat.domain.models.ConversationFilter
 import com.project.livechat.domain.models.ConversationListUiState
 import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.models.ConversationUiState
+import com.project.livechat.domain.models.InviteChannel
+import com.project.livechat.domain.models.InviteHistoryItem
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageStatus
+import com.project.livechat.domain.models.Participant
+import com.project.livechat.domain.models.ParticipantRole
 
 object PreviewFixtures {
     private const val TIMESTAMP = 1_696_000_000_000L
@@ -39,6 +44,20 @@ object PreviewFixtures {
             isLoading = false,
             isSending = false,
             errorMessage = null,
+            participant =
+                Participant(
+                    conversationId = "conversation-1",
+                    userId = "preview-user",
+                    role = ParticipantRole.Member,
+                    joinedAt = TIMESTAMP - 10_000,
+                    muteUntil = TIMESTAMP + 3_600_000,
+                    pinned = true,
+                    pinnedAt = TIMESTAMP,
+                    archived = false,
+                ),
+            isMuted = true,
+            muteUntil = TIMESTAMP + 3_600_000,
+            isArchived = false,
         )
 
     val loadingConversationState =
@@ -80,6 +99,7 @@ object PreviewFixtures {
             searchQuery = "",
             isLoading = false,
             errorMessage = null,
+            selectedFilter = ConversationFilter.All,
         )
 
     val conversationListLoading = conversationListState.copy(conversations = emptyList(), isLoading = true)
@@ -89,7 +109,14 @@ object PreviewFixtures {
     val contacts: List<Contact> =
         listOf(
             Contact(id = 1, name = "Ava Harper", phoneNo = "+1 555 0100", description = "Designer", photo = null, isRegistered = true),
-            Contact(id = 2, name = "Brandon Diaz", phoneNo = "+1 555 0101", description = "Product Manager", photo = null, isRegistered = true),
+            Contact(
+                id = 2,
+                name = "Brandon Diaz",
+                phoneNo = "+1 555 0101",
+                description = "Product Manager",
+                photo = null,
+                isRegistered = true,
+            ),
             Contact(id = 3, name = "Chioma Ade", phoneNo = "+1 555 0102", description = "iOS Engineer", photo = null, isRegistered = false),
         )
 
@@ -100,6 +127,14 @@ object PreviewFixtures {
             isLoading = false,
             isSyncing = false,
             errorMessage = null,
+            inviteHistory =
+                listOf(
+                    InviteHistoryItem(
+                        contact = contacts[2],
+                        channel = InviteChannel.Email,
+                        timestamp = TIMESTAMP - 3_600_000,
+                    ),
+                ),
         )
 
     val contactsLoadingState = contactsState.copy(localContacts = emptyList(), validatedContacts = emptyList(), isLoading = true)

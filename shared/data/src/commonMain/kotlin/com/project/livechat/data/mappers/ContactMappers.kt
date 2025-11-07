@@ -11,6 +11,7 @@ fun Contacts.toDomain(): Contact =
         phoneNo = phone_no,
         description = description,
         photo = photo,
+        isRegistered = is_registered == 1L,
     )
 
 fun Contact.toInsertParams(): InsertContactParams =
@@ -19,6 +20,7 @@ fun Contact.toInsertParams(): InsertContactParams =
         phoneNo = phoneNo,
         description = description,
         photo = photo,
+        isRegistered = if (isRegistered) 1L else 0L,
     )
 
 data class InsertContactParams(
@@ -26,6 +28,7 @@ data class InsertContactParams(
     val phoneNo: String,
     val description: String?,
     val photo: String?,
+    val isRegistered: Long,
 )
 
 fun LiveChatDatabase.insertContact(param: InsertContactParams) {
@@ -34,6 +37,7 @@ fun LiveChatDatabase.insertContact(param: InsertContactParams) {
         phone_no = param.phoneNo,
         description = param.description,
         photo = param.photo,
+        is_registered = param.isRegistered,
     )
 }
 
@@ -42,6 +46,7 @@ fun LiveChatDatabase.updateContact(contact: Contact) {
         name = contact.name,
         description = contact.description,
         photo = contact.photo,
+        is_registered = if (contact.isRegistered) 1L else 0L,
         phone_no = contact.phoneNo,
     )
 }

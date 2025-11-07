@@ -22,6 +22,7 @@ data class HomeUiState(
             when {
                 activeConversationId != null -> HomeDestination.ConversationDetail(activeConversationId)
                 selectedTab == HomeTab.Contacts -> HomeDestination.Contacts
+                selectedTab == HomeTab.Settings -> HomeDestination.Settings
                 else -> HomeDestination.ConversationList
             }
 }

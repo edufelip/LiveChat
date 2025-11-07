@@ -61,6 +61,8 @@ class KoinInitializationTest {
 
     private object StubContactsRemoteData : IContactsRemoteData {
         override fun checkContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()
+
+        override suspend fun inviteContact(contact: Contact): Boolean = true
     }
 
     private object StubMessagesRemoteData : IMessagesRemoteData {
