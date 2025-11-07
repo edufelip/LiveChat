@@ -2,12 +2,28 @@ package com.project.livechat.composeapp
 
 import androidx.compose.ui.window.ComposeUIViewController
 import com.project.livechat.composeapp.ui.app.LiveChatApp
+import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
+import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
 import com.project.livechat.data.di.IosKoinBridge
 import com.project.livechat.data.di.startKoinForiOS
 import com.project.livechat.data.remote.FirebaseRestConfig
 import com.project.livechat.domain.models.Contact
+import com.project.livechat.domain.models.InviteChannel
 import com.project.livechat.domain.providers.model.UserSession
+import platform.Foundation.NSCharacterSet
+import platform.Foundation.NSString
+import platform.Foundation.NSURL
+import platform.Foundation.create
+import platform.UIKit.UIActivityViewController
+import platform.UIKit.UIAlertAction
+import platform.UIKit.UIAlertActionStyleDefault
+import platform.UIKit.UIAlertController
+import platform.UIKit.UIAlertControllerStyleAlert
+import platform.UIKit.UIApplication
+import platform.UIKit.UINavigationController
 import platform.UIKit.UIViewController
+import platform.UIKit.UIWindow
+import platform.UIKit.keyWindow
 
 @Suppress("ktlint:standard:function-naming")
 fun MainViewController(
@@ -19,7 +35,15 @@ fun MainViewController(
     LiveChatIosInitializer.ensure(config)
     LiveChatIosInitializer.updateSession(userId, idToken)
     return ComposeUIViewController {
-        LiveChatApp(phoneContactsProvider = phoneContactsProvider)
+        LiveChatApp(
+            phoneContactsProvider = phoneContactsProvider,
+            onShareInvite = { request ->
+                handleInviteShare(request)
+            },
+            onOpenSettingsSection = { section ->
+                presentSettingsSection(section)
+            },
+        )
     }
 }
 
@@ -65,3 +89,104 @@ fun defaultFirebaseConfig() =
         websocketEndpoint = "",
         pollingIntervalMs = 5_000,
     )
+
+private fun presentShareSheet(message: String) {
+    val controller = topViewController() ?: return
+    val activityController = UIActivityViewController(activityItems = listOf(message), applicationActivities = null)
+    controller.presentViewController(activityController, animated = true, completion = null)
+}
+
+private fun presentSettingsSection(section: SettingsSection) {
+    val controller = topViewController() ?: return
+    val alert =
+        UIAlertController(
+            title = section.title,
+            message = section.description,
+            preferredStyle = UIAlertControllerStyleAlert,
+        )
+    alert.addAction(
+        UIAlertAction.actionWithTitle(
+            title = "Close",
+            style = UIAlertActionStyleDefault,
+            handler = null,
+        ),
+    )
+    controller.presentViewController(alert, animated = true, completion = null)
+}
+
+private fun handleInviteShare(request: InviteShareRequest) {
+    val contact = request.contact
+    val handled =
+        when (request.channel) {
+            InviteChannel.Sms -> {
+                val phone = contact.phoneNo.smsUrlSegment()
+                openUrl("sms:$phone&body=${request.message.urlEncoded()}")
+            }
+            InviteChannel.Email ->
+                openUrl(
+                    emailUrl(request, contact),
+                )
+
+            InviteChannel.WhatsApp ->
+                contact.phoneNo.whatsAppUrl(request.message)?.let { openUrl(it) } ?: false
+            InviteChannel.Share -> false
+        }
+
+    if (!handled) {
+        presentShareSheet(request.message)
+    }
+}
+
+private fun emailUrl(
+    request: InviteShareRequest,
+    contact: Contact,
+): String {
+    val recipient =
+        contact.description
+            ?.takeIf { it.contains("@") }
+            ?.urlEncoded()
+            ?: ""
+    val subject = "Join me on LiveChat".urlEncoded()
+    val body = request.message.urlEncoded()
+    return "mailto:$recipient?subject=$subject&body=$body"
+}
+
+private fun openUrl(urlString: String): Boolean {
+    val url = NSURL.URLWithString(urlString) ?: return false
+    val application = UIApplication.sharedApplication
+    return if (application.canOpenURL(url)) {
+        application.openURL(url)
+        true
+    } else {
+        false
+    }
+}
+
+private fun String.urlEncoded(): String =
+    NSString.create(string = this).stringByAddingPercentEncodingWithAllowedCharacters(
+        NSCharacterSet.URLQueryAllowedCharacterSet(),
+    ) ?: this
+
+private fun String.smsUrlSegment(): String =
+    if (isBlank()) "" else this.urlEncoded()
+
+private fun String.whatsAppUrl(message: String): String? {
+    val digits = filter { it.isDigit() }
+    if (digits.isEmpty()) return null
+    return "https://wa.me/$digits?text=${message.urlEncoded()}"
+}
+
+private fun topViewController(root: UIViewController? = currentRootViewController()): UIViewController? {
+    val presented = root?.presentedViewController ?: return root
+    return when (presented) {
+        is UINavigationController -> topViewController(presented.visibleViewController)
+        else -> topViewController(presented)
+    }
+}
+
+private fun currentRootViewController(): UIViewController? {
+    UIApplication.sharedApplication.keyWindow?.rootViewController?.let { return it }
+    val windows = UIApplication.sharedApplication.windows as? List<*>
+    val keyWindow = windows?.firstOrNull { (it as? UIWindow)?.isKeyWindow == true } as? UIWindow
+    return (keyWindow ?: windows?.firstOrNull() as? UIWindow)?.rootViewController
+}
