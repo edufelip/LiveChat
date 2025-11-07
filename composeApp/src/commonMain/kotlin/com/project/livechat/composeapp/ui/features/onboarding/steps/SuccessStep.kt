@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.theme.spacing
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -26,6 +27,7 @@ internal fun SuccessStep(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings().onboarding
     val scope = rememberCoroutineScope()
     Column(
         modifier =
@@ -36,12 +38,12 @@ internal fun SuccessStep(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xl, Alignment.CenterVertically),
     ) {
         Text(
-            text = "You're all set!",
+            text = strings.successTitle,
             style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center,
         )
         Text(
-            text = "Your account is ready. Start chatting with your contacts now.",
+            text = strings.successSubtitle,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
@@ -52,7 +54,7 @@ internal fun SuccessStep(
             },
             modifier = Modifier.heightIn(min = 48.dp),
         ) {
-            Text("Start chatting")
+            Text(strings.successCta)
         }
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.ui.features.onboarding.CountryOption
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -46,6 +47,7 @@ internal fun PhoneStep(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings().onboarding
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier =
@@ -69,12 +71,12 @@ internal fun PhoneStep(
                 ) {
                     Text(
                         modifier = Modifier.padding(top = MaterialTheme.spacing.md),
-                        text = "Enter your phone number",
+                        text = strings.phoneTitle,
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "We'll send a verification code to confirm it's you.",
+                        text = strings.phoneSubtitle,
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
@@ -109,8 +111,8 @@ internal fun PhoneStep(
                         modifier = Modifier.fillMaxWidth(),
                         value = phoneNumber,
                         onValueChange = onPhoneChanged,
-                        label = { Text("Phone number") },
-                        placeholder = { Text("Digits only") },
+                        label = { Text(strings.phoneFieldLabel) },
+                        placeholder = { Text(strings.phoneFieldPlaceholder) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         supportingText = {
@@ -137,7 +139,7 @@ internal fun PhoneStep(
             if (isLoading) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
             } else {
-                Text("Continue")
+                Text(strings.continueCta)
             }
         }
     }
