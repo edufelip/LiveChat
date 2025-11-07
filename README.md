@@ -118,6 +118,7 @@ On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatfo
 - Remote adapters now exchange the richer envelope with Firestore (content type, ciphertext, attachments, reply/thread metadata). SQLite already stores the same schema, so new delivery receipts or E2EE payloads travel end-to-end without extra migrations.
 - A dedicated `ConversationParticipantsRepository` exposes participant state (mute, archived, pinned, read markers) via shared flows so presenters and future delivery-receipt logic can rely on a single source of truth.
 - Conversation lists hide archived chats by default, add an `Archived` filter chip, and surface mute/archive toggles on each row so participant state stays manageable without opening the detail view.
+- Contacts invites now pass the target contact through `InviteShareRequest`, allowing Android/iOS share sheets to pre-fill SMS, WhatsApp, and email recipients whenever possible.
 - Conversation presenters now auto-dispatch read receipts: when `observeConversation` emits newer messages, we contrast them with the participant’s `lastReadSeq/lastReadAt` and call `MarkConversationReadUseCase`. This keeps delivery receipts, mute/archived UI, and unread badges in sync across detail and list presenters.
 
 ### Firestore Security Rules Cheatsheet
