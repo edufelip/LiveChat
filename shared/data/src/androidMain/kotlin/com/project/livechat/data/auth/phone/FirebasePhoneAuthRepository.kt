@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit
 class FirebasePhoneAuthRepository(
     private val firebaseAuth: FirebaseAuth,
 ) : IPhoneAuthRepository {
-
     private var lastSession: PhoneVerificationSession? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
 

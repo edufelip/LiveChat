@@ -37,11 +37,15 @@ class ContactsLocalDataSource(
         }
     }
 
-    override suspend fun addContact(contact: Contact) {
-        database.insertContact(contact.toInsertParams())
+    override suspend fun addContacts(contacts: List<Contact>) {
+        queries.transaction {
+            contacts.forEach { contact ->
+                database.insertContact(contact.toInsertParams())
+            }
+        }
     }
 
-    override suspend fun updateContact(contacts: List<Contact>) {
+    override suspend fun updateContacts(contacts: List<Contact>) {
         queries.transaction {
             contacts.forEach { database.updateContact(it) }
         }

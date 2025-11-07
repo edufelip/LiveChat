@@ -6,20 +6,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
+import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -32,31 +35,37 @@ fun RowWithActions(
     endContent: @Composable () -> Unit,
     onClick: () -> Unit,
     highlight: Boolean = false,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    val background =
+    val containerColor =
         if (highlight) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+            MaterialTheme.colorScheme.primaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            MaterialTheme.colorScheme.surfaceContainerHigh
         }
+    val tonalElevation = if (highlight) MaterialTheme.spacing.xxs else 0.dp
 
     Surface(
         modifier =
             modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .clickable(onClick = onClick),
-        color = background,
+                .semantics { role = Role.Button }
+                .heightIn(min = 48.dp)
+                .padding(vertical = MaterialTheme.spacing.xs)
+                .clickable(enabled = enabled, onClick = onClick),
+        color = containerColor,
+        shape = MaterialTheme.shapes.medium,
+        tonalElevation = tonalElevation,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
             ) {
                 Text(
                     text = title,
@@ -72,7 +81,7 @@ fun RowWithActions(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
             endContent()
         }
     }
@@ -88,6 +97,7 @@ private fun RowWithActionsPreview() {
             subtitle = "Last message preview text goes here",
             endContent = { Text("Action", style = MaterialTheme.typography.bodySmall) },
             onClick = {},
+            enabled = true,
         )
     }
 }

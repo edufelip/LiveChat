@@ -6,4 +6,8 @@ data class ConversationUiState(
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
     val errorMessage: String? = null,
+    val participant: Participant? = null,
+    val isMuted: Boolean = false,
+    val muteUntil: Long? = null,
+    val isArchived: Boolean = false,
 )

@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.ui.features.onboarding.CountryOption
+import com.project.livechat.composeapp.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -49,20 +51,24 @@ internal fun PhoneStep(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = MaterialTheme.spacing.xl)
                     .imePadding(),
-            contentPadding = PaddingValues(top = 40.dp, bottom = 96.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterVertically),
+            contentPadding =
+                PaddingValues(
+                    top = MaterialTheme.spacing.xxxl,
+                    bottom = MaterialTheme.spacing.xxxl + MaterialTheme.spacing.xxl,
+                ),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
                 ) {
                     Text(
-                        modifier = Modifier.padding(top = 16.dp),
+                        modifier = Modifier.padding(top = MaterialTheme.spacing.md),
                         text = "Enter your phone number",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         textAlign = TextAlign.Center,
@@ -77,7 +83,7 @@ internal fun PhoneStep(
             }
 
             item {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
                     Surface(
                         modifier =
                             Modifier
@@ -86,7 +92,7 @@ internal fun PhoneStep(
                         shape = RoundedCornerShape(16.dp),
                         tonalElevation = 2.dp,
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
                             Text(
                                 text = selectedCountry.flag + " " + selectedCountry.name,
                                 style = MaterialTheme.typography.titleMedium,
@@ -101,26 +107,30 @@ internal fun PhoneStep(
 
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
-                    value = phoneNumber,
-                    onValueChange = onPhoneChanged,
-                    label = { Text("Phone number") },
-                    placeholder = { Text("Digits only") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    supportingText = {
-                        if (phoneError != null) {
-                            Text(text = phoneError, color = MaterialTheme.colorScheme.error)
-                        } else {
-                            Spacer(modifier = Modifier.height(0.dp))
-                        }
-                    },
-                )
+                        value = phoneNumber,
+                        onValueChange = onPhoneChanged,
+                        label = { Text("Phone number") },
+                        placeholder = { Text("Digits only") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        supportingText = {
+                            if (phoneError != null) {
+                                Text(text = phoneError, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Spacer(modifier = Modifier.height(0.dp))
+                            }
+                        },
+                    )
                 }
             }
         }
 
         Button(
-            modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = 40.dp),
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = MaterialTheme.spacing.xl, vertical = MaterialTheme.spacing.xxxl)
+                    .heightIn(min = 48.dp),
             onClick = onContinue,
             enabled = phoneNumber.isNotBlank() && !isLoading,
         ) {

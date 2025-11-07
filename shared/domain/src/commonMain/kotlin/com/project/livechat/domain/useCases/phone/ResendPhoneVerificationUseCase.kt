@@ -12,6 +12,5 @@ class ResendPhoneVerificationUseCase(
     operator fun invoke(
         session: PhoneVerificationSession,
         presentationContext: PhoneAuthPresentationContext,
-    ): Flow<PhoneAuthEvent> =
-        repository.resendVerification(session, presentationContext)
+    ): Flow<PhoneAuthEvent> = repository.resendVerification(session, presentationContext)
 }

@@ -10,6 +10,21 @@ data class LiveChatPalette(
     val dark: ColorScheme,
 )
 
+private fun ColorScheme.withTonalContainers(
+    lowest: Color,
+    low: Color,
+    container: Color,
+    high: Color,
+    highest: Color,
+): ColorScheme =
+    copy(
+        surfaceContainerLowest = lowest,
+        surfaceContainerLow = low,
+        surfaceContainer = container,
+        surfaceContainerHigh = high,
+        surfaceContainerHighest = highest,
+    )
+
 object LiveChatPalettes {
     val Pastel =
         LiveChatPalette(
@@ -42,6 +57,12 @@ object LiveChatPalettes {
                     inverseOnSurface = Color(0xFFE0F0EA),
                     inversePrimary = Color(0xFF64C7A8),
                     surfaceTint = Color(0xFF82D4B8),
+                ).withTonalContainers(
+                    lowest = Color(0xFFFFFFFF),
+                    low = Color(0xFFECF6F2),
+                    container = Color(0xFFE4F1ED),
+                    high = Color(0xFFDCEAE6),
+                    highest = Color(0xFFD3E3DE),
                 ),
             dark =
                 darkColorScheme(
@@ -72,6 +93,12 @@ object LiveChatPalettes {
                     inverseOnSurface = Color(0xFF142421),
                     inversePrimary = Color(0xFF82D4B8),
                     surfaceTint = Color(0xFF64C7A8),
+                ).withTonalContainers(
+                    lowest = Color(0xFF06110E),
+                    low = Color(0xFF0C1815),
+                    container = Color(0xFF13201C),
+                    high = Color(0xFF1A2824),
+                    highest = Color(0xFF22312C),
                 ),
         )
 }

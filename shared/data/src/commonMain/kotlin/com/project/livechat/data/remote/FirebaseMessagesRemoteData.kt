@@ -1,7 +1,10 @@
 package com.project.livechat.data.remote
 
 import com.project.livechat.data.contracts.IMessagesRemoteData
+import com.project.livechat.domain.models.AttachmentRef
+import com.project.livechat.domain.models.CipherInfo
 import com.project.livechat.domain.models.Message
+import com.project.livechat.domain.models.MessageContentType
 import com.project.livechat.domain.models.MessageDraft
 import com.project.livechat.domain.models.MessageStatus
 import com.project.livechat.domain.providers.UserSessionProvider
@@ -36,6 +39,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -75,18 +81,7 @@ class FirebaseMessagesRemoteData(
         if (!config.isConfigured) error("Firebase projectId is missing – cannot send message")
 
         return withContext(dispatcher) {
-            val request =
-                FirestoreCreateDocumentRequest(
-                    fields =
-                        mapOf(
-                            FIELD_CONVERSATION_ID to FirestoreValue(stringValue = draft.conversationId),
-                            FIELD_SENDER_ID to FirestoreValue(stringValue = draft.senderId),
-                            FIELD_BODY to FirestoreValue(stringValue = draft.body),
-                            FIELD_CREATED_AT to FirestoreValue(integerValue = draft.createdAt.toString()),
-                            FIELD_STATUS to FirestoreValue(stringValue = MessageStatus.SENT.name),
-                            FIELD_LOCAL_TEMP_ID to FirestoreValue(stringValue = draft.localId),
-                        ),
-                )
+            val request = FirestoreCreateDocumentRequest(fields = buildFirestoreFieldsForDraft(draft))
 
             val response: HttpResponse =
                 httpClient.post("${config.documentsEndpoint}/${config.messagesCollection}") {
@@ -200,6 +195,31 @@ class FirebaseMessagesRemoteData(
             }
         }
 
+    private fun buildFirestoreFieldsForDraft(draft: MessageDraft): Map<String, FirestoreValue> {
+        val fields =
+            mutableMapOf(
+                FIELD_CONVERSATION_ID to FirestoreValue(stringValue = draft.conversationId),
+                FIELD_SENDER_ID to FirestoreValue(stringValue = draft.senderId),
+                FIELD_BODY to FirestoreValue(stringValue = draft.body),
+                FIELD_CREATED_AT to FirestoreValue(integerValue = draft.createdAt.toString()),
+                FIELD_STATUS to FirestoreValue(stringValue = MessageStatus.SENT.name),
+                FIELD_LOCAL_TEMP_ID to FirestoreValue(stringValue = draft.localId),
+                FIELD_CONTENT_TYPE to FirestoreValue(stringValue = draft.contentType.name),
+            )
+
+        draft.ciphertext?.let { fields[FIELD_CIPHERTEXT] = FirestoreValue(stringValue = it) }
+        draft.replyToMessageId?.let { fields[FIELD_REPLY_TO_MESSAGE_ID] = FirestoreValue(stringValue = it) }
+        draft.threadRootId?.let { fields[FIELD_THREAD_ROOT_ID] = FirestoreValue(stringValue = it) }
+        draft.attachments.takeIf { it.isNotEmpty() }?.let {
+            fields[FIELD_ATTACHMENTS] = FirestoreValue(stringValue = encodeAttachments(it))
+        }
+        draft.metadata.takeIf { it.isNotEmpty() }?.let {
+            fields[FIELD_METADATA] = FirestoreValue(stringValue = encodeMetadata(it))
+        }
+
+        return fields
+    }
+
     private fun buildWhere(
         conversationId: String,
         sinceEpochMillis: Long?,
@@ -243,6 +263,10 @@ class FirebaseMessagesRemoteData(
             fields[FIELD_STATUS]?.stringValue?.let {
                 runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT)
             } ?: MessageStatus.SENT
+        val contentType =
+            fields[FIELD_CONTENT_TYPE]?.stringValue?.let {
+                runCatching { MessageContentType.valueOf(it) }.getOrDefault(MessageContentType.Text)
+            } ?: MessageContentType.Text
 
         val idFromName = name?.substringAfterLast('/') ?: fields[FIELD_LOCAL_TEMP_ID]?.stringValue ?: ""
         return Message(
@@ -253,6 +277,16 @@ class FirebaseMessagesRemoteData(
             createdAt = fields[FIELD_CREATED_AT]?.asLong() ?: 0L,
             status = status,
             localTempId = fields[FIELD_LOCAL_TEMP_ID]?.stringValue,
+            messageSeq = fields[FIELD_MESSAGE_SEQ]?.asLong(),
+            serverAckAt = fields[FIELD_SERVER_ACK_AT]?.asLong(),
+            contentType = contentType,
+            ciphertext = fields[FIELD_CIPHERTEXT]?.stringValue,
+            attachments = decodeAttachments(fields[FIELD_ATTACHMENTS]?.stringValue),
+            replyToMessageId = fields[FIELD_REPLY_TO_MESSAGE_ID]?.stringValue,
+            threadRootId = fields[FIELD_THREAD_ROOT_ID]?.stringValue,
+            editedAt = fields[FIELD_EDITED_AT]?.asLong(),
+            deletedForAllAt = fields[FIELD_DELETED_FOR_ALL_AT]?.asLong(),
+            metadata = decodeMetadata(fields[FIELD_METADATA]?.stringValue),
         )
     }
 
@@ -260,6 +294,23 @@ class FirebaseMessagesRemoteData(
         integerValue?.toLongOrNull() ?: timestampValue?.let { timestamp ->
             runCatching { Instant.parse(timestamp).toEpochMilliseconds() }.getOrNull()
         }
+
+    private fun encodeAttachments(attachments: List<AttachmentRef>): String =
+        json.encodeToString(attachmentsSerializer, attachments.map { it.toPayload() })
+
+    private fun decodeAttachments(raw: String?): List<AttachmentRef> =
+        raw?.takeIf { it.isNotBlank() }
+            ?.let { runCatching { json.decodeFromString(attachmentsSerializer, it) }.getOrNull() }
+            ?.map { it.toDomain() }
+            ?: emptyList()
+
+    private fun encodeMetadata(metadata: Map<String, String>): String =
+        json.encodeToString(metadataSerializer, metadata)
+
+    private fun decodeMetadata(raw: String?): Map<String, String> =
+        raw?.takeIf { it.isNotBlank() }
+            ?.let { runCatching { json.decodeFromString(metadataSerializer, it) }.getOrDefault(emptyMap()) }
+            ?: emptyMap()
 
     @Serializable
     private data class WebSocketHandshake(
@@ -343,6 +394,57 @@ class FirebaseMessagesRemoteData(
         @SerialName("timestampValue") val timestampValue: String? = null,
     )
 
+    @Serializable
+    private data class AttachmentPayload(
+        val objectKey: String,
+        val mimeType: String,
+        val sizeBytes: Long,
+        val thumbnailKey: String? = null,
+        val cipherInfo: CipherInfoPayload? = null,
+    ) {
+        fun toDomain(): AttachmentRef =
+            AttachmentRef(
+                objectKey = objectKey,
+                mimeType = mimeType,
+                sizeBytes = sizeBytes,
+                thumbnailKey = thumbnailKey,
+                cipherInfo = cipherInfo?.toDomain(),
+            )
+    }
+
+    @Serializable
+    private data class CipherInfoPayload(
+        val algorithm: String,
+        val keyId: String,
+        val nonce: String,
+        val associatedData: String? = null,
+    ) {
+        fun toDomain(): CipherInfo =
+            CipherInfo(
+                algorithm = algorithm,
+                keyId = keyId,
+                nonce = nonce,
+                associatedData = associatedData,
+            )
+    }
+
+    private fun AttachmentRef.toPayload(): AttachmentPayload =
+        AttachmentPayload(
+            objectKey = objectKey,
+            mimeType = mimeType,
+            sizeBytes = sizeBytes,
+            thumbnailKey = thumbnailKey,
+            cipherInfo = cipherInfo?.toPayload(),
+        )
+
+    private fun CipherInfo.toPayload(): CipherInfoPayload =
+        CipherInfoPayload(
+            algorithm = algorithm,
+            keyId = keyId,
+            nonce = nonce,
+            associatedData = associatedData,
+        )
+
     private companion object {
         const val FIELD_CONVERSATION_ID = "conversation_id"
         const val FIELD_SENDER_ID = "sender_id"
@@ -350,5 +452,18 @@ class FirebaseMessagesRemoteData(
         const val FIELD_CREATED_AT = "created_at"
         const val FIELD_STATUS = "status"
         const val FIELD_LOCAL_TEMP_ID = "local_temp_id"
+        const val FIELD_MESSAGE_SEQ = "message_seq"
+        const val FIELD_SERVER_ACK_AT = "server_ack_at"
+        const val FIELD_CONTENT_TYPE = "content_type"
+        const val FIELD_CIPHERTEXT = "ciphertext"
+        const val FIELD_ATTACHMENTS = "attachments"
+        const val FIELD_REPLY_TO_MESSAGE_ID = "reply_to_message_id"
+        const val FIELD_THREAD_ROOT_ID = "thread_root_id"
+        const val FIELD_EDITED_AT = "edited_at"
+        const val FIELD_DELETED_FOR_ALL_AT = "deleted_for_all_at"
+        const val FIELD_METADATA = "metadata"
+
+        private val attachmentsSerializer = ListSerializer(AttachmentPayload.serializer())
+        private val metadataSerializer = MapSerializer(String.serializer(), String.serializer())
     }
 }

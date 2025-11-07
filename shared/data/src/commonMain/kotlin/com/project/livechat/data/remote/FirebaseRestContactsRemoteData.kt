@@ -32,7 +32,7 @@ class FirebaseRestContactsRemoteData(
                         contactExists(contact.phoneNo)
                     }.getOrDefault(false)
                 if (exists) {
-                    emit(contact)
+                    emit(contact.copy(isRegistered = true))
                 }
             }
         }

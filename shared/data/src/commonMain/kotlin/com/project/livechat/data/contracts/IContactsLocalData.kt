@@ -8,7 +8,7 @@ interface IContactsLocalData {
 
     suspend fun removeContacts(contacts: List<Contact>)
 
-    suspend fun addContact(contact: Contact)
+    suspend fun addContacts(contacts: List<Contact>)
 
-    suspend fun updateContact(contacts: List<Contact>)
+    suspend fun updateContacts(contacts: List<Contact>)
 }

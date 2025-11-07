@@ -12,20 +12,22 @@ object AndroidContactsProvider {
 
     private fun queryContacts(context: Context): List<Contact> {
         val resolver = context.contentResolver
-        val projection = arrayOf(
-            ContactsContract.CommonDataKinds.Phone._ID,
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
-            ContactsContract.CommonDataKinds.Phone.NUMBER,
-            ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
-        )
+        val projection =
+            arrayOf(
+                ContactsContract.CommonDataKinds.Phone._ID,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY,
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
+            )
 
-        val cursor = resolver.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            projection,
-            null,
-            null,
-            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY + " ASC",
-        ) ?: return emptyList()
+        val cursor =
+            resolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection,
+                null,
+                null,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY + " ASC",
+            ) ?: return emptyList()
 
         return cursor.use { mapCursor(it) }
     }
@@ -58,6 +60,7 @@ object AndroidContactsProvider {
                     name = name,
                     phoneNo = rawNumber,
                     photo = photo,
+                    isRegistered = false,
                 ),
             )
         }

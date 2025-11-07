@@ -10,6 +10,5 @@ class VerifyOtpUseCase(
     suspend operator fun invoke(
         session: PhoneVerificationSession,
         code: String,
-    ): PhoneAuthResult =
-        repository.verifyCode(session, code)
+    ): PhoneAuthResult = repository.verifyCode(session, code)
 }

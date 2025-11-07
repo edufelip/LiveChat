@@ -22,12 +22,14 @@ class ContactsRepository(
         localData.removeContacts(contacts)
     }
 
-    override suspend fun addContactToLocal(contact: Contact) {
-        localData.addContact(contact)
+    override suspend fun addContactsToLocal(contacts: List<Contact>) {
+        if (contacts.isEmpty()) return
+        localData.addContacts(contacts)
     }
 
     override suspend fun updateContacts(contacts: List<Contact>) {
-        localData.updateContact(contacts)
+        if (contacts.isEmpty()) return
+        localData.updateContacts(contacts)
     }
 
     override suspend fun inviteContact(contact: Contact): Boolean {

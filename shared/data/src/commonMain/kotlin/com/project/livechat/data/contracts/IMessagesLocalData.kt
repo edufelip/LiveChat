@@ -3,6 +3,7 @@ package com.project.livechat.data.contracts
 import com.project.livechat.domain.models.ConversationSummary
 import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageStatus
+import com.project.livechat.domain.models.Participant
 import kotlinx.coroutines.flow.Flow
 
 interface IMessagesLocalData {
@@ -35,14 +36,9 @@ interface IMessagesLocalData {
 
     fun observeConversationSummaries(): Flow<List<ConversationSummary>>
 
-    suspend fun markConversationAsRead(
-        conversationId: String,
-        lastReadAt: Long,
-    )
+    fun observeParticipant(conversationId: String): Flow<Participant?>
 
-    suspend fun setConversationPinned(
-        conversationId: String,
-        pinned: Boolean,
-        pinnedAt: Long?,
-    )
+    suspend fun getParticipant(conversationId: String): Participant?
+
+    suspend fun upsertParticipant(participant: Participant)
 }

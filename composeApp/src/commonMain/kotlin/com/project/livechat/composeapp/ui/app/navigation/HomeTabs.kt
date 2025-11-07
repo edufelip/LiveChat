@@ -22,4 +22,9 @@ val defaultHomeTabs =
             label = "Contacts",
             icon = AppIcons.contacts,
         ),
+        HomeTabItem(
+            tab = HomeTab.Settings,
+            label = "Settings",
+            icon = AppIcons.settings,
+        ),
     )

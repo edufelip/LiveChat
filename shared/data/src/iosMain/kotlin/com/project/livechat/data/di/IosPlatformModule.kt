@@ -8,8 +8,8 @@ import com.project.livechat.data.session.InMemoryUserSessionProvider
 import com.project.livechat.domain.providers.UserSessionProvider
 import com.project.livechat.domain.repositories.IPhoneAuthRepository
 import com.project.livechat.shared.data.database.LiveChatDatabase
-import com.russhwolf.settings.AppleSettings
 import com.russhwolf.settings.Settings
+import com.russhwolf.settings.NSUserDefaultsSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -32,7 +32,7 @@ fun iosPlatformModule(
         single<SqlDriver> { NativeSqliteDriver(LiveChatDatabase.Schema, "livechat.db") }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
-        single<Settings> { AppleSettings(NSUserDefaults.standardUserDefaults) }
+        single<Settings> { NSUserDefaultsSettings(NSUserDefaults.standardUserDefaults) }
         single<IPhoneAuthRepository> { UnsupportedPhoneAuthRepository() }
     }
 
