@@ -8,7 +8,8 @@ class MarkConversationReadUseCase(
     suspend operator fun invoke(
         conversationId: String,
         lastReadAt: Long,
+        lastReadSeq: Long? = null,
     ) {
-        repository.markConversationAsRead(conversationId, lastReadAt)
+        repository.markConversationAsRead(conversationId, lastReadAt, lastReadSeq)
     }
 }

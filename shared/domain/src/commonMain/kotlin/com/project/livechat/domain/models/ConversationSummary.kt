@@ -9,6 +9,9 @@ data class ConversationSummary(
     val isPinned: Boolean,
     val pinnedAt: Long?,
     val lastReadAt: Long?,
+    val isMuted: Boolean = false,
+    val muteUntil: Long? = null,
+    val isArchived: Boolean = false,
 ) {
     val displayName: String
         get() = contactName?.takeIf { it.isNotBlank() } ?: conversationId
@@ -19,6 +22,9 @@ data class ConversationState(
     val lastReadAt: Long?,
     val isPinned: Boolean,
     val pinnedAt: Long?,
+    val isMuted: Boolean,
+    val muteUntil: Long?,
+    val isArchived: Boolean,
 )
 
 data class ConversationListUiState(
@@ -26,4 +32,12 @@ data class ConversationListUiState(
     val searchQuery: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val selectedFilter: ConversationFilter = ConversationFilter.All,
 )
+
+enum class ConversationFilter(val displayName: String) {
+    All("All"),
+    Unread("Unread"),
+    Pinned("Pinned"),
+    Archived("Archived"),
+}

@@ -5,18 +5,28 @@ CREATE TABLE messages (
     body TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     status TEXT NOT NULL,
-    local_temp_id TEXT
+    local_temp_id TEXT,
+    message_seq INTEGER,
+    server_ack_at INTEGER,
+    content_type TEXT DEFAULT 'Text',
+    ciphertext TEXT,
+    attachments TEXT,
+    reply_to_message_id TEXT,
+    thread_root_id TEXT,
+    edited_at INTEGER,
+    deleted_for_all_at INTEGER,
+    metadata TEXT
 );
 
 getMessagesForConversation:
-SELECT id, conversation_id, sender_id, body, created_at, status, local_temp_id
+SELECT id, conversation_id, sender_id, body, created_at, status, local_temp_id, message_seq, server_ack_at, content_type, ciphertext, attachments, reply_to_message_id, thread_root_id, edited_at, deleted_for_all_at, metadata
 FROM messages
 WHERE conversation_id = ?
 ORDER BY created_at;
 
 insertMessage:
-INSERT OR REPLACE INTO messages(id, conversation_id, sender_id, body, created_at, status, local_temp_id)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO messages(id, conversation_id, sender_id, body, created_at, status, local_temp_id, message_seq, server_ack_at, content_type, ciphertext, attachments, reply_to_message_id, thread_root_id, edited_at, deleted_for_all_at, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateMessageStatusByLocalId:
 UPDATE messages
@@ -62,6 +72,8 @@ SELECT
     cs.last_read_at AS last_read_at,
     cs.is_pinned AS is_pinned,
     cs.pinned_at AS pinned_at,
+    cs.mute_until AS mute_until,
+    cs.archived AS archived,
     c.name AS contact_name,
     c.photo AS contact_photo,
     (

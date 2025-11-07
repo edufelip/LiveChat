@@ -8,6 +8,7 @@ import com.project.livechat.domain.models.Message
 import com.project.livechat.domain.models.MessageDraft
 import com.project.livechat.domain.models.MessageStatus
 import com.project.livechat.domain.providers.UserSessionProvider
+import com.project.livechat.domain.repositories.IConversationParticipantsRepository
 import com.project.livechat.domain.repositories.IMessagesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,7 @@ class MessagesRepository(
     private val remoteData: IMessagesRemoteData,
     private val localData: IMessagesLocalData,
     private val sessionProvider: UserSessionProvider,
+    private val participantsRepository: IConversationParticipantsRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRepository {
     override fun observeConversation(
@@ -47,6 +49,7 @@ class MessagesRepository(
                     serverId = remoteMessage.id,
                     status = remoteMessage.status,
                 )
+                localData.upsertMessages(listOf(remoteMessage.copy(localTempId = null)))
                 remoteMessage
             } catch (error: Throwable) {
                 localData.updateMessageStatus(
@@ -80,9 +83,10 @@ class MessagesRepository(
     override suspend fun markConversationAsRead(
         conversationId: String,
         lastReadAt: Long,
+        lastReadSeq: Long?,
     ) {
         withContext(dispatcher) {
-            localData.markConversationAsRead(conversationId, lastReadAt)
+            participantsRepository.recordReadState(conversationId, lastReadAt, lastReadSeq)
         }
     }
 
@@ -92,7 +96,8 @@ class MessagesRepository(
         pinnedAt: Long?,
     ) {
         withContext(dispatcher) {
-            localData.setConversationPinned(conversationId, pinned, pinnedAt)
+            participantsRepository.setPinned(conversationId, pinned, pinnedAt)
         }
     }
+
 }

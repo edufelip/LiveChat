@@ -111,6 +111,66 @@ Koin now bootstraps in `LiveChatApplication` via `startKoinForAndroid`, wiring:
 
 On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatformModule` (Darwin HTTP client, native SQLDelight driver, in-memory session provider) plus the backend module list you provide—defaulting to `firebaseBackendModule`.
 
+### Messaging Model Snapshot
+- The shared `Message` entity now tracks delivery sequencing (`messageSeq`), ack timestamps (`serverAckAt`), rich content typing (`MessageContentType`), encrypted payloads (`ciphertext`), attachments, reply/thread pointers, and lifecycle metadata (`editedAt`, `deletedForAllAt`, `metadata`). UI presenters keep using the same APIs while getting the extra context for roadmap features like threads or E2EE.
+- `messages.sq` mirrors those fields, so SQDelight persists ciphertext, sequences, and moderation markers without losing compatibility with existing queries. `MessagesLocalDataSource` and its mapper were updated to read/write the new columns.
+- Spec-aligned primitives for conversations, participants, receipts, and reactions now live under `shared/domain/.../ConversationModels.kt` and `MessageArtifacts.kt` to support upcoming roadmap work (pinned messages, delivery receipts, etc.).
+- Remote adapters now exchange the richer envelope with Firestore (content type, ciphertext, attachments, reply/thread metadata). SQLite already stores the same schema, so new delivery receipts or E2EE payloads travel end-to-end without extra migrations.
+- A dedicated `ConversationParticipantsRepository` exposes participant state (mute, archived, pinned, read markers) via shared flows so presenters and future delivery-receipt logic can rely on a single source of truth.
+- Conversation lists hide archived chats by default, add an `Archived` filter chip, and surface mute/archive toggles on each row so participant state stays manageable without opening the detail view.
+- Conversation presenters now auto-dispatch read receipts: when `observeConversation` emits newer messages, we contrast them with the participant’s `lastReadSeq/lastReadAt` and call `MarkConversationReadUseCase`. This keeps delivery receipts, mute/archived UI, and unread badges in sync across detail and list presenters.
+
+### Firestore Security Rules Cheatsheet
+Keep the storage schema from `plan.md` locked down with the following baseline. The helper functions use brace bodies instead of assignment syntax, avoiding the `Unexpected '='` error you hit at lines 77/83:
+
+```firestore
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isParticipant(conversationId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid));
+    }
+
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isParticipant(conversationId);
+      allow write: if false; // conversation docs are created server-side
+
+      match /participants/{userId} {
+        allow read: if isParticipant(conversationId);
+        allow write: if request.auth.uid == userId;
+      }
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(conversationId);
+        allow create: if isParticipant(conversationId)
+          && request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      match /receipts/{receiptId} {
+        allow read: if isParticipant(conversationId);
+        allow write: if isParticipant(conversationId)
+          && request.resource.data.userId == request.auth.uid;
+      }
+
+      match /reactions/{reactionId} {
+        allow read, write: if isParticipant(conversationId)
+          && request.resource.data.userId == request.auth.uid;
+      }
+    }
+  }
+}
+```
+
 ### UI Architecture at a Glance
 - **Atomic Compose components**: Reusable building blocks live in `composeApp/src/commonMain/kotlin/com/project/livechat/composeapp/ui/components` and `app/src/main/java/com/project/livechat/ui/components`, grouped into `atoms`, `molecules`, `organisms`, and `dialogs`. Each component includes a local preview to simplify iteration.
 - **Feature-oriented packages**: Screens and screen-specific state/route composables sit inside `ui/features/<feature-name>/**` on both the shared and Android modules (e.g., `ui/features/conversations/list`, `ui/features/contacts/screens`).
