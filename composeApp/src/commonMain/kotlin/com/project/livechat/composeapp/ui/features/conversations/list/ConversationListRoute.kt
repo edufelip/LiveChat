@@ -15,6 +15,7 @@ import com.project.livechat.composeapp.preview.DevicePreviews
 import com.project.livechat.composeapp.preview.LiveChatPreviewContainer
 import com.project.livechat.composeapp.preview.PreviewFixtures
 import com.project.livechat.composeapp.ui.features.conversations.list.screens.ConversationListScreen
+import com.project.livechat.composeapp.ui.resources.liveChatStrings
 import com.project.livechat.composeapp.ui.state.collectState
 import com.project.livechat.composeapp.ui.state.rememberConversationListPresenter
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -24,6 +25,7 @@ fun ConversationListRoute(
     onConversationSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
         val previewState = remember { PreviewFixtures.conversationListState }
         ConversationListScreen(
@@ -59,10 +61,10 @@ fun ConversationListRoute(
                     showErrorDialog = false
                     presenter.clearError()
                 }) {
-                    Text("OK")
+                    Text(strings.general.ok)
                 }
             },
-            title = { Text("Something went wrong") },
+            title = { Text(strings.general.errorTitle) },
             text = { Text(errorMessage) },
         )
     }

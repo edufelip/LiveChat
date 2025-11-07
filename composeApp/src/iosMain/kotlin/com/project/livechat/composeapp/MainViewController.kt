@@ -4,6 +4,9 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.project.livechat.composeapp.ui.app.LiveChatApp
 import com.project.livechat.composeapp.ui.features.contacts.model.InviteShareRequest
 import com.project.livechat.composeapp.ui.features.settings.screens.SettingsSection
+import com.project.livechat.composeapp.ui.features.settings.screens.description
+import com.project.livechat.composeapp.ui.features.settings.screens.title
+import com.project.livechat.composeapp.ui.resources.LiveChatStrings
 import com.project.livechat.data.di.IosKoinBridge
 import com.project.livechat.data.di.startKoinForiOS
 import com.project.livechat.data.remote.FirebaseRestConfig
@@ -55,6 +58,7 @@ fun updateLiveChatSession(
 }
 
 private object LiveChatIosInitializer {
+    val strings = LiveChatStrings()
     private var started = false
 
     fun ensure(config: FirebaseRestConfig) {
@@ -97,11 +101,12 @@ private fun presentShareSheet(message: String) {
 }
 
 private fun presentSettingsSection(section: SettingsSection) {
+    val strings = LiveChatIosInitializer.strings.settings
     val controller = topViewController() ?: return
     val alert =
         UIAlertController(
-            title = section.title,
-            message = section.description,
+            title = section.title(strings),
+            message = section.description(strings),
             preferredStyle = UIAlertControllerStyleAlert,
         )
     alert.addAction(
