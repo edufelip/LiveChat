@@ -6,5 +6,4 @@ data class ContactsUiState(
     val isLoading: Boolean = false,
     val isSyncing: Boolean = false,
     val errorMessage: String? = null,
-    val inviteHistory: List<InviteHistoryItem> = emptyList(),
 )

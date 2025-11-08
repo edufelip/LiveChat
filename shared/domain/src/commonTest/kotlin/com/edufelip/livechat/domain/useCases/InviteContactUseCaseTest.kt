@@ -1,7 +1,6 @@
 package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.InviteChannel
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -16,12 +15,13 @@ class InviteContactUseCaseTest {
             val useCase = InviteContactUseCase(repository)
             val contact = contact(name = "Sam", phone = "+55")
 
-            val result = useCase(contact, InviteChannel.Sms)
+            val result = useCase(contact)
 
             assertEquals(listOf(contact), repository.invited)
             assertTrue(result.tracked)
             assertTrue(result.message.contains("Sam"))
-            assertTrue(result.message.contains("channel=sms"))
+            assertTrue(result.message.contains("LiveChat"))
+            assertTrue(result.message.contains("https://"))
         }
 
     @Test
@@ -31,7 +31,7 @@ class InviteContactUseCaseTest {
             val useCase = InviteContactUseCase(repository)
             val contact = contact(name = "", phone = "+99")
 
-            val result = useCase(contact, InviteChannel.Email)
+            val result = useCase(contact)
 
             assertTrue(result.message.contains("Hi there"))
         }

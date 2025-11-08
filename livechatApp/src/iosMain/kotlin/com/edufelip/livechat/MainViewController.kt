@@ -11,7 +11,6 @@ import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.di.startKoinForiOS
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.InviteChannel
 import com.edufelip.livechat.domain.providers.model.UserSession
 import platform.Foundation.NSCharacterSet
 import platform.Foundation.NSString
@@ -120,65 +119,7 @@ private fun presentSettingsSection(section: SettingsSection) {
 }
 
 private fun handleInviteShare(request: InviteShareRequest) {
-    val contact = request.contact
-    val handled =
-        when (request.channel) {
-            InviteChannel.Sms -> {
-                val phone = contact.phoneNo.smsUrlSegment()
-                openUrl("sms:$phone&body=${request.message.urlEncoded()}")
-            }
-            InviteChannel.Email ->
-                openUrl(
-                    emailUrl(request, contact),
-                )
-
-            InviteChannel.WhatsApp ->
-                contact.phoneNo.whatsAppUrl(request.message)?.let { openUrl(it) } ?: false
-            InviteChannel.Share -> false
-        }
-
-    if (!handled) {
-        presentShareSheet(request.message)
-    }
-}
-
-private fun emailUrl(
-    request: InviteShareRequest,
-    contact: Contact,
-): String {
-    val recipient =
-        contact.description
-            ?.takeIf { it.contains("@") }
-            ?.urlEncoded()
-            ?: ""
-    val subject = "Join me on LiveChat".urlEncoded()
-    val body = request.message.urlEncoded()
-    return "mailto:$recipient?subject=$subject&body=$body"
-}
-
-private fun openUrl(urlString: String): Boolean {
-    val url = NSURL.URLWithString(urlString) ?: return false
-    val application = UIApplication.sharedApplication
-    return if (application.canOpenURL(url)) {
-        application.openURL(url)
-        true
-    } else {
-        false
-    }
-}
-
-private fun String.urlEncoded(): String =
-    NSString.create(string = this).stringByAddingPercentEncodingWithAllowedCharacters(
-        NSCharacterSet.URLQueryAllowedCharacterSet(),
-    ) ?: this
-
-private fun String.smsUrlSegment(): String =
-    if (isBlank()) "" else this.urlEncoded()
-
-private fun String.whatsAppUrl(message: String): String? {
-    val digits = filter { it.isDigit() }
-    if (digits.isEmpty()) return null
-    return "https://wa.me/$digits?text=${message.urlEncoded()}"
+    presentShareSheet(request.message)
 }
 
 private fun topViewController(root: UIViewController? = currentRootViewController()): UIViewController? {

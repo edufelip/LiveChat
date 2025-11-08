@@ -7,8 +7,6 @@ import com.edufelip.livechat.domain.models.ConversationFilter
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.ConversationUiState
-import com.edufelip.livechat.domain.models.InviteChannel
-import com.edufelip.livechat.domain.models.InviteHistoryItem
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.models.Participant
@@ -127,14 +125,6 @@ object PreviewFixtures {
             isLoading = false,
             isSyncing = false,
             errorMessage = null,
-            inviteHistory =
-                listOf(
-                    InviteHistoryItem(
-                        contact = contacts[2],
-                        channel = InviteChannel.Email,
-                        timestamp = TIMESTAMP - 3_600_000,
-                    ),
-                ),
         )
 
     val contactsLoadingState = contactsState.copy(localContacts = emptyList(), validatedContacts = emptyList(), isLoading = true)
