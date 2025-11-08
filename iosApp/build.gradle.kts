@@ -20,7 +20,7 @@ kotlin {
         binaries {
             executable {
                 baseName = appName
-                entryPoint = "com.project.livechat.composeapp.main"
+                entryPoint = "com.edufelip.livechat.composeapp.main"
                 linkerOpts(
                     "-framework", "UIKit",
                     "-framework", "Metal",
@@ -45,7 +45,7 @@ kotlin {
 private val iosSimulatorDevice: String
     get() = project.findProperty("IOS_SIMULATOR_DEVICE")?.toString() ?: "iPhone 15 Pro"
 
-private val bundleId = "com.project.livechat"
+private val bundleId = "com.edufelip.livechat"
 private val appName = "LiveChat"
 
 private fun KotlinNativeTarget.debugExecutable() = binaries.getExecutable(NativeBuildType.DEBUG)

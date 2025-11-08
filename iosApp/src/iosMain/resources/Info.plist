@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.project.livechat</string>
+    <string>com.edufelip.livechat</string>
     <key>CFBundleExecutable</key>
     <string>LiveChat</string>
     <key>CFBundleName</key>
