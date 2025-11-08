@@ -29,7 +29,7 @@
 
 /* Begin PBXFileReference section */
 		4F0F1C2C2C61B7F8008F12A4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../composeApp/build/XCFrameworks/release/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
+		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../livechatApp/build/XCFrameworks/release/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
 		4F0F1C2C2C61B7F8008F12A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F0F1C2C2C61B7F8008F12AF /* LiveChatIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveChatIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -304,7 +304,7 @@
 			DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
+					"$(PROJECT_DIR)/../livechatApp/build/XCFrameworks/**",
 					"$(SDKROOT)/System/Library/SubFrameworks",
 				);
 				INFOPLIST_FILE = LiveChatIOS/Info.plist;
@@ -330,7 +330,7 @@
 			DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
+					"$(PROJECT_DIR)/../livechatApp/build/XCFrameworks/**",
 					"$(SDKROOT)/System/Library/SubFrameworks",
 				);
 				INFOPLIST_FILE = LiveChatIOS/Info.plist;

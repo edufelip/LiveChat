@@ -1,8 +1,8 @@
 # Content Ideas for LiveChat KMM
 
 ## 1. UI-Focused Topics
-- **Edge-to-edge Compose scaffolding on Android** – Walk through how `HomeScreen` and the navigation bar are padded via `WindowInsets` while still drawing behind system bars (`composeApp/src/commonMain/kotlin/com/project/livechat/composeapp/ui/features/home/view/HomeScreen.kt`). Showcase before/after screenshots and the `NavigationBar` color blending trick.
-- **Compose Multiplatform theming strategy** – Explain how `LiveChatTheme` unifies Android/iOS palettes, typography, and semantics, highlighting pastel tonality and semantics usage across components (theme package under `composeApp/.../ui/theme`).
+- **Edge-to-edge Compose scaffolding on Android** – Walk through how `HomeScreen` and the navigation bar are padded via `WindowInsets` while still drawing behind system bars (`livechatApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/home/view/HomeScreen.kt`). Showcase before/after screenshots and the `NavigationBar` color blending trick.
+- **Compose Multiplatform theming strategy** – Explain how `LiveChatTheme` unifies Android/iOS palettes, typography, and semantics, highlighting pastel tonality and semantics usage across components (theme package under `livechatApp/.../ui/theme`).
 - **Contacts screen UX polish** – Deep dive into pull-to-refresh, invite dialogs, and state banners added in `ContactsRoute` + `ContactsScreen`, including how permission prompts hide/show the “Sync contacts” CTA.
 - **Conversation list filters & chips** – Cover the new filter enum, chip row, and scroll behavior implemented in the conversation list screens, noting how `ConversationListPresenter` drives selection state.
 

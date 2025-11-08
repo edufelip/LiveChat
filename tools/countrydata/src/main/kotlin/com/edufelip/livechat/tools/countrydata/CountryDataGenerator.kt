@@ -36,7 +36,7 @@ fun main() {
     val outputDir =
         File(
             projectRoot(),
-            "composeApp/src/commonMain/kotlin/com/project/livechat/composeapp/ui/features/onboarding/generated",
+            "livechatApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/onboarding/generated",
         )
     outputDir.mkdirs()
     val outputFile = outputDir.resolve("CountryDefaults.generated.kt")
@@ -62,8 +62,8 @@ private fun String.toFlagEmoji(): String {
 
 private fun List<CountryRecord>.toKotlinSource(): String {
     val builder = StringBuilder()
-    builder.appendLine("package com.edufelip.livechat.composeapp.ui.features.onboarding.generated")
-    builder.appendLine("import com.edufelip.livechat.composeapp.ui.features.onboarding.CountryOption")
+    builder.appendLine("package com.edufelip.livechat.ui.features.onboarding.generated")
+    builder.appendLine("import com.edufelip.livechat.ui.features.onboarding.CountryOption")
     builder.appendLine()
     builder.appendLine("internal val GeneratedCountryOptions = listOf(")
     forEachIndexed { index, record ->
