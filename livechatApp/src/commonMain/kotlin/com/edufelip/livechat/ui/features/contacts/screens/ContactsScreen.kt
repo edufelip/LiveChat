@@ -16,7 +16,6 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,24 +25,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.components.atoms.Badge
-import com.edufelip.livechat.ui.components.atoms.SectionHeader
 import com.edufelip.livechat.ui.components.molecules.ErrorBanner
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.components.molecules.RowWithActions
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ContactsUiState
-import com.edufelip.livechat.domain.models.InviteHistoryItem
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -60,8 +55,6 @@ fun ContactsScreen(
 ) {
     val strings = liveChatStrings()
     val hasContacts = state.localContacts.isNotEmpty() || state.validatedContacts.isNotEmpty()
-    val invitedPhones =
-        remember(state.inviteHistory) { state.inviteHistory.map { it.contact.phoneNo }.toSet() }
     val pullRefreshState =
         rememberPullRefreshState(
             refreshing = state.isSyncing,
@@ -91,7 +84,6 @@ fun ContactsScreen(
                 else ->
                     ContactsListContent(
                         state = state,
-                        invitedPhones = invitedPhones,
                         showSyncButton = showSyncButton,
                         onSync = onSync,
                         onInvite = onInvite,
@@ -159,7 +151,6 @@ private fun EmptyContactsState(
 @Composable
 private fun ContactsListContent(
     state: ContactsUiState,
-    invitedPhones: Set<String>,
     showSyncButton: Boolean,
     onSync: () -> Unit,
     onInvite: (Contact) -> Unit,
@@ -200,7 +191,6 @@ private fun ContactsListContent(
 
         items(contacts, key = { it.phoneNo }) { contact ->
             val isValidated = state.validatedContacts.any { it.phoneNo == contact.phoneNo }
-            val invited = invitedPhones.contains(contact.phoneNo)
             RowWithActions(
                 title = contact.name,
                 subtitle = contact.phoneNo,
@@ -210,11 +200,6 @@ private fun ContactsListContent(
                             Badge(
                                 text = strings.contacts.onLiveChatBadge,
                                 tint = MaterialTheme.colorScheme.primary,
-                            )
-                        invited ->
-                            Badge(
-                                text = strings.contacts.invitedBadge,
-                                tint = MaterialTheme.colorScheme.tertiary,
                             )
                         else ->
                             TextButton(
@@ -230,35 +215,6 @@ private fun ContactsListContent(
                 enabled = isValidated,
             )
         }
-
-        if (state.inviteHistory.isNotEmpty()) {
-            item { SectionHeader(title = strings.contacts.inviteHistoryTitle) }
-            items(state.inviteHistory, key = { it.id }) { record ->
-                InviteHistoryRow(record)
-            }
-        }
-    }
-}
-
-@Composable
-private fun InviteHistoryRow(record: InviteHistoryItem) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-    ) {
-        Text(
-            text = record.contact.name.ifBlank { record.contact.phoneNo },
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-        )
-        Text(
-            text = "${record.channel.displayName} • ${record.timestamp.formatAsTime()}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        HorizontalDivider()
     }
 }
 

@@ -1,10 +1,7 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.InviteChannel
-import com.edufelip.livechat.domain.models.InviteHistoryItem
 import com.edufelip.livechat.domain.repositories.IContactsRepository
-import com.edufelip.livechat.domain.repositories.IInviteHistoryRepository
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.InviteContactUseCase
@@ -16,6 +13,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -92,38 +91,33 @@ class ContactsPresenterTest {
             try {
                 val event = async { setup.presenter.events.first() }
 
-                setup.presenter.inviteContact(target, InviteChannel.Email)
+                setup.presenter.inviteContact(target)
                 setup.scope.advanceUntilIdle()
                 setup.scope.advanceUntilIdle()
 
                 val emitted = event.await() as ContactsEvent.ShareInvite
                 assertEquals(target, emitted.contact)
-                assertEquals(InviteChannel.Email, emitted.channel)
-                assertTrue(emitted.message.contains("channel=email"))
-                assertTrue(setup.historyRepository.historyFlow.value.any { it.contact == target && it.channel == InviteChannel.Email })
+                assertTrue(emitted.message.contains("LiveChat"))
             } finally {
                 setup.presenter.close()
             }
         }
 
     @Test
-    fun inviteHistoryUpdatesWithMostRecentFirst() =
+    fun inviteContactCanBeRepeatedWithoutRestriction() =
         runTest {
-            val first = contact(id = 6, name = "Finn", phone = "+6", registered = false)
-            val second = contact(id = 7, name = "Gale", phone = "+7", registered = false)
+            val target = contact(id = 6, name = "Mia", phone = "+6", registered = false)
             val setup = createPresenter(initialContacts = emptyList())
             try {
-                setup.presenter.inviteContact(first, InviteChannel.Sms)
-                setup.scope.advanceUntilIdle()
-                setup.scope.advanceUntilIdle()
-                setup.presenter.inviteContact(second, InviteChannel.WhatsApp)
-                setup.scope.advanceUntilIdle()
-                setup.scope.advanceUntilIdle()
+                val events = async { setup.presenter.events.take(2).toList() }
 
-                val history = setup.presenter.state.value.inviteHistory
-                assertEquals(2, history.size)
-                assertEquals(second.phoneNo, history[0].contact.phoneNo)
-                assertEquals(first.phoneNo, history[1].contact.phoneNo)
+                repeat(2) {
+                    setup.presenter.inviteContact(target)
+                    setup.scope.advanceUntilIdle()
+                }
+
+                val inviteEvents = events.await().filterIsInstance<ContactsEvent.ShareInvite>()
+                assertEquals(2, inviteEvents.size)
             } finally {
                 setup.presenter.close()
             }
@@ -132,23 +126,20 @@ class ContactsPresenterTest {
     private fun TestScope.createPresenter(initialContacts: List<Contact>): PresenterSetup {
         val repository = FakeContactsRepository()
         repository.localContactsFlow.value = initialContacts
-        val historyRepository = FakeInviteHistoryRepository()
         val presenterScope = TestScope(testScheduler)
         val presenter =
             ContactsPresenter(
                 getLocalContactsUseCase = GetLocalContactsUseCase(repository),
                 checkRegisteredContactsUseCase = CheckRegisteredContactsUseCase(repository),
                 inviteContactUseCase = InviteContactUseCase(repository),
-                inviteHistoryRepository = historyRepository,
                 scope = presenterScope,
             )
         presenterScope.advanceUntilIdle()
-        return PresenterSetup(repository, historyRepository, presenter, presenterScope)
+        return PresenterSetup(repository, presenter, presenterScope)
     }
 
     private data class PresenterSetup(
         val repository: FakeContactsRepository,
-        val historyRepository: FakeInviteHistoryRepository,
         val presenter: ContactsPresenter,
         val scope: TestScope,
     )
@@ -190,17 +181,6 @@ class ContactsPresenterTest {
         override suspend fun inviteContact(contact: Contact): Boolean {
             invitedContacts += contact
             return true
-        }
-    }
-
-    private class FakeInviteHistoryRepository : IInviteHistoryRepository {
-        val historyFlow = MutableStateFlow<List<InviteHistoryItem>>(emptyList())
-
-        override val history: Flow<List<InviteHistoryItem>>
-            get() = historyFlow
-
-        override suspend fun record(invite: InviteHistoryItem) {
-            historyFlow.value = listOf(invite) + historyFlow.value
         }
     }
 

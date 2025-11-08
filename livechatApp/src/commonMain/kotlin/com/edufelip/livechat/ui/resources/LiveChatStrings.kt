@@ -11,11 +11,8 @@ data class ContactsStrings(
     val syncing: String = "Syncing…",
     val syncingStateDescription: String = "Syncing contacts",
     val onLiveChatBadge: String = "On LiveChat",
-    val invitedBadge: String = "Invited",
     val inviteCta: String = "Invite",
-    val inviteHistoryTitle: String = "Invite history",
-    val inviteDialogTitle: String = "Invite via",
-    val inviteDialogCancel: String = "Cancel",
+    val inviteShareTitle: String = "Share LiveChat invite",
     val permissionDeniedMessage: String = "Enable contacts permission to sync your phonebook.",
 )
 

@@ -2,15 +2,11 @@ package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ContactsUiState
-import com.edufelip.livechat.domain.models.InviteChannel
-import com.edufelip.livechat.domain.models.InviteHistoryItem
-import com.edufelip.livechat.domain.repositories.IInviteHistoryRepository
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.InviteContactUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
-import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -27,7 +23,6 @@ class ContactsPresenter(
     private val getLocalContactsUseCase: GetLocalContactsUseCase,
     private val checkRegisteredContactsUseCase: CheckRegisteredContactsUseCase,
     private val inviteContactUseCase: InviteContactUseCase,
-    private val inviteHistoryRepository: IInviteHistoryRepository,
     private val scope: CoroutineScope = MainScope(),
 ) {
     private val mutableState = MutableStateFlow(ContactsUiState(isLoading = true))
@@ -53,11 +48,6 @@ class ContactsPresenter(
                 }
         }
 
-        scope.launch {
-            inviteHistoryRepository.history.collectLatest { history ->
-                mutableState.update { it.copy(inviteHistory = history) }
-            }
-        }
     }
 
     fun syncContacts(phoneContacts: List<Contact>) {
@@ -84,21 +74,11 @@ class ContactsPresenter(
         }
     }
 
-    fun inviteContact(
-        contact: Contact,
-        channel: InviteChannel,
-    ) {
+    fun inviteContact(contact: Contact) {
         scope.launch {
             runCatching {
-                val result = inviteContactUseCase(contact, channel)
-                inviteHistoryRepository.record(
-                    InviteHistoryItem(
-                        contact = contact,
-                        channel = channel,
-                        timestamp = currentEpochMillis(),
-                    ),
-                )
-                mutableEvents.tryEmit(ContactsEvent.ShareInvite(contact, channel, result.message))
+                val result = inviteContactUseCase(contact)
+                mutableEvents.tryEmit(ContactsEvent.ShareInvite(contact, result.message))
             }.onFailure { throwable ->
                 mutableState.update { it.copy(errorMessage = throwable.message) }
             }
@@ -123,7 +103,7 @@ class ContactsPresenter(
 }
 
 sealed interface ContactsEvent {
-    data class ShareInvite(val contact: Contact, val channel: InviteChannel, val message: String) : ContactsEvent
+    data class ShareInvite(val contact: Contact, val message: String) : ContactsEvent
 
     data class OpenConversation(val contact: Contact) : ContactsEvent
 }

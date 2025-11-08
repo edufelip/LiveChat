@@ -1,27 +1,20 @@
 package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.InviteChannel
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 
 class InviteContactUseCase(
     private val contactsRepository: IContactsRepository,
 ) {
-    suspend operator fun invoke(
-        contact: Contact,
-        channel: InviteChannel,
-    ): InviteContactResult {
+    suspend operator fun invoke(contact: Contact): InviteContactResult {
         val tracked = contactsRepository.inviteContact(contact)
-        val message = buildMessage(contact, channel)
+        val message = buildMessage(contact)
         return InviteContactResult(message = message, tracked = tracked)
     }
 
-    private fun buildMessage(
-        contact: Contact,
-        channel: InviteChannel,
-    ): String {
+    private fun buildMessage(contact: Contact): String {
         val contactName = contact.name.ifBlank { "there" }
-        val link = "$INVITE_LINK?channel=${channel.name.lowercase()}"
+        val link = INVITE_LINK
         return "Hi $contactName! I'm using LiveChat to stay in touch. Download it here: $link"
     }
 
