@@ -20,7 +20,7 @@ kotlin {
         binaries {
             executable {
                 baseName = appName
-                entryPoint = "com.edufelip.livechat.composeapp.main"
+                entryPoint = "com.edufelip.livechat.main"
                 linkerOpts(
                     "-framework", "UIKit",
                     "-framework", "Metal",
@@ -35,7 +35,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":composeApp"))
+                implementation(project(":livechatApp"))
             }
         }
         val commonTest by getting
