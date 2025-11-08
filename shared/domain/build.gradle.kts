@@ -55,7 +55,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.project.livechat.shared.domain"
+    namespace = "com.edufelip.livechat.shared.domain"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

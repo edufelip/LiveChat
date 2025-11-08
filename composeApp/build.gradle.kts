@@ -81,11 +81,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.project.livechat"
+    namespace = "com.edufelip.livechat"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.project.livechat"
+        applicationId = "com.edufelip.livechat"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1

@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass.set("com.project.livechat.tools.countrydata.CountryDataGeneratorKt")
+    mainClass.set("com.edufelip.livechat.tools.countrydata.CountryDataGeneratorKt")
 }
 
 dependencies {
