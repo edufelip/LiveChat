@@ -12,8 +12,6 @@ plugins {
 kotlin {
     androidTarget()
 
-    val firebaseBom = project.dependencies.platform("com.google.firebase:firebase-bom:${libs.versions.firebase.get()}")
-
     val iosX64 = iosX64()
     val iosArm64 = iosArm64()
     val iosSimulatorArm64 = iosSimulatorArm64()
@@ -34,6 +32,9 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.firebase.common.kt)
+                implementation(libs.firebase.firestore.kt)
+                implementation(libs.firebase.functions.kt)
             }
         }
         val commonTest by getting {
@@ -45,8 +46,9 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation(firebaseBom)
-                implementation("com.google.firebase:firebase-auth")
+                implementation(libs.firebase.auth)
+                implementation("com.google.firebase:firebase-common-ktx:20.4.2")
+                implementation("com.google.firebase:firebase-firestore-ktx:25.1.0")
                 implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.androidx.room.sqlite.wrapper)

@@ -10,6 +10,8 @@ import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
+import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import com.edufelip.livechat.domain.utils.currentEpochMillis
@@ -32,6 +34,8 @@ class ConversationPresenter(
     private val syncConversationUseCase: SyncConversationUseCase,
     private val observeParticipantUseCase: ObserveParticipantUseCase,
     private val markConversationReadUseCase: MarkConversationReadUseCase,
+    private val observeContactByPhoneUseCase: ObserveContactByPhoneUseCase,
+    private val ensureConversationUseCase: EnsureConversationUseCase,
     private val userSessionProvider: UserSessionProvider,
     private val scope: CoroutineScope = MainScope(),
 ) {
@@ -42,6 +46,7 @@ class ConversationPresenter(
     private var observeJob: Job? = null
     private var participantJob: Job? = null
     private var markReadJob: Job? = null
+    private var contactJob: Job? = null
     private var lastMarkedReadSeq: Long? = null
     private var lastMarkedReadAt: Long = 0L
 
@@ -56,6 +61,7 @@ class ConversationPresenter(
         _uiState.update {
             it.copy(
                 conversationId = conversationId,
+                contactName = it.contactName.takeIf { _ -> it.conversationId == conversationId } ?: conversationId,
                 isLoading = true,
                 errorMessage = null,
                 participant = null,
@@ -69,9 +75,33 @@ class ConversationPresenter(
         markReadJob?.cancel()
         markReadJob = null
 
+        contactJob?.cancel()
+        contactJob =
+            scope.launch {
+                observeContactByPhoneUseCase(conversationId).collect { contact ->
+                    _uiState.update { state ->
+                        val fallback = state.contactName ?: conversationId
+                        state.copy(
+                            contactName = contact?.name?.takeIf { it.isNotBlank() }
+                                ?: contact?.phoneNo?.takeIf { it.isNotBlank() }
+                                ?: fallback,
+                        )
+                    }
+                }
+            }
+
         observeJob?.cancel()
         observeJob =
             scope.launch {
+                runCatching { ensureConversationUseCase(conversationId) }
+                    .onFailure { throwable ->
+                        _uiState.update { state ->
+                            state.copy(
+                                errorMessage = throwable.message ?: state.errorMessage,
+                                isLoading = false,
+                            )
+                        }
+                    }
                 observeConversationUseCase(conversationId, pageSize)
                     .catch { throwable ->
                         _uiState.update { state ->
@@ -96,6 +126,7 @@ class ConversationPresenter(
         participantJob?.cancel()
         participantJob =
             scope.launch {
+                runCatching { ensureConversationUseCase(conversationId) }
                 observeParticipantUseCase(conversationId)
                     .catch { throwable ->
                         _uiState.update { state ->
@@ -195,29 +226,6 @@ class ConversationPresenter(
             }
     }
 
-    fun refresh() {
-        val conversationId = _uiState.value.conversationId
-        if (conversationId.isBlank()) return
-
-        scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching {
-                syncConversationUseCase(conversationId, null)
-            }.onSuccess { messages ->
-                _uiState.update {
-                    it.copy(messages = messages, isLoading = false)
-                }
-            }.onFailure { throwable ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = throwable.message ?: "Failed to refresh conversation",
-                    )
-                }
-            }
-        }
-    }
-
     fun sendMessage(body: String) {
         if (body.isBlank()) return
         val conversationId = _uiState.value.conversationId
@@ -267,6 +275,8 @@ class ConversationPresenter(
         participantJob = null
         markReadJob?.cancel()
         markReadJob = null
+        contactJob?.cancel()
+        contactJob = null
         lastMarkedReadSeq = null
         lastMarkedReadAt = 0L
         _uiState.value = ConversationUiState()

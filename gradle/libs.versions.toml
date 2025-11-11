@@ -11,6 +11,7 @@ room = "2.8.3"
 sqlite = "2.6.1"
 ksp = "2.2.20-2.0.4"
 firebase= "34.4.0"
+firebase-kotlin = "1.13.0"
 libphonenumber = "9.0.17"
 kotlinDateTime = "0.7.1"
 compose-multiplatform = "1.9.1"
@@ -58,6 +59,10 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
+firebase-common-kt = { module = "dev.gitlive:firebase-common", version.ref = "firebase-kotlin" }
+firebase-app-kt = { module = "dev.gitlive:firebase-app", version.ref = "firebase-kotlin" }
+firebase-firestore-kt = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-kotlin" }
+firebase-functions-kt = { module = "dev.gitlive:firebase-functions", version.ref = "firebase-kotlin" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

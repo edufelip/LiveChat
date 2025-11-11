@@ -10,13 +10,16 @@ import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
-import com.edufelip.livechat.domain.useCases.InviteContactUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
+import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
+import kotlinx.coroutines.MainScope
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
@@ -36,12 +39,14 @@ val sharedDomainModule: Module =
         single { PhoneNumberValidator() }
         factory { GetLocalContactsUseCase(get<IContactsRepository>()) }
         factory { CheckRegisteredContactsUseCase(get<IContactsRepository>()) }
-        factory { InviteContactUseCase(get<IContactsRepository>()) }
+        factory { ObserveContactByPhoneUseCase(get<IContactsRepository>()) }
         factory { ObserveConversationUseCase(get()) }
         factory { ObserveConversationSummariesUseCase(get()) }
         factory { ObserveParticipantUseCase(get()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
+        factory { ResolveConversationIdForContactUseCase() }
+        factory { EnsureConversationUseCase(get()) }
         factory { SendMessageUseCase(get()) }
         factory { SyncConversationUseCase(get()) }
         factory { MarkConversationReadUseCase(get()) }
@@ -53,9 +58,9 @@ val sharedDomainModule: Module =
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
         factory { ClearPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
-        factory { ConversationPresenter(get(), get(), get(), get(), get(), get()) }
+        factory { ConversationPresenter(get(), get(), get(), get(), get(), get(), get(), get()) }
         factory { ConversationListPresenter(get(), get(), get(), get(), get()) }
-        factory { ContactsPresenter(get(), get(), get(), get()) }
+        single { ContactsPresenter(get(), get(), scope = kotlinx.coroutines.MainScope()) }
         factory { PhoneAuthPresenter(get(), get(), get(), get()) }
-        factory { AppPresenter(get(), get(), get()) }
+        factory { AppPresenter(get(), get(), get(), get()) }
     }

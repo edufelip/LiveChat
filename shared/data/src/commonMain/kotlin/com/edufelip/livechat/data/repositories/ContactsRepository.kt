@@ -18,6 +18,10 @@ class ContactsRepository(
         return localData.getLocalContacts()
     }
 
+    override fun observeContact(phoneNumber: String): Flow<Contact?> = localData.observeContact(phoneNumber)
+
+    override suspend fun findContact(phoneNumber: String): Contact? = localData.findContact(phoneNumber)
+
     override suspend fun removeContactsFromLocal(contacts: List<Contact>) {
         localData.removeContacts(contacts)
     }

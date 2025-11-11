@@ -1,0 +1,70 @@
+<resources>
+    <!-- Contacts -->
+    <string name="contacts_loading">Loading contacts&#8230;</string>
+    <string name="contacts_empty_state">No contacts synced yet</string>
+    <string name="contacts_sync_cta">Sync Contacts</string>
+    <string name="contacts_syncing">Syncing&#8230;</string>
+    <string name="contacts_syncing_state_description">Syncing contacts</string>
+    <string name="contacts_on_livechat_badge">On LiveChat</string>
+    <string name="contacts_invite_cta">Invite</string>
+    <string name="contacts_invite_share_title">Share LiveChat invite</string>
+    <string name="contacts_invite_share_unavailable">No apps available to share</string>
+    <string name="contacts_permission_denied_message">Enable contacts permission to sync your phonebook.</string>
+    <string name="contacts_registered_section_title">On LiveChat</string>
+    <string name="contacts_invite_section_title">Invite to LiveChat</string>
+    <string name="contacts_validating_section_label">Validating contacts...</string>
+
+    <!-- Settings -->
+    <string name="settings_screen_title">Make LiveChat yours</string>
+    <string name="settings_account_title">Account</string>
+    <string name="settings_account_description">Profile, status, and linked phone number</string>
+    <string name="settings_notifications_title">Notifications</string>
+    <string name="settings_notifications_description">Mute, schedule quiet hours, sounds</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_description">Themes, typography scale, accessibility</string>
+    <string name="settings_privacy_title">Privacy</string>
+    <string name="settings_privacy_description">Blocked contacts, invite preferences</string>
+    <string name="settings_opening_section_toast">Opening %1$s settings soon</string>
+
+    <!-- Home -->
+    <string name="home_conversation_title">Conversation</string>
+    <string name="home_chats_tab">Chats</string>
+    <string name="home_contacts_tab">Contacts</string>
+    <string name="home_settings_tab">Settings</string>
+    <string name="home_back_cta">Back</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_phone_title">Enter your phone number</string>
+    <string name="onboarding_phone_subtitle">We&apos;ll send a verification code to confirm it&apos;s you.</string>
+    <string name="onboarding_phone_field_label">Phone number</string>
+    <string name="onboarding_phone_field_placeholder">Digits only</string>
+    <string name="onboarding_continue_cta">Continue</string>
+    <string name="onboarding_default_phone_sample">5550100</string>
+    <string name="onboarding_invalid_phone_error">Please enter a valid phone number</string>
+    <string name="onboarding_start_verification_error">Unable to start verification</string>
+    <string name="onboarding_otp_title">Enter the 6-digit code</string>
+    <string name="onboarding_otp_subtitle">We just sent a verification code to your number.</string>
+    <string name="onboarding_otp_field_label">Code</string>
+    <string name="onboarding_resend_cta">Resend code</string>
+    <string name="onboarding_resend_countdown_label">Resend available in %1$ds</string>
+    <string name="onboarding_verify_cta">Verify</string>
+    <string name="onboarding_success_title">You&apos;re all set!</string>
+    <string name="onboarding_success_subtitle">Your account is ready. Start chatting with your contacts now.</string>
+    <string name="onboarding_success_cta">Start chatting</string>
+    <string name="onboarding_country_picker_title">Select your country</string>
+    <string name="onboarding_country_picker_search_placeholder">Search by country or code</string>
+    <string name="onboarding_country_picker_empty">No countries found</string>
+    <string name="onboarding_country_picker_close">Close</string>
+    <string name="onboarding_invalid_verification_code">Invalid verification code</string>
+    <string name="onboarding_too_many_requests">Too many attempts. Try again later.</string>
+    <string name="onboarding_quota_exceeded">SMS quota exceeded. Please try again later.</string>
+    <string name="onboarding_code_expired">The code has expired. Request a new one.</string>
+    <string name="onboarding_network_error">Network error. Check your connection.</string>
+    <string name="onboarding_resend_not_available">You can request a new code shortly.</string>
+    <string name="onboarding_configuration_error">Phone authentication is not configured.</string>
+    <string name="onboarding_unknown_error">Unexpected error. Try again.</string>
+
+    <!-- General -->
+    <string name="general_ok">OK</string>
+    <string name="general_error_title">Something went wrong</string>
+</resources>

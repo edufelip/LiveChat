@@ -12,6 +12,7 @@ data class FirebaseRestConfig(
     val invitesCollection: String = "invites",
     val websocketEndpoint: String = "",
     val pollingIntervalMs: Long = 5_000L,
+    val defaultRegionIso: String? = null,
 ) {
     val isConfigured: Boolean
         get() = projectId.isNotBlank()

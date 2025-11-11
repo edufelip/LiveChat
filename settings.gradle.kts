@@ -41,6 +41,6 @@ rootProject.name = "LiveChat"
 
 include(":shared:data")
 include(":shared:domain")
-include(":livechatApp")
+include(":composeApp")
 include(":iosApp")
 include(":tools:countrydata")

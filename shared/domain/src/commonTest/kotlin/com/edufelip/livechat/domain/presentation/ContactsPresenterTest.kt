@@ -4,7 +4,7 @@ import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
-import com.edufelip.livechat.domain.useCases.InviteContactUseCase
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
@@ -62,7 +63,7 @@ class ContactsPresenterTest {
                         val registered = candidates.first().copy(isRegistered = true)
                         setup.repository.localContactsFlow.value =
                             (setup.repository.localContactsFlow.value + registered)
-                                .distinctBy { it.phoneNo }
+                                .distinctBy { normalizePhoneNumber(it.phoneNo) }
                         flowOf(registered)
                     }
 
@@ -84,40 +85,22 @@ class ContactsPresenterTest {
         }
 
     @Test
-    fun inviteContactEmitsShareEvent() =
+    fun syncContactsSkipsWhenFingerprintUnchanged() =
         runTest {
-            val target = contact(id = 5, name = "Eve", phone = "+5", registered = false)
+            val phoneContacts =
+                listOf(
+                    contact(id = 0, name = "Eden", phone = "+55 11 9999-9999"),
+                    contact(id = 0, name = "Felix", phone = "+55 11 8888-8888"),
+                )
             val setup = createPresenter(initialContacts = emptyList())
             try {
-                val event = async { setup.presenter.events.first() }
-
-                setup.presenter.inviteContact(target)
-                setup.scope.advanceUntilIdle()
-                setup.scope.advanceUntilIdle()
-
-                val emitted = event.await() as ContactsEvent.ShareInvite
-                assertEquals(target, emitted.contact)
-                assertTrue(emitted.message.contains("LiveChat"))
-            } finally {
-                setup.presenter.close()
-            }
-        }
-
-    @Test
-    fun inviteContactCanBeRepeatedWithoutRestriction() =
-        runTest {
-            val target = contact(id = 6, name = "Mia", phone = "+6", registered = false)
-            val setup = createPresenter(initialContacts = emptyList())
-            try {
-                val events = async { setup.presenter.events.take(2).toList() }
-
-                repeat(2) {
-                    setup.presenter.inviteContact(target)
-                    setup.scope.advanceUntilIdle()
-                }
-
-                val inviteEvents = events.await().filterIsInstance<ContactsEvent.ShareInvite>()
-                assertEquals(2, inviteEvents.size)
+                setup.presenter.syncContacts(phoneContacts)
+                setup.presenter.syncContacts(phoneContacts)
+                assertEquals(
+                    1,
+                    setup.repository.checkInvocations,
+                    "Expected only one remote validation when contacts unchanged",
+                )
             } finally {
                 setup.presenter.close()
             }
@@ -131,7 +114,6 @@ class ContactsPresenterTest {
             ContactsPresenter(
                 getLocalContactsUseCase = GetLocalContactsUseCase(repository),
                 checkRegisteredContactsUseCase = CheckRegisteredContactsUseCase(repository),
-                inviteContactUseCase = InviteContactUseCase(repository),
                 scope = presenterScope,
             )
         presenterScope.advanceUntilIdle()
@@ -149,31 +131,47 @@ class ContactsPresenterTest {
         var remoteFlowFactory: (List<Contact>) -> Flow<Contact> = { emptyFlow() }
         val invitedContacts = mutableListOf<Contact>()
         var lastChecked: List<Contact>? = null
+        var checkInvocations: Int = 0
 
         override fun getLocalContacts(): Flow<List<Contact>> = localContactsFlow
 
+        override fun observeContact(phoneNumber: String): Flow<Contact?> =
+            localContactsFlow.map { contacts ->
+                contacts.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
+            }
+
+        override suspend fun findContact(phoneNumber: String): Contact? =
+            localContactsFlow.value.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
+
         override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> =
-            remoteFlowFactory(phoneContacts).also { lastChecked = phoneContacts }
+            remoteFlowFactory(phoneContacts).also {
+                lastChecked = phoneContacts
+                checkInvocations++
+            }
 
         override suspend fun removeContactsFromLocal(contacts: List<Contact>) {
             if (contacts.isEmpty()) return
-            val toRemove = contacts.map { it.phoneNo }.toSet()
-            localContactsFlow.value = localContactsFlow.value.filterNot { it.phoneNo in toRemove }
+            val toRemove = contacts.map { normalizePhoneNumber(it.phoneNo) }.toSet()
+            localContactsFlow.value =
+                localContactsFlow.value.filterNot {
+                    normalizePhoneNumber(it.phoneNo) in toRemove
+                }
         }
 
         override suspend fun addContactsToLocal(contacts: List<Contact>) {
             if (contacts.isEmpty()) return
             val merged =
                 (localContactsFlow.value + contacts)
-                    .distinctBy { it.phoneNo }
+                    .distinctBy { normalizePhoneNumber(it.phoneNo) }
             localContactsFlow.value = merged
         }
 
         override suspend fun updateContacts(contacts: List<Contact>) {
             if (contacts.isEmpty()) return
-            val current = localContactsFlow.value.associateBy { it.phoneNo }.toMutableMap()
+            val current =
+                localContactsFlow.value.associateBy { normalizePhoneNumber(it.phoneNo) }.toMutableMap()
             contacts.forEach { contact ->
-                current[contact.phoneNo] = contact
+                current[normalizePhoneNumber(contact.phoneNo)] = contact
             }
             localContactsFlow.value = current.values.toList()
         }
