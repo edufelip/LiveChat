@@ -36,7 +36,7 @@ fun main() {
     val outputDir =
         File(
             projectRoot(),
-            "livechatApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/onboarding/generated",
+            "composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/onboarding/generated",
         )
     outputDir.mkdirs()
     val outputFile = outputDir.resolve("CountryDefaults.generated.kt")

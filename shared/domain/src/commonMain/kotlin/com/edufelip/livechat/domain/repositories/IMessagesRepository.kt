@@ -33,6 +33,8 @@ interface IMessagesRepository {
     )
 
     companion object {
-        const val DEFAULT_PAGE_SIZE = 50
+        const val DEFAULT_PAGE_SIZE = 20
     }
+
+    suspend fun ensureConversation(conversationId: String)
 }

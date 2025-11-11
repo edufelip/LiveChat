@@ -1,5 +1,6 @@
+.gradle-user/
 *.iml
-.gradle
+.gradle/
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -21,3 +22,4 @@ docs/*
 iosApp/LiveChatIOS/GoogleService-Info.plist
 **/google-services.json
 **/AGENTS.md
+functions/node_modules/

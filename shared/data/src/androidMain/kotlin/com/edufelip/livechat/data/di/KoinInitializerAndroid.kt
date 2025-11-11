@@ -1,6 +1,7 @@
 package com.edufelip.livechat.data.di
 
 import android.content.Context
+import android.telephony.TelephonyManager
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
@@ -23,6 +24,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
+import java.util.Locale
 import kotlinx.serialization.json.Json
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
@@ -55,7 +57,7 @@ fun androidPlatformModule(
     module {
         single { context.applicationContext }
         single { firebaseApp }
-        single { firebaseRestConfig(firebaseApp) }
+        single { firebaseRestConfig(context.applicationContext, firebaseApp) }
         single { httpClient }
         single { FirebaseAuth.getInstance(firebaseApp) }
         single { InMemoryUserSessionProvider() }
@@ -67,18 +69,44 @@ fun androidPlatformModule(
         single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 
-private fun firebaseRestConfig(app: FirebaseApp): com.edufelip.livechat.data.remote.FirebaseRestConfig =
+private fun firebaseRestConfig(
+    context: Context,
+    app: FirebaseApp,
+): com.edufelip.livechat.data.remote.FirebaseRestConfig =
     com.edufelip.livechat.data.remote.FirebaseRestConfig(
         projectId =
             app.options.projectId
                 ?: error("Firebase projectId is missing. Check google-services.json."),
         apiKey = app.options.apiKey ?: "",
+        defaultRegionIso = context.defaultRegionIso(),
     )
 
 private fun ensureFirebaseApp(context: Context): FirebaseApp {
     return FirebaseApp.getApps(context).firstOrNull()
         ?: FirebaseApp.initializeApp(context)
         ?: error("FirebaseApp could not be initialized. Ensure google-services.json is present.")
+}
+
+private fun Context.defaultRegionIso(): String? {
+    val telephony = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+    val localeCountry =
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            val locales = resources.configuration.locales
+            if (locales.isEmpty) null else locales.get(0)?.country
+        } else {
+            @Suppress("DEPRECATION")
+            resources.configuration.locale?.country
+        }
+    val candidates =
+        listOfNotNull(
+            telephony?.simCountryIso,
+            telephony?.networkCountryIso,
+            localeCountry,
+            Locale.getDefault().country,
+        )
+    return candidates
+        .firstOrNull { !it.isNullOrBlank() }
+        ?.uppercase(Locale.ROOT)
 }
 
 fun defaultHttpClient(): HttpClient =

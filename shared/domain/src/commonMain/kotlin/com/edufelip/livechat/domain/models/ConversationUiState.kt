@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.models
 
 data class ConversationUiState(
     val conversationId: String = "",
+    val contactName: String? = null,
     val messages: List<Message> = emptyList(),
     val isLoading: Boolean = false,
     val isSending: Boolean = false,

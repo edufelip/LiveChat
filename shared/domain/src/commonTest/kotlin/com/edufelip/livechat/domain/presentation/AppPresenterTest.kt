@@ -1,9 +1,11 @@
 package com.edufelip.livechat.domain.presentation
 
+import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -95,6 +97,29 @@ class AppPresenterTest {
             }
         }
 
+    @Test
+    fun startConversationWithContactNormalizesPhone() =
+        runTest {
+            val repository = FakeOnboardingRepository(initiallyComplete = true)
+            val presenterScope = TestScope(testScheduler)
+            val presenter = newPresenter(repository, presenterScope)
+            try {
+                presenterScope.advanceUntilIdle()
+                presenter.startConversationWith(
+                    Contact(
+                        id = 1,
+                        name = "Ava",
+                        phoneNo = "+1 (555) 010-2000",
+                        isRegistered = true,
+                    ),
+                )
+                presenterScope.advanceUntilIdle()
+                assertEquals("15550102000", presenter.state.value.home.activeConversationId)
+            } finally {
+                presenter.close()
+            }
+        }
+
     private fun newPresenter(
         repository: FakeOnboardingRepository,
         scope: TestScope,
@@ -102,6 +127,7 @@ class AppPresenterTest {
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
+        resolveConversationIdForContact = ResolveConversationIdForContactUseCase(),
         scope = scope,
     )
 

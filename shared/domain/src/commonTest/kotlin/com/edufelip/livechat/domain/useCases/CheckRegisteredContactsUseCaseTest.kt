@@ -2,10 +2,12 @@ package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -57,6 +59,22 @@ class CheckRegisteredContactsUseCaseTest {
             assertTrue(flattenedUpdates.any { it.phoneNo == "+4" && !it.isRegistered })
         }
 
+    @Test
+    fun matchingIgnoresLeadingPlusPrefix() =
+        runTest {
+            val repository = FakeContactsRepository()
+            val useCase = CheckRegisteredContactsUseCase(repository)
+
+            val localAlice = contact(id = 1, name = "Alice", phone = "+55119999", registered = false)
+            val phoneAlice = contact(id = 0, name = "Alice", phone = "55119999")
+
+            // No remote matches emitted; we only care that local contact isn't removed/duplicated.
+            useCase(listOf(phoneAlice), listOf(localAlice)).toList(mutableListOf())
+
+            assertTrue(repository.removedContacts.isEmpty(), "Local contact should not be removed")
+            assertTrue(repository.addedContacts.isEmpty(), "No duplicates should be inserted")
+        }
+
     private class FakeContactsRepository : IContactsRepository {
         val localContactsFlow = MutableStateFlow<List<Contact>>(emptyList())
         val removedContacts = mutableListOf<List<Contact>>()
@@ -66,6 +84,14 @@ class CheckRegisteredContactsUseCaseTest {
         var lastCheckRequest: List<Contact> = emptyList()
 
         override fun getLocalContacts(): Flow<List<Contact>> = localContactsFlow
+
+        override fun observeContact(phoneNumber: String): Flow<Contact?> =
+            localContactsFlow.map { contacts ->
+                contacts.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
+            }
+
+        override suspend fun findContact(phoneNumber: String): Contact? =
+            localContactsFlow.value.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
 
         override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> {
             lastCheckRequest = phoneContacts

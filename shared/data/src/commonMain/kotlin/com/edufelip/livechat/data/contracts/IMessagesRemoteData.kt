@@ -16,4 +16,9 @@ interface IMessagesRemoteData {
         conversationId: String,
         sinceEpochMillis: Long?,
     ): List<Message>
+
+    suspend fun ensureConversation(
+        conversationId: String,
+        userId: String,
+    )
 }

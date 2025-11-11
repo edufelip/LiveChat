@@ -12,7 +12,10 @@ import com.edufelip.livechat.domain.repositories.IConversationParticipantsReposi
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MessagesRepository(
@@ -25,9 +28,29 @@ class MessagesRepository(
     override fun observeConversation(
         conversationId: String,
         pageSize: Int,
-    ): Flow<List<Message>> {
-        return localData.observeMessages(conversationId, pageSize)
-    }
+    ): Flow<List<Message>> =
+        channelFlow {
+            val sinceEpoch = localData.latestTimestamp(conversationId)
+            val localJob =
+                launch {
+                    localData.observeMessages(conversationId, pageSize).collect { messages ->
+                        send(messages)
+                    }
+                }
+            val remoteJob =
+                launch {
+                    remoteData.observeConversation(conversationId, sinceEpoch).collect { remoteMessages ->
+                        if (remoteMessages.isNotEmpty()) {
+                            localData.upsertMessages(remoteMessages)
+                        }
+                    }
+                }
+
+            awaitClose {
+                localJob.cancel()
+                remoteJob.cancel()
+            }
+        }
 
     override suspend fun sendMessage(draft: MessageDraft): Message {
         return withContext(dispatcher) {
@@ -68,7 +91,9 @@ class MessagesRepository(
         return withContext(dispatcher) {
             val remoteMessages = remoteData.pullHistorical(conversationId, sinceEpochMillis)
             if (sinceEpochMillis == null) {
-                localData.replaceConversation(conversationId, remoteMessages)
+                if (remoteMessages.isNotEmpty()) {
+                    localData.replaceConversation(conversationId, remoteMessages)
+                }
             } else {
                 localData.upsertMessages(remoteMessages)
             }
@@ -98,6 +123,12 @@ class MessagesRepository(
         withContext(dispatcher) {
             participantsRepository.setPinned(conversationId, pinned, pinnedAt)
         }
+    }
+
+    override suspend fun ensureConversation(conversationId: String) {
+        val userId = sessionProvider.currentUserId()
+            ?: error("User must be authenticated before ensuring conversations.")
+        remoteData.ensureConversation(conversationId, userId)
     }
 
 }

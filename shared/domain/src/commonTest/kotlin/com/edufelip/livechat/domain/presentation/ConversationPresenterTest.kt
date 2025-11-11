@@ -1,5 +1,6 @@
 package com.edufelip.livechat.domain.presentation
 
+import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -10,11 +11,14 @@ import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
+import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
+import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +40,7 @@ class ConversationPresenterTest {
             val participantsRepository = FakeParticipantsRepository()
             val sessionProvider = FakeSessionProvider(userId = "tester")
             val presenterScope = TestScope(testScheduler)
+            val contactsRepository = FakeContactsRepository()
             val presenter =
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
@@ -43,6 +48,8 @@ class ConversationPresenterTest {
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
+                    observeContactByPhoneUseCase = ObserveContactByPhoneUseCase(contactsRepository),
+                    ensureConversationUseCase = EnsureConversationUseCase(repository),
                     userSessionProvider = sessionProvider,
                     scope = presenterScope,
                 )
@@ -79,6 +86,7 @@ class ConversationPresenterTest {
                 )
             val sessionProvider = FakeSessionProvider(userId = "tester")
             val presenterScope = TestScope(testScheduler)
+            val contactsRepository = FakeContactsRepository()
             val presenter =
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
@@ -86,6 +94,8 @@ class ConversationPresenterTest {
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
+                    observeContactByPhoneUseCase = ObserveContactByPhoneUseCase(contactsRepository),
+                    ensureConversationUseCase = EnsureConversationUseCase(repository),
                     userSessionProvider = sessionProvider,
                     scope = presenterScope,
                 )
@@ -128,6 +138,7 @@ class ConversationPresenterTest {
                 )
             val sessionProvider = FakeSessionProvider(userId = "tester")
             val presenterScope = TestScope(testScheduler)
+            val contactsRepository = FakeContactsRepository()
             val presenter =
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
@@ -135,6 +146,8 @@ class ConversationPresenterTest {
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
+                    observeContactByPhoneUseCase = ObserveContactByPhoneUseCase(contactsRepository),
+                    ensureConversationUseCase = EnsureConversationUseCase(repository),
                     userSessionProvider = sessionProvider,
                     scope = presenterScope,
                 )
@@ -177,6 +190,7 @@ class ConversationPresenterTest {
         private val messagesState = MutableStateFlow<List<Message>>(emptyList())
         val markReadRequests = mutableListOf<Triple<String, Long, Long?>>()
         var failSendMessage: Boolean = false
+        val ensured = mutableListOf<String>()
 
         override fun observeConversation(
             conversationId: String,
@@ -225,6 +239,10 @@ class ConversationPresenterTest {
             pinnedAt: Long?,
         ) = Unit
 
+        override suspend fun ensureConversation(conversationId: String) {
+            ensured += conversationId
+        }
+
     }
 
     private class FakeParticipantsRepository(
@@ -261,6 +279,26 @@ class ConversationPresenterTest {
         override suspend fun setMuteUntil(conversationId: String, muteUntil: Long?) = Unit
 
         override suspend fun setArchived(conversationId: String, archived: Boolean) = Unit
+    }
+
+    private class FakeContactsRepository : IContactsRepository {
+        private val contactState = MutableStateFlow<Contact?>(null)
+
+        override fun getLocalContacts(): Flow<List<Contact>> = MutableStateFlow(emptyList())
+
+        override fun observeContact(phoneNumber: String): Flow<Contact?> = contactState
+
+        override suspend fun findContact(phoneNumber: String): Contact? = contactState.value
+
+        override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()
+
+        override suspend fun removeContactsFromLocal(contacts: List<Contact>) = Unit
+
+        override suspend fun addContactsToLocal(contacts: List<Contact>) = Unit
+
+        override suspend fun updateContacts(contacts: List<Contact>) = Unit
+
+        override suspend fun inviteContact(contact: Contact): Boolean = true
     }
 
     private class FakeSessionProvider(

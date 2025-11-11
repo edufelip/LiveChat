@@ -1,9 +1,11 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.AppUiState
+import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
@@ -20,6 +22,7 @@ class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
+    private val resolveConversationIdForContact: ResolveConversationIdForContactUseCase,
     private val scope: CoroutineScope = MainScope(),
 ) {
     private val mutableState = MutableStateFlow(AppUiState(isOnboardingComplete = getOnboardingStatusSnapshot()))
@@ -51,6 +54,11 @@ class AppPresenter(
                 current.copy(home = current.home.copy(selectedTab = tab, activeConversationId = null))
             }
         }
+    }
+
+    fun startConversationWith(contact: Contact) {
+        val conversationId = resolveConversationIdForContact(contact).takeIf { it.isNotBlank() } ?: return
+        openConversation(conversationId)
     }
 
     fun openConversation(conversationId: String) {

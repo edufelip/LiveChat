@@ -6,6 +6,10 @@ import kotlinx.coroutines.flow.Flow
 interface IContactsRepository {
     fun getLocalContacts(): Flow<List<Contact>>
 
+    fun observeContact(phoneNumber: String): Flow<Contact?>
+
+    suspend fun findContact(phoneNumber: String): Contact?
+
     fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact>
 
     suspend fun removeContactsFromLocal(contacts: List<Contact>)

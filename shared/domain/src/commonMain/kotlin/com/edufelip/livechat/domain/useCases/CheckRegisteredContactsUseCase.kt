@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,8 +18,8 @@ class CheckRegisteredContactsUseCase(
         phoneContacts: List<Contact>,
         localDbContacts: List<Contact>,
     ): Flow<Contact> {
-        val localByPhone = localDbContacts.associateBy { it.phoneNo }
-        val phoneByPhone = phoneContacts.associateBy { it.phoneNo }
+        val localByPhone = localDbContacts.associateBy { normalizePhoneNumber(it.phoneNo) }
+        val phoneByPhone = phoneContacts.associateBy { normalizePhoneNumber(it.phoneNo) }
 
         val toRemove = mutableListOf<Contact>()
         val toInsert = mutableListOf<Contact>()
@@ -27,13 +28,14 @@ class CheckRegisteredContactsUseCase(
         val needsValidation = mutableListOf<Contact>()
 
         localDbContacts.forEach { local ->
-            if (local.phoneNo !in phoneByPhone) {
+            val normalizedPhone = normalizePhoneNumber(local.phoneNo)
+            if (normalizedPhone !in phoneByPhone) {
                 toRemove.add(local)
             }
         }
 
-        phoneByPhone.values.forEach { phoneContact ->
-            val local = localByPhone[phoneContact.phoneNo]
+        phoneByPhone.forEach { (normalizedPhone, phoneContact) ->
+            val local = localByPhone[normalizedPhone]
             if (local == null) {
                 val newContact = phoneContact.copy(isRegistered = false)
                 toInsert.add(newContact)
@@ -51,9 +53,10 @@ class CheckRegisteredContactsUseCase(
                     toUpdate.add(merged)
                 }
                 if (local.isRegistered) {
-                    alreadyRegistered.add(local)
+                    alreadyRegistered.add(merged.copy(isRegistered = true))
+                } else {
+                    needsValidation.add(merged.copy(isRegistered = false))
                 }
-                needsValidation.add(merged.copy(isRegistered = false))
             }
         }
 
@@ -73,13 +76,13 @@ class CheckRegisteredContactsUseCase(
             repository.checkRegisteredContacts(needsValidation)
                 .onEach { validated ->
                     val registered = validated.copy(isRegistered = true)
-                    validatedNumbers.add(registered.phoneNo)
+                    validatedNumbers.add(normalizePhoneNumber(registered.phoneNo))
                     repository.updateContacts(listOf(registered))
                 }
                 .onCompletion {
                     val toMarkUnregistered =
                         needsValidation
-                            .filter { it.phoneNo !in validatedNumbers }
+                            .filter { normalizePhoneNumber(it.phoneNo) !in validatedNumbers }
                             .map { it.copy(isRegistered = false) }
                     if (toMarkUnregistered.isNotEmpty()) {
                         repository.updateContacts(toMarkUnregistered)
