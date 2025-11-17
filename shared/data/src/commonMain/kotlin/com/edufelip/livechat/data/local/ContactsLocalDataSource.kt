@@ -66,6 +66,7 @@ class ContactsLocalDataSource(
                         description = contact.description,
                         photo = contact.photo,
                         isRegistered = contact.isRegistered,
+                        firebaseUid = contact.firebaseUid,
                         phoneNo = contact.phoneNo,
                     )
                 }
@@ -82,6 +83,7 @@ class ContactsLocalDataSource(
                     description = contact.description,
                     photo = contact.photo,
                     isRegistered = contact.isRegistered,
+                    firebaseUid = contact.firebaseUid,
                     phoneNo = contact.phoneNo,
                 )
             }

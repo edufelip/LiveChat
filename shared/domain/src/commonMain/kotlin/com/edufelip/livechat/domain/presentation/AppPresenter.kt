@@ -5,12 +5,10 @@ import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
-import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,8 +20,7 @@ class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
-    private val resolveConversationIdForContact: ResolveConversationIdForContactUseCase,
-    private val scope: CoroutineScope = MainScope(),
+    private val scope: CoroutineScope,
 ) {
     private val mutableState = MutableStateFlow(AppUiState(isOnboardingComplete = getOnboardingStatusSnapshot()))
     val state = mutableState.asStateFlow()
@@ -56,8 +53,11 @@ class AppPresenter(
         }
     }
 
-    fun startConversationWith(contact: Contact) {
-        val conversationId = resolveConversationIdForContact(contact).takeIf { it.isNotBlank() } ?: return
+    fun startConversationWith(
+        _contact: Contact,
+        conversationId: String,
+    ) {
+        if (conversationId.isBlank()) return
         openConversation(conversationId)
     }
 

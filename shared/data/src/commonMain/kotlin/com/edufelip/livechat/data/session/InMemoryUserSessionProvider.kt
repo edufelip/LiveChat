@@ -24,6 +24,8 @@ class InMemoryUserSessionProvider(
 
     override fun currentUserId(): String? = sessionState.value?.userId
 
+    override fun currentUserPhone(): String? = sessionState.value?.phoneNumber
+
     suspend fun updateSession(session: UserSession?) {
         withContext(dispatcher) {
             sessionState.emit(session)

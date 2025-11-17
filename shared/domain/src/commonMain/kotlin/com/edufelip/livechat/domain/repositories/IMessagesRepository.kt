@@ -1,5 +1,6 @@
 package com.edufelip.livechat.domain.repositories
 
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -36,5 +37,8 @@ interface IMessagesRepository {
         const val DEFAULT_PAGE_SIZE = 20
     }
 
-    suspend fun ensureConversation(conversationId: String)
+    suspend fun ensureConversation(
+        conversationId: String,
+        peer: ConversationPeer? = null,
+    )
 }

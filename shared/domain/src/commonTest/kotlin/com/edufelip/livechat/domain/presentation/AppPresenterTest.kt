@@ -5,7 +5,6 @@ import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
-import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -98,7 +97,7 @@ class AppPresenterTest {
         }
 
     @Test
-    fun startConversationWithContactNormalizesPhone() =
+    fun startConversationWithConversationIdUsesProvidedValue() =
         runTest {
             val repository = FakeOnboardingRepository(initiallyComplete = true)
             val presenterScope = TestScope(testScheduler)
@@ -112,9 +111,10 @@ class AppPresenterTest {
                         phoneNo = "+1 (555) 010-2000",
                         isRegistered = true,
                     ),
+                    conversationId = "conversation-001",
                 )
                 presenterScope.advanceUntilIdle()
-                assertEquals("15550102000", presenter.state.value.home.activeConversationId)
+                assertEquals("conversation-001", presenter.state.value.home.activeConversationId)
             } finally {
                 presenter.close()
             }
@@ -127,7 +127,6 @@ class AppPresenterTest {
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
-        resolveConversationIdForContact = ResolveConversationIdForContactUseCase(),
         scope = scope,
     )
 

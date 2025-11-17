@@ -2,6 +2,7 @@ package com.edufelip.livechat.data.remote
 
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.domain.models.AttachmentRef
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.CipherInfo
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
@@ -9,10 +10,12 @@ import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
 import dev.gitlive.firebase.firestore.CollectionReference
 import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.DocumentReference
 import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.Query
 import dev.gitlive.firebase.firestore   .Timestamp
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -56,7 +59,7 @@ class FirebaseMessagesRemoteData(
             require(config.isConfigured) { "Firebase projectId is missing – cannot send message" }
 
             val documentId = draft.resolveDocumentId()
-            ensureConversation(draft.conversationId, draft.senderId)
+            ensureConversation(draft.conversationId, draft.senderId, userPhone = null, peer = null)
             val document = messagesCollection(draft.conversationId).document(documentId)
             val payload = draft.toFirestorePayload()
             document.set(payload, merge = true)
@@ -67,9 +70,11 @@ class FirebaseMessagesRemoteData(
     override suspend fun ensureConversation(
         conversationId: String,
         userId: String,
+        userPhone: String?,
+        peer: ConversationPeer?,
     ) {
         withContext(dispatcher) {
-            ensureConversationDocument(conversationId, userId)
+            ensureConversationDocument(conversationId, userId, userPhone, peer)
         }
     }
 
@@ -103,31 +108,85 @@ class FirebaseMessagesRemoteData(
     private suspend fun ensureConversationDocument(
         conversationId: String,
         userId: String,
+        userPhone: String?,
+        peer: ConversationPeer?,
     ) {
         val conversationRef = firestore.collection(config.conversationsCollection).document(conversationId)
-        runCatching {
-            conversationRef.set(
-                mapOf(
-                    "conversation_id" to conversationId,
-                    "created_at" to FieldValue.serverTimestamp,
-                    "created_by" to userId,
-                ),
-                merge = true,
-            )
+        val snapshot = runCatching { conversationRef.get() }.getOrNull()
+        val existingData = snapshot?.data<Map<String, Any?>>() ?: emptyMap()
+        val participantUids = existingData.stringSet(FIELD_PARTICIPANT_UIDS)
+        participantUids += userId
+        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { participantUids += it }
+
+        val participantPhones = existingData.stringSet(FIELD_PARTICIPANT_PHONES)
+        userPhone.asNormalizedPhone()?.let { participantPhones += it }
+        peer?.phoneNumber.asNormalizedPhone()?.let { participantPhones += it }
+
+        val roles = existingData[FIELD_ROLES] as? Map<String, String> ?: emptyMap()
+        val updatedRoles = roles.toMutableMap()
+        updatedRoles[userId] = OWNER_ROLE
+        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { uid ->
+            updatedRoles.putIfAbsent(uid, MEMBER_ROLE)
         }
 
-        val participantRef = conversationRef.collection(PARTICIPANTS_COLLECTION).document(userId)
-        runCatching {
-            participantRef.set(
-                mapOf(
-                    "user_id" to userId,
-                    "role" to "owner",
-                    "joined_at" to FieldValue.serverTimestamp,
-                ),
-                merge = true,
+        val payload = mutableMapOf<String, Any?>(
+            FIELD_CONVERSATION_ID to conversationId,
+            FIELD_PARTICIPANT_UIDS to participantUids.toList(),
+        )
+        if (participantPhones.isNotEmpty()) {
+            payload[FIELD_PARTICIPANT_PHONES] = participantPhones.toList()
+        }
+        if (updatedRoles.isNotEmpty()) {
+            payload[FIELD_ROLES] = updatedRoles
+        }
+        if (snapshot?.exists != true) {
+            payload[FIELD_CREATED_AT] = FieldValue.serverTimestamp
+            payload[FIELD_CREATED_BY] = userId
+        }
+        conversationRef.set(payload, merge = true)
+
+        ensureParticipantDocument(
+            conversationRef = conversationRef,
+            userId = userId,
+            role = OWNER_ROLE,
+            normalizedPhone = userPhone.asNormalizedPhone(),
+        )
+
+        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { peerUid ->
+            ensureParticipantDocument(
+                conversationRef = conversationRef,
+                userId = peerUid,
+                role = MEMBER_ROLE,
+                normalizedPhone = peer.phoneNumber.asNormalizedPhone(),
             )
         }
     }
+
+    private suspend fun ensureParticipantDocument(
+        conversationRef: DocumentReference,
+        userId: String,
+        role: String,
+        normalizedPhone: String?,
+    ) {
+        val participantRef = conversationRef.collection(PARTICIPANTS_COLLECTION).document(userId)
+        val snapshot = runCatching { participantRef.get() }.getOrNull()
+        if (snapshot?.exists == true) return
+        val payload = mutableMapOf<String, Any?>(
+            FIELD_USER_ID to userId,
+            FIELD_ROLE to role,
+            FIELD_JOINED_AT to FieldValue.serverTimestamp,
+        )
+        normalizedPhone?.let { payload[FIELD_PHONE_NUMBER] = it }
+        participantRef.set(payload, merge = true)
+    }
+
+    private fun Map<String, Any?>.stringSet(field: String): MutableSet<String> {
+        val values = this[field] as? List<*> ?: return mutableSetOf()
+        return values.mapNotNull { it as? String }.toMutableSet()
+    }
+
+    private fun String?.asNormalizedPhone(): String? =
+        this?.let(::normalizePhoneNumber)?.takeIf { it.isNotBlank() }
 
     private fun MessageDraft.resolveDocumentId(): String =
         localId.takeIf { it.isNotBlank() } ?: randomDocumentId()
@@ -299,11 +358,21 @@ class FirebaseMessagesRemoteData(
         const val FIELD_EDITED_AT = "edited_at"
         const val FIELD_DELETED_FOR_ALL_AT = "deleted_for_all_at"
         const val FIELD_METADATA = "metadata"
+        const val FIELD_PARTICIPANT_UIDS = "participant_uids"
+        const val FIELD_PARTICIPANT_PHONES = "participant_phones"
+        const val FIELD_ROLES = "roles"
+        const val FIELD_USER_ID = "user_id"
+        const val FIELD_ROLE = "role"
+        const val FIELD_JOINED_AT = "joined_at"
+        const val FIELD_PHONE_NUMBER = "phone_number"
+        const val FIELD_CREATED_BY = "created_by"
 
         val attachmentsSerializer = ListSerializer(AttachmentPayload.serializer())
         val metadataSerializer = MapSerializer(String.serializer(), String.serializer())
 
         const val PARTICIPANTS_COLLECTION = "participants"
+        const val OWNER_ROLE = "owner"
+        const val MEMBER_ROLE = "member"
     }
 }
     private fun randomDocumentId(): String {

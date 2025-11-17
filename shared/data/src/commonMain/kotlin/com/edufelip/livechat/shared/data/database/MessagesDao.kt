@@ -7,42 +7,6 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ContactsDao {
-    @Query("SELECT * FROM contacts ORDER BY name")
-    fun observeContacts(): Flow<List<ContactEntity>>
-
-    @Query("SELECT * FROM contacts ORDER BY name")
-    suspend fun getAll(): List<ContactEntity>
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(contact: ContactEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(contacts: List<ContactEntity>): List<Long>
-
-    @Query(
-        """
-        UPDATE contacts
-        SET name = :name,
-            description = :description,
-            photo = :photo,
-            is_registered = :isRegistered
-        WHERE phone_no = :phoneNo
-        """,
-    )
-    suspend fun updateContactByPhone(
-        name: String,
-        description: String?,
-        photo: String?,
-        isRegistered: Boolean,
-        phoneNo: String,
-    ): Int
-
-    @Query("DELETE FROM contacts WHERE phone_no IN (:phones)")
-    suspend fun deleteContactsByPhone(phones: List<String>)
-}
-
-@Dao
 interface MessagesDao {
     @Query(
         """
@@ -151,31 +115,6 @@ interface MessagesDao {
         """,
     )
     fun observeConversationSummaries(): Flow<List<ConversationSummaryRow>>
-
-}
-
-@Dao
-interface ConversationStateDao {
-    @Query("SELECT * FROM conversation_state WHERE conversation_id = :conversationId")
-    fun observeConversationState(conversationId: String): Flow<ConversationStateEntity?>
-
-    @Query("SELECT * FROM conversation_state WHERE conversation_id = :conversationId")
-    suspend fun getConversationState(conversationId: String): ConversationStateEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(state: ConversationStateEntity)
-}
-
-@Dao
-interface OnboardingStatusDao {
-    @Query("SELECT complete FROM onboarding_status WHERE id = 0")
-    fun observe(): Flow<Boolean?>
-
-    @Query("SELECT complete FROM onboarding_status WHERE id = 0")
-    suspend fun current(): Boolean?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(status: OnboardingStatusEntity)
 }
 
 data class ConversationSummaryRow(
