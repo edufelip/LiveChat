@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
         ConversationStateEntity::class,
         OnboardingStatusEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class LiveChatDatabase : RoomDatabase() {

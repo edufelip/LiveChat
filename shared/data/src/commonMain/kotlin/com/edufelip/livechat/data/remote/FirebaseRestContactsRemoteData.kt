@@ -44,7 +44,7 @@ class FirebaseRestContactsRemoteData(
             if (canonicalContacts.isEmpty()) return@flow
 
             if (canonicalContacts.size >= BATCH_THRESHOLD) {
-                emitBatchResults(canonicalContacts, functions)
+                emitBatchResults(canonicalContacts)
             } else {
                 emitSingleResults(canonicalContacts)
             }
@@ -88,15 +88,16 @@ class FirebaseRestContactsRemoteData(
 
     private suspend fun FlowCollector<Contact>.emitBatchResults(
         canonicalContacts: List<Pair<String, Contact>>,
-        functions: FirebaseFunctions,
     ) {
         val canonicalPhones = canonicalContacts.map { it.first }
-        val registeredPhones =
+        val result =
             runCatching {
                 withTimeout(FUNCTION_TIMEOUT_MS) {
-                    functions.phoneExistsMany(canonicalPhones).toSet()
+                    functions.phoneExistsMany(canonicalPhones)
                 }
-            }.getOrElse { emptySet() }
+            }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
+        val registeredPhones = result.registeredPhones.toSet()
+        val matchByPhone = result.matches.associateBy { it.phone }
 
         canonicalContacts.forEach { (canonical, contact) ->
             val exists =
@@ -106,21 +107,24 @@ class FirebaseRestContactsRemoteData(
                     runCatching { queryFirestoreDirectly(canonical) }.getOrDefault(false)
                 }
             if (exists) {
-                emit(contact.copy(isRegistered = true))
+                val matchedUid = matchByPhone[canonical]?.uid
+                emit(contact.copy(isRegistered = true, firebaseUid = matchedUid ?: contact.firebaseUid))
             }
         }
     }
 
     private suspend fun FlowCollector<Contact>.emitSingleResults(canonicalContacts: List<Pair<String, Contact>>) {
         canonicalContacts.forEach { (canonical, contact) ->
-            val exists =
+            val result =
                 runCatching {
                     withTimeout(FUNCTION_TIMEOUT_MS) {
                         functions.phoneExists(canonical)
                     }
-                }.getOrElse { queryFirestoreDirectly(canonical) }
+                }.getOrNull()
+            val exists =
+                result?.exists ?: runCatching { queryFirestoreDirectly(canonical) }.getOrDefault(false)
             if (exists) {
-                emit(contact.copy(isRegistered = true))
+                emit(contact.copy(isRegistered = true, firebaseUid = result?.uid ?: contact.firebaseUid))
             }
         }
     }

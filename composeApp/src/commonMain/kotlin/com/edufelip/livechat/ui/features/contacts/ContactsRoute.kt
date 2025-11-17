@@ -30,7 +30,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ContactsRoute(
     phoneContactsProvider: () -> List<Contact>,
-    onContactSelected: (Contact) -> Unit,
+    onContactSelected: (Contact, String) -> Unit,
     onShareInvite: (InviteShareRequest) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,7 +89,7 @@ fun ContactsRoute(
     LaunchedEffect(presenter) {
         presenter.events.collect { event ->
             when (event) {
-                is ContactsEvent.OpenConversation -> onContactSelected(event.contact)
+                is ContactsEvent.OpenConversation -> onContactSelected(event.contact, event.conversationId)
                 is ContactsEvent.ShareInvite ->
                     onShareInvite(
                         InviteShareRequest(
@@ -141,7 +141,7 @@ private fun ContactsRoutePreview() {
     LiveChatPreviewContainer {
         ContactsRoute(
             phoneContactsProvider = { PreviewFixtures.contacts },
-            onContactSelected = {},
+            onContactSelected = { _, _ -> },
             onShareInvite = {},
         )
     }

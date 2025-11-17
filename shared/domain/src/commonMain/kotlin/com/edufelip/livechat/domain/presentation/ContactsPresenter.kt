@@ -2,13 +2,15 @@ package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ContactsUiState
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
+import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
-import com.edufelip.livechat.domain.utils.normalizePhoneNumber
+import com.edufelip.livechat.domain.utils.PhoneNumberFormatter
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +24,10 @@ import kotlinx.coroutines.launch
 class ContactsPresenter(
     private val getLocalContactsUseCase: GetLocalContactsUseCase,
     private val checkRegisteredContactsUseCase: CheckRegisteredContactsUseCase,
-    private val scope: CoroutineScope = MainScope(),
+    private val resolveConversationIdForContactUseCase: ResolveConversationIdForContactUseCase,
+    private val ensureConversationUseCase: EnsureConversationUseCase,
+    private val phoneNumberFormatter: PhoneNumberFormatter,
+    private val scope: CoroutineScope,
 ) {
     private val mutableState = MutableStateFlow(ContactsUiState(isLoading = true))
     val state = mutableState.asStateFlow()
@@ -80,7 +85,7 @@ class ContactsPresenter(
                         mutableState.update { state ->
                             val updated =
                                 (state.validatedContacts + contact).distinctBy {
-                                    normalizePhoneNumber(it.phoneNo)
+                                    phoneNumberFormatter.normalize(it.phoneNo)
                                 }
                             state.copy(validatedContacts = updated)
                         }
@@ -99,9 +104,22 @@ class ContactsPresenter(
 
     fun onContactSelected(contact: Contact) {
         scope.launch {
-            if (contact.isRegistered) {
-                mutableEvents.emit(ContactsEvent.OpenConversation(contact))
+            if (!contact.isRegistered || contact.firebaseUid.isNullOrBlank()) {
+                mutableState.update { it.copy(errorMessage = "Contact is not available right now") }
+                return@launch
             }
+            val conversationId = resolveConversationIdForContactUseCase(contact)
+            if (conversationId.isBlank()) {
+                mutableState.update { it.copy(errorMessage = "Unable to open conversation") }
+                return@launch
+            }
+            val peer = ConversationPeer(firebaseUid = contact.firebaseUid, phoneNumber = contact.phoneNo)
+            runCatching { ensureConversationUseCase(conversationId, peer) }
+                .onSuccess {
+                    mutableEvents.emit(ContactsEvent.OpenConversation(contact, conversationId))
+                }.onFailure { throwable ->
+                    mutableState.update { it.copy(errorMessage = throwable.message ?: "Failed to open conversation") }
+                }
         }
     }
 
@@ -115,7 +133,7 @@ class ContactsPresenter(
 
     private fun List<Contact>.fingerprint(): String =
         asSequence()
-            .map { normalizePhoneNumber(it.phoneNo) }
+            .map { phoneNumberFormatter.normalize(it.phoneNo) }
             .filter { it.isNotBlank() }
             .sorted()
             .joinToString("#")
@@ -124,5 +142,5 @@ class ContactsPresenter(
 sealed interface ContactsEvent {
     data class ShareInvite(val contact: Contact, val message: String) : ContactsEvent
 
-    data class OpenConversation(val contact: Contact) : ContactsEvent
+    data class OpenConversation(val contact: Contact, val conversationId: String) : ContactsEvent
 }

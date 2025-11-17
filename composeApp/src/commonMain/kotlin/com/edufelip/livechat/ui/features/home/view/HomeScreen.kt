@@ -46,7 +46,7 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     onSelectTab: (HomeTab) -> Unit,
     onOpenConversation: (String) -> Unit,
-    onStartConversationWithContact: (Contact) -> Unit,
+    onStartConversationWithContact: (Contact, String) -> Unit,
     onShareInvite: (InviteShareRequest) -> Unit,
     onBackFromConversation: () -> Unit,
     phoneContactsProvider: () -> List<Contact>,

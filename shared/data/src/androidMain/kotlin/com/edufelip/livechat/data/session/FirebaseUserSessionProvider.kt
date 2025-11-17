@@ -54,6 +54,8 @@ class FirebaseUserSessionProvider(
 
     override fun currentUserId(): String? = state.value?.userId
 
+    override fun currentUserPhone(): String? = state.value?.phoneNumber
+
     private suspend fun updateFromFirebaseUser(
         user: FirebaseUser?,
         forceRefresh: Boolean,
@@ -74,6 +76,7 @@ class FirebaseUserSessionProvider(
                     idToken = token,
                     refreshToken = null,
                     expiresAtEpochMillis = expiresAt,
+                    phoneNumber = user.phoneNumber,
                 )
             state.emit(session)
             session

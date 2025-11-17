@@ -22,6 +22,7 @@ exports.phoneExistsMany = onCall(async (req) => {
   }
 
   const registered = [];
+  const result = [];
   const errors = [];
 
   await Promise.all(
@@ -30,6 +31,10 @@ exports.phoneExistsMany = onCall(async (req) => {
         const userRecord = await admin.auth().getUserByPhoneNumber(phone);
         if (userRecord) {
           registered.push(phone);
+          result.push({
+            phone,
+            uid: userRecord.uid,
+          });
         }
       } catch (error) {
         if (error.code === 'auth/user-not-found') {
@@ -44,7 +49,7 @@ exports.phoneExistsMany = onCall(async (req) => {
     throw new HttpsError('internal', 'Failed to verify phone numbers', { errors });
   }
 
-  return { registered };
+  return { registered, matches: result };
 });
 
 exports.phoneExists = onCall(async (req) => {
@@ -59,10 +64,10 @@ exports.phoneExists = onCall(async (req) => {
 
   try {
     const userRecord = await admin.auth().getUserByPhoneNumber(phone.trim());
-    return { exists: Boolean(userRecord) };
+    return { exists: Boolean(userRecord), uid: userRecord?.uid ?? null };
   } catch (error) {
     if (error.code === 'auth/user-not-found') {
-      return { exists: false };
+      return { exists: false, uid: null };
     }
     throw new HttpsError('internal', 'Failed to verify phone number', {
       message: error.message,

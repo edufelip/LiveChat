@@ -3,6 +3,7 @@ package com.edufelip.livechat.data.repositories
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.mappers.toPendingMessage
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -125,10 +126,14 @@ class MessagesRepository(
         }
     }
 
-    override suspend fun ensureConversation(conversationId: String) {
+    override suspend fun ensureConversation(
+        conversationId: String,
+        peer: ConversationPeer?,
+    ) {
         val userId = sessionProvider.currentUserId()
             ?: error("User must be authenticated before ensuring conversations.")
-        remoteData.ensureConversation(conversationId, userId)
+        val userPhone = sessionProvider.currentUserPhone()
+        remoteData.ensureConversation(conversationId, userId, userPhone, peer)
     }
 
 }

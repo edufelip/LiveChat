@@ -1,5 +1,6 @@
 package com.edufelip.livechat.data.contracts
 
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import kotlinx.coroutines.flow.Flow
@@ -20,5 +21,7 @@ interface IMessagesRemoteData {
     suspend fun ensureConversation(
         conversationId: String,
         userId: String,
+        userPhone: String?,
+        peer: ConversationPeer?,
     )
 }

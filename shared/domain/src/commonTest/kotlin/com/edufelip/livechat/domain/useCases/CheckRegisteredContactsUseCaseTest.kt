@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,13 @@ class CheckRegisteredContactsUseCaseTest {
     fun syncContactsDiffsAndUpdatesLocalStore() =
         runTest {
             val repository = FakeContactsRepository()
-            val useCase = CheckRegisteredContactsUseCase(repository)
+            val formatter = DefaultPhoneNumberFormatter()
+            val useCase =
+                CheckRegisteredContactsUseCase(
+                    buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
+                    applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
+                    validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+                )
 
             val alice = contact(id = 1, name = "Alice", phone = "+1", registered = true)
             val bobLocal = contact(id = 2, name = "Bob", phone = "+2", registered = false)
@@ -63,7 +70,13 @@ class CheckRegisteredContactsUseCaseTest {
     fun matchingIgnoresLeadingPlusPrefix() =
         runTest {
             val repository = FakeContactsRepository()
-            val useCase = CheckRegisteredContactsUseCase(repository)
+            val formatter = DefaultPhoneNumberFormatter()
+            val useCase =
+                CheckRegisteredContactsUseCase(
+                    buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
+                    applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
+                    validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+                )
 
             val localAlice = contact(id = 1, name = "Alice", phone = "+55119999", registered = false)
             val phoneAlice = contact(id = 0, name = "Alice", phone = "55119999")
@@ -114,7 +127,7 @@ class CheckRegisteredContactsUseCaseTest {
     }
 
     private fun contact(
-        id: Int,
+        id: Long,
         name: String,
         phone: String,
         registered: Boolean = false,

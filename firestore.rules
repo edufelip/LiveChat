@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function conversationPath(conversationId) {
+      return /databases/$(database)/documents/conversations/$(conversationId);
+    }
+
+    function participantPath(conversationId) {
+      return /databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid);
+    }
+
+    function conversationDoc(conversationId) {
+      return get(conversationPath(conversationId));
+    }
+
+    function isConversationMember(conversationId) {
+      return request.auth != null &&
+        (
+          exists(participantPath(conversationId)) ||
+          (
+            exists(conversationPath(conversationId)) &&
+            conversationDoc(conversationId).data.participant_uids != null &&
+            conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid])
+          )
+        );
+    }
+
+    function participantRole(conversationId) {
+      return isConversationMember(conversationId)
+        ? conversationDoc(conversationId).data.roles[request.auth.uid]
+        : null;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isConversationMember(conversationId);
+      allow create: if request.auth != null;
+      allow update, delete:
+        if participantRole(conversationId) in ['owner', 'admin'] ||
+           conversationDoc(conversationId).data.created_by == request.auth.uid;
+
+      match /participants/{userId} {
+        allow read: if isConversationMember(conversationId);
+        allow create:
+          if request.auth != null &&
+            (request.auth.uid == userId ||
+             conversationDoc(conversationId).data.participant_uids.hasAny([userId]));
+        allow update, delete:
+          if request.auth != null &&
+            (request.auth.uid == userId || participantRole(conversationId) == 'owner');
+      }
+
+      match /messages/{messageId} {
+        allow read: if isConversationMember(conversationId);
+        allow create:
+          if isConversationMember(conversationId) &&
+            request.resource.data.sender_id == request.auth.uid &&
+            request.resource.data.created_at is int &&
+            request.resource.data.status in ['SENDING','SENT','DELIVERED','READ','ERROR'];
+        allow update:
+          if isConversationMember(conversationId) &&
+            (request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin']);
+        allow delete:
+          if request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin'];
+      }
+    }
+  }
+}

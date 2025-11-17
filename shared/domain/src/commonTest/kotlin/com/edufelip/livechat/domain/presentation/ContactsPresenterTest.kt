@@ -1,9 +1,24 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.ConversationPeer
+import com.edufelip.livechat.domain.models.ConversationSummary
+import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageDraft
+import com.edufelip.livechat.domain.models.Participant
+import com.edufelip.livechat.domain.models.ParticipantRole
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.repositories.IMessagesRepository
+import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.providers.model.UserSession
+import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
+import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
+import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
+import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
+import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -110,10 +125,22 @@ class ContactsPresenterTest {
         val repository = FakeContactsRepository()
         repository.localContactsFlow.value = initialContacts
         val presenterScope = TestScope(testScheduler)
+        val sessionProvider = FakeUserSessionProvider()
+        val messagesRepository = FakeMessagesRepository()
+        val formatter = DefaultPhoneNumberFormatter()
+        val checkUseCase =
+            CheckRegisteredContactsUseCase(
+                buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
+                applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
+                validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+            )
         val presenter =
             ContactsPresenter(
                 getLocalContactsUseCase = GetLocalContactsUseCase(repository),
-                checkRegisteredContactsUseCase = CheckRegisteredContactsUseCase(repository),
+                checkRegisteredContactsUseCase = checkUseCase,
+                resolveConversationIdForContactUseCase = ResolveConversationIdForContactUseCase(sessionProvider, formatter),
+                ensureConversationUseCase = EnsureConversationUseCase(messagesRepository),
+                phoneNumberFormatter = formatter,
                 scope = presenterScope,
             )
         presenterScope.advanceUntilIdle()
@@ -125,6 +152,33 @@ class ContactsPresenterTest {
         val presenter: ContactsPresenter,
         val scope: TestScope,
     )
+
+    private class FakeUserSessionProvider : UserSessionProvider {
+        override val session: MutableStateFlow<UserSession?> = MutableStateFlow(null)
+
+        override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = session.value
+
+        override fun currentUserId(): String? = "local-user"
+
+        override fun currentUserPhone(): String? = "+15550101000"
+    }
+
+    private class FakeMessagesRepository : IMessagesRepository {
+        override fun observeConversation(conversationId: String, pageSize: Int): Flow<List<Message>> = emptyFlow()
+
+        override suspend fun sendMessage(draft: MessageDraft): Message =
+            error("sendMessage should not be called in ContactsPresenter tests")
+
+        override suspend fun syncConversation(conversationId: String, sinceEpochMillis: Long?): List<Message> = emptyList()
+
+        override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = emptyFlow()
+
+        override suspend fun markConversationAsRead(conversationId: String, lastReadAt: Long, lastReadSeq: Long?) = Unit
+
+        override suspend fun setConversationPinned(conversationId: String, pinned: Boolean, pinnedAt: Long?) = Unit
+
+        override suspend fun ensureConversation(conversationId: String, peer: ConversationPeer?) = Unit
+    }
 
     private class FakeContactsRepository : IContactsRepository {
         val localContactsFlow = MutableStateFlow<List<Contact>>(emptyList())
@@ -183,7 +237,7 @@ class ContactsPresenterTest {
     }
 
     private fun contact(
-        id: Int,
+        id: Long,
         name: String,
         phone: String,
         registered: Boolean = false,

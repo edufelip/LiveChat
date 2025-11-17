@@ -9,4 +9,6 @@ interface UserSessionProvider {
     suspend fun refreshSession(forceRefresh: Boolean = false): UserSession?
 
     fun currentUserId(): String?
+
+    fun currentUserPhone(): String?
 }
