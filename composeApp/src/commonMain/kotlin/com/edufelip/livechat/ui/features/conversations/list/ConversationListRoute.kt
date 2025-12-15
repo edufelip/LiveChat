@@ -22,7 +22,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ConversationListRoute(
-    onConversationSelected: (String) -> Unit,
+    onConversationSelected: (String, String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
@@ -75,7 +75,7 @@ fun ConversationListRoute(
         onSearch = { presenter.setSearchQuery(it) },
         onConversationSelected = { summary ->
             presenter.markConversationAsRead(summary.conversationId)
-            onConversationSelected(summary.conversationId)
+            onConversationSelected(summary.conversationId, summary.contactName)
         },
         onTogglePin = { summary, pinned ->
             presenter.togglePinned(summary.conversationId, pinned)
@@ -95,6 +95,6 @@ fun ConversationListRoute(
 @Composable
 private fun ConversationListRoutePreview() {
     LiveChatPreviewContainer {
-        ConversationListRoute(onConversationSelected = {})
+        ConversationListRoute(onConversationSelected = {_, _ -> })
     }
 }

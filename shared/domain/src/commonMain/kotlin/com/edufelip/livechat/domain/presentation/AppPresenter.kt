@@ -48,25 +48,34 @@ class AppPresenter(
             if (current.home.selectedTab == tab && current.home.activeConversationId == null) {
                 current
             } else {
-                current.copy(home = current.home.copy(selectedTab = tab, activeConversationId = null))
+                current.copy(home = current.home.copy(selectedTab = tab, activeConversationId = null, activeConversationName = null))
             }
         }
     }
 
     fun startConversationWith(
-        _contact: Contact,
+        contact: Contact,
         conversationId: String,
     ) {
         if (conversationId.isBlank()) return
-        openConversation(conversationId)
+        openConversation(conversationId, contact.name.ifBlank { contact.phoneNo })
     }
 
-    fun openConversation(conversationId: String) {
+    fun openConversation(
+        conversationId: String,
+        contactName: String? = null,
+    ) {
         mutableState.update { current ->
-            if (current.home.activeConversationId == conversationId) {
+            if (current.home.activeConversationId == conversationId && contactName == null) {
                 current
             } else {
-                current.copy(home = current.home.copy(activeConversationId = conversationId))
+                current.copy(
+                    home =
+                        current.home.copy(
+                            activeConversationId = conversationId,
+                            activeConversationName = contactName ?: current.home.activeConversationName,
+                        ),
+                )
             }
         }
     }
@@ -76,7 +85,7 @@ class AppPresenter(
             if (current.home.activeConversationId == null) {
                 current
             } else {
-                current.copy(home = current.home.copy(activeConversationId = null))
+                current.copy(home = current.home.copy(activeConversationId = null, activeConversationName = null))
             }
         }
     }

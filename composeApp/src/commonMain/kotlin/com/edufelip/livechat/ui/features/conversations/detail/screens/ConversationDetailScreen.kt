@@ -30,6 +30,7 @@ import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.features.conversations.detail.components.ComposerBar
 import com.edufelip.livechat.ui.features.conversations.detail.components.MessageBubble
 import com.edufelip.livechat.ui.features.conversations.detail.components.rememberLazyListStateWithAutoscroll
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.Message
@@ -46,7 +47,12 @@ fun ConversationDetailScreen(
     onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val resolvedTitle = contactName?.takeIf { it.isNotBlank() } ?: state.conversationId
+    val strings = liveChatStrings()
+    val resolvedTitle =
+        contactName?.takeIf { it.isNotBlank() }
+            ?: state.contactName?.takeIf { it.isNotBlank() }
+            ?: strings.home.conversationTitle
+    val conversationStrings = strings.conversation
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -60,7 +66,7 @@ fun ConversationDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = AppIcons.back, contentDescription = "Back")
+                        Icon(imageVector = AppIcons.back, contentDescription = strings.home.backCta)
                     }
                 },
             )
@@ -77,14 +83,15 @@ fun ConversationDetailScreen(
         ) {
             if (state.isArchived) {
                 Text(
-                    text = "Archived conversation",
+                    text = conversationStrings.archivedLabel,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (state.isMuted) {
                 val muteLabel =
-                    state.muteUntil?.let { "Muted until ${it.formatAsTime()}" } ?: "Muted conversation"
+                    state.muteUntil?.let { conversationStrings.mutedUntilPrefix + " " + it.formatAsTime() }
+                        ?: conversationStrings.mutedLabel
                 Text(
                     text = muteLabel,
                     style = MaterialTheme.typography.bodySmall,
@@ -101,7 +108,7 @@ fun ConversationDetailScreen(
                                 .weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
-                        LoadingState(message = "Loading messages…")
+                        LoadingState(message = conversationStrings.loadingMessages)
                     }
                 }
                 else -> {

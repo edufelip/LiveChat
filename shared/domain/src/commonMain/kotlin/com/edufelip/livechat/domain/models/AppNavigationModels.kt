@@ -13,7 +13,10 @@ sealed class HomeDestination {
 
     data object Settings : HomeDestination()
 
-    data class ConversationDetail(val conversationId: String) : HomeDestination()
+    data class ConversationDetail(
+        val conversationId: String,
+        val contactName: String? = null,
+    ) : HomeDestination()
 }
 
 enum class HomeTab {

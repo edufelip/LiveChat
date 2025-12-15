@@ -58,10 +58,11 @@ class ConversationPresenter(
         val currentId = _uiState.value.conversationId
         if (currentId == conversationId) return
 
-        _uiState.update {
-            it.copy(
+        _uiState.update { current ->
+            val preservedName = current.contactName.takeIf { current.conversationId == conversationId }
+            current.copy(
                 conversationId = conversationId,
-                contactName = it.contactName.takeIf { _ -> it.conversationId == conversationId } ?: conversationId,
+                contactName = preservedName,
                 isLoading = true,
                 errorMessage = null,
                 participant = null,
@@ -80,7 +81,7 @@ class ConversationPresenter(
             scope.launch {
                 observeContactByPhoneUseCase(conversationId).collect { contact ->
                     _uiState.update { state ->
-                        val fallback = state.contactName ?: conversationId
+                        val fallback = state.contactName?.takeIf { it.isNotBlank() }
                         state.copy(
                             contactName = contact?.name?.takeIf { it.isNotBlank() }
                                 ?: contact?.phoneNo?.takeIf { it.isNotBlank() }

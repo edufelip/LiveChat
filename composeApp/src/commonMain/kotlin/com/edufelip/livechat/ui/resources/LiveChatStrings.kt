@@ -1,8 +1,11 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package com.edufelip.livechat.ui.resources
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.edufelip.livechat.resources.Res
+import com.edufelip.livechat.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Suppress("LongParameterList")
@@ -77,6 +80,13 @@ data class OnboardingStrings(
     val unknownError: String = "Unexpected error. Try again.",
 )
 
+data class ConversationStrings(
+    val archivedLabel: String = "Archived conversation",
+    val mutedLabel: String = "Muted conversation",
+    val mutedUntilPrefix: String = "Muted until",
+    val loadingMessages: String = "Loading messages…",
+)
+
 data class GeneralStrings(
     val ok: String = "OK",
     val errorTitle: String = "Something went wrong",
@@ -87,6 +97,7 @@ data class LiveChatStrings(
     val settings: SettingsStrings = SettingsStrings(),
     val home: HomeStrings = HomeStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
+    val conversation: ConversationStrings = ConversationStrings(),
     val general: GeneralStrings = GeneralStrings(),
 )
 
@@ -137,6 +148,14 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             backCta = stringResource(Res.string.home_back_cta),
         )
 
+    val conversation =
+        ConversationStrings(
+            archivedLabel = stringResource(Res.string.conversation_archived_label),
+            mutedLabel = stringResource(Res.string.conversation_muted_label),
+            mutedUntilPrefix = stringResource(Res.string.conversation_muted_until_prefix),
+            loadingMessages = stringResource(Res.string.conversation_loading_messages),
+        )
+
     val onboarding =
         OnboardingStrings(
             phoneTitle = stringResource(Res.string.onboarding_phone_title),
@@ -185,6 +204,7 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         contacts = contacts,
         settings = settings,
         home = home,
+        conversation = conversation,
         onboarding = onboarding,
         general = general,
     )

@@ -115,6 +115,7 @@ class AppPresenterTest {
                 )
                 presenterScope.advanceUntilIdle()
                 assertEquals("conversation-001", presenter.state.value.home.activeConversationId)
+                assertEquals("Ava", presenter.state.value.home.activeConversationName)
             } finally {
                 presenter.close()
             }

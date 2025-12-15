@@ -5,24 +5,20 @@ service cloud.firestore {
       return /databases/$(database)/documents/conversations/$(conversationId);
     }
 
-    function participantPath(conversationId) {
-      return /databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid);
-    }
-
     function conversationDoc(conversationId) {
       return get(conversationPath(conversationId));
     }
 
     function isConversationMember(conversationId) {
-      return request.auth != null &&
+      return request.auth != null && (
+        exists(/databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid)) ||
         (
-          exists(participantPath(conversationId)) ||
-          (
-            exists(conversationPath(conversationId)) &&
-            conversationDoc(conversationId).data.participant_uids != null &&
-            conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid])
-          )
-        );
+          exists(conversationPath(conversationId)) &&
+          conversationDoc(conversationId).data.participant_uids != null &&
+          conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid])
+        ) ||
+        conversationDoc(conversationId).data.created_by == request.auth.uid
+      );
     }
 
     function participantRole(conversationId) {
@@ -36,14 +32,20 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update, delete:
         if participantRole(conversationId) in ['owner', 'admin'] ||
-           conversationDoc(conversationId).data.created_by == request.auth.uid;
+           conversationDoc(conversationId).data.created_by == request.auth.uid ||
+           conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid]);
 
       match /participants/{userId} {
         allow read: if isConversationMember(conversationId);
         allow create:
-          if request.auth != null &&
-            (request.auth.uid == userId ||
-             conversationDoc(conversationId).data.participant_uids.hasAny([userId]));
+          if request.auth != null && (
+            request.auth.uid == userId ||
+            conversationDoc(conversationId).data.created_by == request.auth.uid ||
+            (
+              conversationDoc(conversationId).data.participant_uids != null &&
+              conversationDoc(conversationId).data.participant_uids.hasAny([userId])
+            )
+          );
         allow update, delete:
           if request.auth != null &&
             (request.auth.uid == userId || participantRole(conversationId) == 'owner');
@@ -51,16 +53,44 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if isConversationMember(conversationId);
+
         allow create:
-          if isConversationMember(conversationId) &&
-            request.resource.data.sender_id == request.auth.uid &&
-            request.resource.data.created_at is int &&
-            request.resource.data.status in ['SENDING','SENT','DELIVERED','READ','ERROR'];
+          if isConversationMember(conversationId)
+            && request.resource.data.sender_id == request.auth.uid
+            && request.resource.data.created_at is int
+            && request.resource.data.status in ['SENDING','SENT','DELIVERED','READ','ERROR']
+            && (!('content_type' in request.resource.data) || request.resource.data.content_type is string)
+            && (!('ciphertext' in request.resource.data) || request.resource.data.ciphertext is string)
+            && (!('attachments' in request.resource.data) || request.resource.data.attachments is list)
+            && (!('metadata' in request.resource.data) || request.resource.data.metadata is map);
+
         allow update:
-          if isConversationMember(conversationId) &&
-            (request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin']);
+          if isConversationMember(conversationId)
+            && (request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin'])
+            && request.resource.data.sender_id == resource.data.sender_id
+            && request.resource.data.conversation_id == resource.data.conversation_id
+            && request.resource.data.created_at == resource.data.created_at;
+
         allow delete:
-          if request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin'];
+          if request.auth.uid == resource.data.sender_id
+            || participantRole(conversationId) in ['owner','admin'];
+      }
+
+      match /receipts/{receiptId} {
+        allow read: if isConversationMember(conversationId);
+        allow write: if isConversationMember(conversationId)
+          && request.resource.data.user_id == request.auth.uid
+          && request.resource.data.message_seq is int
+          && request.resource.data.delivered_at is int
+          && (!('read_at' in request.resource.data) || request.resource.data.read_at is int);
+      }
+
+      match /reactions/{reactionId} {
+        allow read: if isConversationMember(conversationId);
+        allow write: if isConversationMember(conversationId)
+          && request.resource.data.user_id == request.auth.uid
+          && request.resource.data.message_seq is int
+          && request.resource.data.emoji is string;
       }
     }
   }

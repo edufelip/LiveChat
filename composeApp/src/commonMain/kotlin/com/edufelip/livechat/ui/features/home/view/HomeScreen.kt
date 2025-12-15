@@ -45,7 +45,7 @@ internal fun HomeScreen(
     state: HomeUiState,
     modifier: Modifier = Modifier,
     onSelectTab: (HomeTab) -> Unit,
-    onOpenConversation: (String) -> Unit,
+    onOpenConversation: (String, String?) -> Unit,
     onStartConversationWithContact: (Contact, String) -> Unit,
     onShareInvite: (InviteShareRequest) -> Unit,
     onBackFromConversation: () -> Unit,
@@ -125,6 +125,7 @@ internal fun HomeScreen(
                     ConversationDetailRoute(
                         modifier = Modifier.fillMaxSize(),
                         conversationId = target.conversationId,
+                        contactName = target.contactName,
                         onBack = onBackFromConversation,
                     )
 

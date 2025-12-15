@@ -33,7 +33,7 @@ fun LiveChatApp(
                 modifier = contentModifier,
                 state = HomeUiState(),
                 onSelectTab = {},
-                onOpenConversation = {},
+                onOpenConversation = { _, _ -> },
                 onStartConversationWithContact = { _, _ -> },
                 onShareInvite = onShareInvite,
                 onBackFromConversation = {},
@@ -77,7 +77,7 @@ private fun LiveChatAppPreview() {
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
-            onOpenConversation = {},
+            onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
@@ -95,7 +95,7 @@ private fun HomeScreenConversationsPreview() {
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
-            onOpenConversation = {},
+            onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
@@ -113,7 +113,7 @@ private fun HomeScreenDetailPreview() {
         HomeScreen(
             state = HomeUiState(activeConversationId = PreviewFixtures.conversationUiState.conversationId),
             onSelectTab = {},
-            onOpenConversation = {},
+            onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
