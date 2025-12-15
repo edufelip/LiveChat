@@ -8,14 +8,15 @@ import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import dev.gitlive.firebase.firestore.CollectionReference
-import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.DocumentReference
+import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.Query
-import dev.gitlive.firebase.firestore   .Timestamp
-import com.edufelip.livechat.domain.utils.normalizePhoneNumber
+import dev.gitlive.firebase.firestore.Timestamp
+import dev.gitlive.firebase.firestore.toMilliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -113,17 +115,16 @@ class FirebaseMessagesRemoteData(
     ) {
         val conversationRef = firestore.collection(config.conversationsCollection).document(conversationId)
         val snapshot = runCatching { conversationRef.get() }.getOrNull()
-        val existingData = snapshot?.data<Map<String, Any?>>() ?: emptyMap()
-        val participantUids = existingData.stringSet(FIELD_PARTICIPANT_UIDS)
+        val existing = runCatching { snapshot?.data(ConversationDoc.serializer()) }.getOrNull() ?: ConversationDoc()
+        val participantUids = (existing.participant_uids ?: emptyList()).toMutableSet()
         participantUids += userId
         peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { participantUids += it }
 
-        val participantPhones = existingData.stringSet(FIELD_PARTICIPANT_PHONES)
+        val participantPhones = (existing.participant_phones ?: emptyList()).toMutableSet()
         userPhone.asNormalizedPhone()?.let { participantPhones += it }
         peer?.phoneNumber.asNormalizedPhone()?.let { participantPhones += it }
 
-        val roles = existingData[FIELD_ROLES] as? Map<String, String> ?: emptyMap()
-        val updatedRoles = roles.toMutableMap()
+        val updatedRoles = (existing.roles ?: emptyMap()).toMutableMap()
         updatedRoles[userId] = OWNER_ROLE
         peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { uid ->
             updatedRoles.putIfAbsent(uid, MEMBER_ROLE)
@@ -180,13 +181,17 @@ class FirebaseMessagesRemoteData(
         participantRef.set(payload, merge = true)
     }
 
-    private fun Map<String, Any?>.stringSet(field: String): MutableSet<String> {
-        val values = this[field] as? List<*> ?: return mutableSetOf()
-        return values.mapNotNull { it as? String }.toMutableSet()
-    }
-
     private fun String?.asNormalizedPhone(): String? =
         this?.let(::normalizePhoneNumber)?.takeIf { it.isNotBlank() }
+
+    @Serializable
+    private data class ConversationDoc(
+        val conversation_id: String? = null,
+        val participant_uids: List<String>? = null,
+        val participant_phones: List<String>? = null,
+        val roles: Map<String, String>? = null,
+        val created_by: String? = null,
+    )
 
     private fun MessageDraft.resolveDocumentId(): String =
         localId.takeIf { it.isNotBlank() } ?: randomDocumentId()
@@ -226,52 +231,37 @@ class FirebaseMessagesRemoteData(
         )
 
     private fun DocumentSnapshot.toMessageOrNull(): Message? {
-        val raw =
-            runCatching {
-                data<Map<String, Any?>>()
-            }.getOrNull() ?: return null
-        val conversationId = (raw[FIELD_CONVERSATION_ID] as? String).orEmpty()
+        val doc = runCatching { data(MessageDoc.serializer()) }.getOrNull() ?: return null
+        val conversationId = doc.conversationId().orEmpty()
         if (conversationId.isBlank()) return null
+
         val status =
-            (raw[FIELD_STATUS] as? String)?.let {
-                runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT)
-            } ?: MessageStatus.SENT
+            doc.status?.let { runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT) }
+                ?: MessageStatus.SENT
         val contentType =
-            (raw[FIELD_CONTENT_TYPE] as? String)?.let {
-                runCatching { MessageContentType.valueOf(it) }.getOrDefault(MessageContentType.Text)
-            } ?: MessageContentType.Text
+            doc.contentType()?.let { runCatching { MessageContentType.valueOf(it) }.getOrDefault(MessageContentType.Text) }
+                ?: MessageContentType.Text
 
         return Message(
-            id = id.ifBlank { (raw[FIELD_LOCAL_TEMP_ID] as? String).orEmpty() },
+            id = id.ifBlank { doc.localTempId().orEmpty() },
             conversationId = conversationId,
-            senderId = (raw[FIELD_SENDER_ID] as? String).orEmpty(),
-            body = (raw[FIELD_BODY] as? String).orEmpty(),
-            createdAt = raw.longValue(FIELD_CREATED_AT) ?: 0L,
+            senderId = doc.senderId().orEmpty(),
+            body = doc.body.orEmpty(),
+            createdAt = doc.createdAtMillis() ?: 0L,
             status = status,
-            localTempId = raw[FIELD_LOCAL_TEMP_ID] as? String,
-            messageSeq = raw.longValue(FIELD_MESSAGE_SEQ),
-            serverAckAt = raw.longValue(FIELD_SERVER_ACK_AT),
+            localTempId = doc.localTempId(),
+            messageSeq = doc.messageSeq(),
+            serverAckAt = doc.serverAckAtMillis(),
             contentType = contentType,
-            ciphertext = raw[FIELD_CIPHERTEXT] as? String,
-            attachments = decodeAttachments(raw[FIELD_ATTACHMENTS] as? String),
-            replyToMessageId = raw[FIELD_REPLY_TO_MESSAGE_ID] as? String,
-            threadRootId = raw[FIELD_THREAD_ROOT_ID] as? String,
-            editedAt = raw.longValue(FIELD_EDITED_AT),
-            deletedForAllAt = raw.longValue(FIELD_DELETED_FOR_ALL_AT),
-            metadata = decodeMetadata(raw[FIELD_METADATA] as? String),
+            ciphertext = doc.ciphertext,
+            attachments = decodeAttachments(doc.attachments),
+            replyToMessageId = doc.replyToMessageId(),
+            threadRootId = doc.threadRootId(),
+            editedAt = doc.editedAtMillis(),
+            deletedForAllAt = doc.deletedForAllAtMillis(),
+            metadata = decodeMetadata(doc.metadata),
         )
     }
-
-    private fun Map<String, Any?>.longValue(field: String): Long? =
-        when (val value = this[field]) {
-            is Number -> value.toLong()
-            is Timestamp -> value.toEpochMilliseconds()
-            is FieldValue -> null
-            is String -> value.toLongOrNull()
-            else -> null
-        }
-
-    private fun Timestamp.toEpochMilliseconds(): Long = (seconds * 1_000L) + (nanoseconds / 1_000_000L)
 
     private fun encodeAttachments(attachments: List<AttachmentRef>): String =
         json.encodeToString(attachmentsSerializer, attachments.map { it.toPayload() })
@@ -289,6 +279,42 @@ class FirebaseMessagesRemoteData(
         raw?.takeIf { it.isNotBlank() }
             ?.let { runCatching { json.decodeFromString(metadataSerializer, it) }.getOrDefault(emptyMap()) }
             ?: emptyMap()
+
+    @Serializable
+    private data class MessageDoc(
+        val conversation_id: String? = null,
+        val sender_id: String? = null,
+        val body: String? = null,
+        val created_at: Timestamp? = null,
+        val created_at_long: Long? = null,
+        val status: String? = null,
+        val local_temp_id: String? = null,
+        val message_seq: Long? = null,
+        val server_ack_at: Timestamp? = null,
+        val server_ack_at_long: Long? = null,
+        val content_type: String? = null,
+        val ciphertext: String? = null,
+        val attachments: String? = null,
+        val reply_to_message_id: String? = null,
+        val thread_root_id: String? = null,
+        val edited_at: Timestamp? = null,
+        val deleted_for_all_at: Timestamp? = null,
+        val metadata: String? = null,
+    ) {
+        fun conversationId(): String? = conversation_id
+        fun senderId(): String? = sender_id
+        fun createdAtMillis(): Long? = created_at?.toMilliseconds()?.toLong() ?: created_at_long
+        fun serverAckAtMillis(): Long? = server_ack_at?.toMilliseconds()?.toLong() ?: server_ack_at_long
+        fun editedAtMillis(): Long? = edited_at?.toMilliseconds()?.toLong()
+        fun deletedForAllAtMillis(): Long? = deleted_for_all_at?.toMilliseconds()?.toLong()
+        fun contentType(): String? = content_type
+        fun localTempId(): String? = local_temp_id
+        fun messageSeq(): Long? = message_seq
+        fun replyToMessageId(): String? = reply_to_message_id
+        fun threadRootId(): String? = thread_root_id
+    }
+
+    private fun Timestamp?.asEpochMillis(): Long? = this?.let { (seconds * 1_000L) + (nanoseconds / 1_000_000L) }
 
     @kotlinx.serialization.Serializable
     private data class AttachmentPayload(

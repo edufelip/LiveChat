@@ -16,11 +16,12 @@ data class AppUiState(
 data class HomeUiState(
     val selectedTab: HomeTab = HomeTab.Conversations,
     val activeConversationId: String? = null,
+    val activeConversationName: String? = null,
 ) {
     val destination: HomeDestination
         get() =
             when {
-                activeConversationId != null -> HomeDestination.ConversationDetail(activeConversationId)
+                activeConversationId != null -> HomeDestination.ConversationDetail(activeConversationId, activeConversationName)
                 selectedTab == HomeTab.Contacts -> HomeDestination.Contacts
                 selectedTab == HomeTab.Settings -> HomeDestination.Settings
                 else -> HomeDestination.ConversationList

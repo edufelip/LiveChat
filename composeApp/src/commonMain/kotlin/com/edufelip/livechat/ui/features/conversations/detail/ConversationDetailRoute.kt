@@ -16,6 +16,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ConversationDetailRoute(
     conversationId: String,
+    contactName: String? = null,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -36,11 +37,12 @@ fun ConversationDetailRoute(
     val state by presenter.collectState()
     val sessionProvider = rememberSessionProvider()
     val currentUserId = sessionProvider.currentUserId().orEmpty()
+    val resolvedContactName = state.contactName ?: contactName
 
     ConversationDetailScreen(
         modifier = modifier,
         state = state,
-        contactName = state.contactName ?: conversationId,
+        contactName = resolvedContactName,
         currentUserId = currentUserId,
         onSendMessage = { body -> presenter.sendMessage(body) },
         onBack = onBack,
@@ -55,6 +57,7 @@ private fun ConversationDetailRoutePreview() {
     LiveChatPreviewContainer {
         ConversationDetailRoute(
             conversationId = PreviewFixtures.conversationUiState.conversationId,
+            contactName = "Preview Contact",
             onBack = {},
         )
     }

@@ -33,6 +33,12 @@
     <string name="home_settings_tab">Settings</string>
     <string name="home_back_cta">Back</string>
 
+    <!-- Conversation -->
+    <string name="conversation_archived_label">Archived conversation</string>
+    <string name="conversation_muted_label">Muted conversation</string>
+    <string name="conversation_muted_until_prefix">Muted until</string>
+    <string name="conversation_loading_messages">Loading messages&#8230;</string>
+
     <!-- Onboarding -->
     <string name="onboarding_phone_title">Enter your phone number</string>
     <string name="onboarding_phone_subtitle">We&apos;ll send a verification code to confirm it&apos;s you.</string>

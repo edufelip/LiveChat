@@ -114,12 +114,17 @@ class ContactsPresenter(
                 return@launch
             }
             val peer = ConversationPeer(firebaseUid = contact.firebaseUid, phoneNumber = contact.phoneNo)
-            runCatching { ensureConversationUseCase(conversationId, peer) }
-                .onSuccess {
-                    mutableEvents.emit(ContactsEvent.OpenConversation(contact, conversationId))
-                }.onFailure { throwable ->
-                    mutableState.update { it.copy(errorMessage = throwable.message ?: "Failed to open conversation") }
-                }
+            val emitted = mutableEvents.tryEmit(ContactsEvent.OpenConversation(contact, conversationId))
+            if (!emitted) {
+                mutableEvents.emit(ContactsEvent.OpenConversation(contact, conversationId))
+            }
+
+            scope.launch {
+                runCatching { ensureConversationUseCase(conversationId, peer) }
+                    .onFailure { throwable ->
+                        mutableState.update { it.copy(errorMessage = throwable.message ?: "Failed to open conversation") }
+                    }
+            }
         }
     }
 

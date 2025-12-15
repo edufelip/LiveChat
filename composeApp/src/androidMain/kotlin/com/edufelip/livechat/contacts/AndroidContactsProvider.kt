@@ -67,7 +67,7 @@ object AndroidContactsProvider {
             val key = canonical
             if (!seen.add(key)) continue
 
-            val id = if (idIndex != -1) cursor.getInt(idIndex) else contacts.size
+            val id = if (idIndex != -1) cursor.getLong(idIndex) else contacts.size.toLong()
             val name = cursor.getString(nameIndex)?.takeIf { it.isNotBlank() } ?: rawNumber
             val photo = if (photoIndex != -1) cursor.getString(photoIndex) else null
 
