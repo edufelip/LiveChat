@@ -4,6 +4,8 @@ enum class MessageContentType {
     Text,
     Encrypted,
     AttachmentOnly,
+    Image,
+    Audio,
 }
 
 data class CipherInfo(

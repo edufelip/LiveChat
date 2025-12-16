@@ -190,6 +190,10 @@ class ConversationListPresenterTest {
         ) {
             // no-op for filter tests
         }
+
+        override suspend fun ensureConversation(conversationId: String, peer: ConversationPeer?) = Unit
+
+        override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
     }
 
     private class FakeParticipantsRepository : IConversationParticipantsRepository {

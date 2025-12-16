@@ -108,7 +108,7 @@ interface MessagesDao {
         FROM latest
         JOIN messages m ON m.conversation_id = latest.conversation_id AND m.created_at = latest.max_created_at
         LEFT JOIN conversation_state cs ON cs.conversation_id = m.conversation_id
-        LEFT JOIN contacts c ON c.phone_no = m.conversation_id
+        LEFT JOIN contacts c ON (c.phone_no = m.conversation_id OR c.firebase_uid = m.conversation_id)
         ORDER BY
             CASE WHEN IFNULL(cs.is_pinned, 0) = 1 THEN 0 ELSE 1 END,
             m.created_at DESC

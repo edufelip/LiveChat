@@ -243,6 +243,8 @@ class ConversationPresenterTest {
             ensured += conversationId
         }
 
+        override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
+
     }
 
     private class FakeParticipantsRepository(

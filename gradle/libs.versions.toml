@@ -63,6 +63,8 @@ firebase-common-kt = { module = "dev.gitlive:firebase-common", version.ref = "fi
 firebase-app-kt = { module = "dev.gitlive:firebase-app", version.ref = "firebase-kotlin" }
 firebase-firestore-kt = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-kotlin" }
 firebase-functions-kt = { module = "dev.gitlive:firebase-functions", version.ref = "firebase-kotlin" }
+firebase-storage-kt = { module = "dev.gitlive:firebase-storage", version.ref = "firebase-kotlin" }
+firebase-storage-android = { module = "com.google.firebase:firebase-storage-ktx", version = "21.0.1" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -41,4 +41,6 @@ interface IMessagesRepository {
         conversationId: String,
         peer: ConversationPeer? = null,
     )
+
+    fun observeAllIncomingMessages(): Flow<List<Message>>
 }

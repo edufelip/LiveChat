@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
@@ -12,8 +13,6 @@ import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
-import com.edufelip.livechat.domain.utils.CStateFlow
-import com.edufelip.livechat.domain.utils.asCStateFlow
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -22,7 +21,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,7 +39,6 @@ class ConversationPresenter(
 ) {
     private val _uiState = MutableStateFlow(ConversationUiState())
     val state = _uiState.asStateFlow()
-    val uiState: CStateFlow<ConversationUiState> = state.asCStateFlow()
 
     private var observeJob: Job? = null
     private var participantJob: Job? = null
@@ -59,7 +56,9 @@ class ConversationPresenter(
         if (currentId == conversationId) return
 
         _uiState.update { current ->
-            val preservedName = current.contactName.takeIf { current.conversationId == conversationId }
+            val preservedName = current.contactName.takeIf {
+                current.conversationId == conversationId
+            } ?: ""
             current.copy(
                 conversationId = conversationId,
                 contactName = preservedName,
@@ -81,11 +80,12 @@ class ConversationPresenter(
             scope.launch {
                 observeContactByPhoneUseCase(conversationId).collect { contact ->
                     _uiState.update { state ->
-                        val fallback = state.contactName?.takeIf { it.isNotBlank() }
+                        val fallback = state.contactName.takeIf { it.isNotBlank() }
                         state.copy(
                             contactName = contact?.name?.takeIf { it.isNotBlank() }
                                 ?: contact?.phoneNo?.takeIf { it.isNotBlank() }
-                                ?: fallback,
+                                ?: fallback
+                                ?: "",
                         )
                     }
                 }
@@ -228,6 +228,21 @@ class ConversationPresenter(
     }
 
     fun sendMessage(body: String) {
+        sendMessage(body = body, contentType = MessageContentType.Text)
+    }
+
+    fun sendImage(localPath: String) {
+        sendMessage(body = localPath, contentType = MessageContentType.Image)
+    }
+
+    fun sendAudio(localPath: String) {
+        sendMessage(body = localPath, contentType = MessageContentType.Audio)
+    }
+
+    private fun sendMessage(
+        body: String,
+        contentType: MessageContentType,
+    ) {
         if (body.isBlank()) return
         val conversationId = _uiState.value.conversationId
         if (conversationId.isBlank()) return
@@ -253,6 +268,7 @@ class ConversationPresenter(
                         body = body,
                         localId = localId,
                         createdAt = timestamp,
+                        contentType = contentType,
                     ),
                 )
             }.onFailure { throwable ->

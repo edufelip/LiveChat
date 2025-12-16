@@ -30,7 +30,8 @@ class ContactsLocalDataSource(
                 contacts
                     .map { it.toDomain() }
                     .firstOrNull { contact ->
-                        phonesMatch(contact.phoneNo, phoneNumber, normalizedTarget)
+                        contact.firebaseUid?.takeIf { it == phoneNumber } != null ||
+                            phonesMatch(contact.phoneNo, phoneNumber, normalizedTarget)
                     }
             }
 
@@ -40,7 +41,8 @@ class ContactsLocalDataSource(
             contactsDao.getAll()
                 .map { it.toDomain() }
                 .firstOrNull { contact ->
-                    phonesMatch(contact.phoneNo, phoneNumber, normalizedTarget)
+                    contact.firebaseUid?.takeIf { it == phoneNumber } != null ||
+                        phonesMatch(contact.phoneNo, phoneNumber, normalizedTarget)
                 }
         }
 

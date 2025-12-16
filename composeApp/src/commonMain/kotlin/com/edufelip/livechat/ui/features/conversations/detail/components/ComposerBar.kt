@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.conversations.detail.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,47 +29,82 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun ComposerBar(
     isSending: Boolean,
     onSend: (String) -> Unit,
+    isRecording: Boolean,
+    onToggleRecording: () -> Unit,
+    onPickImage: () -> Unit = {},
+    onTakePhoto: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
     val sendEnabled = text.isNotBlank() && !isSending
 
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        OutlinedTextField(
-            modifier = Modifier.weight(1f),
-            value = text,
-            onValueChange = { text = it },
-            placeholder = { Text("Message…") },
-            enabled = !isSending,
-            maxLines = 4,
-            shape = RoundedCornerShape(28.dp),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
-            keyboardActions =
-                KeyboardActions(
-                    onSend = {
-                        if (sendEnabled) {
-                            val trimmed = text.trim()
-                            onSend(trimmed)
-                            text = ""
-                        }
-                    },
-                ),
-        )
-        FilledIconButton(
-            enabled = sendEnabled,
-            onClick = {
-                val trimmed = text.trim()
-                if (trimmed.isNotEmpty()) {
-                    onSend(trimmed)
-                    text = ""
-                }
-            },
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(imageVector = AppIcons.confirm, contentDescription = "Send message")
+            FilledIconButton(
+                enabled = !isSending,
+                onClick = onPickImage,
+            ) {
+                Icon(imageVector = AppIcons.gallery, contentDescription = "Pick image")
+            }
+            FilledIconButton(
+                enabled = !isSending,
+                onClick = onTakePhoto,
+            ) {
+                Icon(imageVector = AppIcons.camera, contentDescription = "Take photo")
+            }
+            FilledIconButton(
+                enabled = !isSending,
+                onClick = onToggleRecording,
+            ) {
+                val icon = if (isRecording) AppIcons.stop else AppIcons.mic
+                val description = if (isRecording) "Stop recording" else "Record audio"
+                Icon(imageVector = icon, contentDescription = description)
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                modifier = Modifier.weight(1f),
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("Message…") },
+                enabled = !isSending,
+                maxLines = 4,
+                shape = RoundedCornerShape(28.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Send),
+                keyboardActions =
+                    KeyboardActions(
+                        onSend = {
+                            if (sendEnabled) {
+                                val trimmed = text.trim()
+                                onSend(trimmed)
+                                text = ""
+                            }
+                        },
+                    ),
+            )
+            FilledIconButton(
+                enabled = sendEnabled,
+                onClick = {
+                    val trimmed = text.trim()
+                    if (trimmed.isNotEmpty()) {
+                        onSend(trimmed)
+                        text = ""
+                    }
+                },
+            ) {
+                Icon(imageVector = AppIcons.confirm, contentDescription = "Send message")
+            }
         }
     }
 }
@@ -78,6 +114,6 @@ fun ComposerBar(
 @Composable
 private fun ComposerBarPreview() {
     LiveChatPreviewContainer {
-        ComposerBar(isSending = false, onSend = {})
+        ComposerBar(isSending = false, isRecording = false, onSend = {}, onToggleRecording = {})
     }
 }

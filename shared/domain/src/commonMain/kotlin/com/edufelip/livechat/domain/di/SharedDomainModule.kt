@@ -81,5 +81,13 @@ val sharedDomainModule: Module =
             )
         }
         factory { PhoneAuthPresenter(get(), get(), get(), get()) }
-        factory { AppPresenter(get(), get(), get(), scope = MainScope()) }
+        factory {
+            AppPresenter(
+                observeOnboardingStatus = get<ObserveOnboardingStatusUseCase>(),
+                observeConversationUseCase = get<ObserveConversationUseCase>(),
+                setOnboardingComplete = get<SetOnboardingCompleteUseCase>(),
+                getOnboardingStatusSnapshot = get<GetOnboardingStatusSnapshotUseCase>(),
+                scope = MainScope(),
+            )
+        }
     }

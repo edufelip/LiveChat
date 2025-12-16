@@ -27,6 +27,7 @@ class MessagesLocalDataSource(
     database: LiveChatDatabase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesLocalData {
+    private val logTag = "COMMCHECK"
     private val messagesDao: MessagesDao = database.messagesDao()
     private val conversationStateDao: ConversationStateDao = database.conversationStateDao()
 
@@ -37,18 +38,33 @@ class MessagesLocalDataSource(
         messagesDao.observeMessages(conversationId)
             .map { rows ->
                 val mapped = rows.map { it.toDomain() }
+                val preview =
+                    mapped.takeLast(3).joinToString { msg ->
+                        "${msg.id}:${msg.body.take(30)}"
+                    }
+                println("$logTag: local observeMessages conversation=$conversationId count=${rows.size} tail=$preview")
                 if (mapped.size <= limit) mapped else mapped.takeLast(limit)
             }
 
     override suspend fun upsertMessages(messages: List<Message>) {
         if (messages.isEmpty()) return
         withContext(dispatcher) {
+            val grouped = messages.groupBy { it.conversationId }
+            println(
+                "$logTag: local upsertMessages total=${messages.size} " +
+                    grouped.entries.joinToString(prefix = "byConv=", separator = ";") { (conv, msgs) ->
+                        "$conv:${msgs.size}"
+                    },
+            )
             messagesDao.insertAll(messages.map { it.toEntity() })
         }
     }
 
     override suspend fun insertOutgoingMessage(message: Message) {
         withContext(dispatcher) {
+            println(
+                "$logTag: local insertOutgoingMessage id=${message.id} conv=${message.conversationId} body=${message.body.take(40)}",
+            )
             messagesDao.insert(message.toEntity())
         }
     }
@@ -59,6 +75,9 @@ class MessagesLocalDataSource(
         status: MessageStatus,
     ) {
         withContext(dispatcher) {
+            println(
+                "$logTag: local updateStatusByLocalId localId=$localId serverId=$serverId status=$status",
+            )
             messagesDao.updateStatusByLocalId(localId, serverId, status.name)
         }
     }
@@ -68,18 +87,24 @@ class MessagesLocalDataSource(
         status: MessageStatus,
     ) {
         withContext(dispatcher) {
+            println("$logTag: local updateStatus id=$messageId status=$status")
             messagesDao.updateStatus(messageId, status.name)
         }
     }
 
     override suspend fun latestTimestamp(conversationId: String): Long? =
-        withContext(dispatcher) { messagesDao.latestTimestamp(conversationId) }
+        withContext(dispatcher) {
+            val ts = messagesDao.latestTimestamp(conversationId)
+            println("$logTag: local latestTimestamp conversation=$conversationId ts=$ts")
+            ts
+        }
 
     override suspend fun replaceConversation(
         conversationId: String,
         messages: List<Message>,
     ) {
         withContext(dispatcher) {
+            println("$logTag: local replaceConversation conversation=$conversationId count=${messages.size}")
             messagesDao.clearConversation(conversationId)
             if (messages.isNotEmpty()) {
                 messagesDao.insertAll(messages.map { it.toEntity() })
@@ -89,17 +114,28 @@ class MessagesLocalDataSource(
 
     override fun observeConversationSummaries(): Flow<List<ConversationSummary>> =
         messagesDao.observeConversationSummaries()
-            .map { rows -> rows.map { it.toConversationSummary() } }
+            .map { rows ->
+                println("$logTag: local observeConversationSummaries count=${rows.size}")
+                rows.map { it.toConversationSummary() }
+            }
 
     override fun observeParticipant(conversationId: String): Flow<Participant?> =
         conversationStateDao.observeConversationState(conversationId)
-            .map { state -> state?.toParticipant() }
+            .map { state ->
+                println("$logTag: local observeParticipant conversation=$conversationId hasState=${state != null}")
+                state?.toParticipant()
+            }
 
     override suspend fun getParticipant(conversationId: String): Participant? =
-        withContext(dispatcher) { conversationStateDao.getConversationState(conversationId)?.toParticipant() }
+        withContext(dispatcher) {
+            val state = conversationStateDao.getConversationState(conversationId)?.toParticipant()
+            println("$logTag: local getParticipant conversation=$conversationId found=${state != null}")
+            state
+        }
 
     override suspend fun upsertParticipant(participant: Participant) {
         withContext(dispatcher) {
+            println("$logTag: local upsertParticipant conversation=${participant.conversationId} user=${participant.userId}")
             conversationStateDao.upsert(participant.toEntity())
         }
     }
