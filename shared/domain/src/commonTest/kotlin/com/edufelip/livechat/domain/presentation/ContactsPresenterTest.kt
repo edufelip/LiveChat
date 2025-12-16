@@ -178,6 +178,8 @@ class ContactsPresenterTest {
         override suspend fun setConversationPinned(conversationId: String, pinned: Boolean, pinnedAt: Long?) = Unit
 
         override suspend fun ensureConversation(conversationId: String, peer: ConversationPeer?) = Unit
+
+        override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
     }
 
     private class FakeContactsRepository : IContactsRepository {

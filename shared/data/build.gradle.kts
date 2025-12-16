@@ -35,6 +35,7 @@ kotlin {
                 implementation(libs.firebase.common.kt)
                 implementation(libs.firebase.firestore.kt)
                 implementation(libs.firebase.functions.kt)
+                implementation(libs.firebase.storage.kt)
             }
         }
         val commonTest by getting {
@@ -49,6 +50,7 @@ kotlin {
                 implementation(libs.firebase.auth)
                 implementation("com.google.firebase:firebase-common-ktx:20.4.2")
                 implementation("com.google.firebase:firebase-firestore-ktx:25.1.0")
+                implementation(libs.firebase.storage.android)
                 implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.androidx.room.sqlite.wrapper)

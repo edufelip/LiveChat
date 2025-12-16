@@ -7,8 +7,14 @@ import dev.gitlive.firebase.initialize
 
 class App : Application() {
     override fun onCreate() {
+        instance = this
         super.onCreate()
         Firebase.initialize(this)
         startKoinForAndroid(applicationContext)
+    }
+
+    companion object {
+        lateinit var instance: App
+            private set
     }
 }

@@ -5,6 +5,7 @@ import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
+    observeConversationUseCase: ObserveConversationUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
     private val scope: CoroutineScope,
@@ -34,6 +36,11 @@ class AppPresenter(
                         current.copy(isOnboardingComplete = isComplete)
                     }
                 }
+        }
+        scope.launch {
+            observeConversationUseCase.observeAll().collectLatest {
+                // Messages are persisted by repository; no UI state change needed here.
+            }
         }
     }
 

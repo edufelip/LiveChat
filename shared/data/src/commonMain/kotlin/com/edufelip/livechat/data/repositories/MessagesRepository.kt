@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -26,6 +27,8 @@ class MessagesRepository(
     private val participantsRepository: IConversationParticipantsRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRepository {
+    private val logTag = "COMMCHECK"
+
     override fun observeConversation(
         conversationId: String,
         pageSize: Int,
@@ -35,16 +38,29 @@ class MessagesRepository(
             val localJob =
                 launch {
                     localData.observeMessages(conversationId, pageSize).collect { messages ->
+                        println("$logTag: repo observeConversation local conv=$conversationId count=${messages.size}")
                         send(messages)
                     }
                 }
             val remoteJob =
                 launch {
-                    remoteData.observeConversation(conversationId, sinceEpoch).collect { remoteMessages ->
-                        if (remoteMessages.isNotEmpty()) {
-                            localData.upsertMessages(remoteMessages)
+                    remoteData.observeConversation(conversationId, sinceEpoch)
+                        .catch { throwable ->
+                            val kind =
+                                if (throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true) {
+                                    "permission"
+                                } else {
+                                    "error"
+                                }
+                            println("$logTag: repo remote observe $kind conv=$conversationId error=${throwable.message}")
+                            throw throwable
                         }
-                    }
+                        .collect { remoteMessages ->
+                            if (remoteMessages.isNotEmpty()) {
+                                println("$logTag: repo observeConversation remote conv=$conversationId upserting=${remoteMessages.size}")
+                                localData.upsertMessages(remoteMessages)
+                            }
+                        }
                 }
 
             awaitClose {
@@ -53,8 +69,34 @@ class MessagesRepository(
             }
         }
 
+    override fun observeAllIncomingMessages(): Flow<List<Message>> =
+        channelFlow {
+            val currentUser = sessionProvider.currentUserId()
+            if (currentUser == null) {
+                close()
+                return@channelFlow
+            }
+            println("$logTag: repo observeAllIncomingMessages for user=$currentUser")
+            val remoteJob =
+                launch {
+                    remoteData.observeConversation(currentUser, null)
+                        .catch { throwable ->
+                            println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
+                        }
+                        .collect { messages ->
+                            if (messages.isNotEmpty()) {
+                                println("$logTag: repo observeAllIncomingMessages upserting=${messages.size}")
+                                localData.upsertMessages(messages)
+                                send(messages)
+                            }
+                        }
+                }
+            awaitClose { remoteJob.cancel() }
+        }
+
     override suspend fun sendMessage(draft: MessageDraft): Message {
         return withContext(dispatcher) {
+            println("$logTag: repo sendMessage to=${draft.conversationId} localId=${draft.localId}")
             val resolvedDraft =
                 if (draft.senderId.isNotBlank()) {
                     draft
@@ -68,6 +110,7 @@ class MessagesRepository(
             localData.insertOutgoingMessage(pending)
             try {
                 val remoteMessage = remoteData.sendMessage(resolvedDraft)
+                println("$logTag: repo sendMessage delivered id=${remoteMessage.id} conv=${remoteMessage.conversationId}")
                 localData.updateMessageStatusByLocalId(
                     localId = resolvedDraft.localId,
                     serverId = remoteMessage.id,
@@ -93,9 +136,11 @@ class MessagesRepository(
             val remoteMessages = remoteData.pullHistorical(conversationId, sinceEpochMillis)
             if (sinceEpochMillis == null) {
                 if (remoteMessages.isNotEmpty()) {
+                    println("$logTag: repo syncConversation replace conv=$conversationId count=${remoteMessages.size}")
                     localData.replaceConversation(conversationId, remoteMessages)
                 }
             } else {
+                println("$logTag: repo syncConversation upsert conv=$conversationId count=${remoteMessages.size}")
                 localData.upsertMessages(remoteMessages)
             }
             remoteMessages
@@ -112,6 +157,7 @@ class MessagesRepository(
         lastReadSeq: Long?,
     ) {
         withContext(dispatcher) {
+            println("$logTag: repo markRead conv=$conversationId lastReadAt=$lastReadAt lastReadSeq=$lastReadSeq")
             participantsRepository.recordReadState(conversationId, lastReadAt, lastReadSeq)
         }
     }
@@ -122,6 +168,7 @@ class MessagesRepository(
         pinnedAt: Long?,
     ) {
         withContext(dispatcher) {
+            println("$logTag: repo setPinned conv=$conversationId pinned=$pinned pinnedAt=$pinnedAt")
             participantsRepository.setPinned(conversationId, pinned, pinnedAt)
         }
     }
@@ -133,6 +180,7 @@ class MessagesRepository(
         val userId = sessionProvider.currentUserId()
             ?: error("User must be authenticated before ensuring conversations.")
         val userPhone = sessionProvider.currentUserPhone()
+        println("$logTag: repo ensureConversation conv=$conversationId peer=$peer")
         remoteData.ensureConversation(conversationId, userId, userPhone, peer)
     }
 

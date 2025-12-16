@@ -1,57 +1,86 @@
 package com.edufelip.livechat.data.remote
 
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
-import com.edufelip.livechat.domain.models.AttachmentRef
+import com.edufelip.livechat.data.files.MediaFileStore
 import com.edufelip.livechat.domain.models.ConversationPeer
-import com.edufelip.livechat.domain.models.CipherInfo
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
-import com.edufelip.livechat.domain.utils.normalizePhoneNumber
-import dev.gitlive.firebase.firestore.CollectionReference
-import dev.gitlive.firebase.firestore.DocumentReference
+import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.utils.currentEpochMillis
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.FirebaseFirestore
-import dev.gitlive.firebase.firestore.Query
 import dev.gitlive.firebase.firestore.Timestamp
 import dev.gitlive.firebase.firestore.toMilliseconds
+import dev.gitlive.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
-import kotlin.random.Random
+
+private const val COMM_TAG = "COMMCHECK"
 
 class FirebaseMessagesRemoteData(
     private val firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage,
     private val config: FirebaseRestConfig,
+    private val sessionProvider: UserSessionProvider,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val json: Json = Json { ignoreUnknownKeys = true },
 ) : IMessagesRemoteData {
     override fun observeConversation(
         conversationId: String,
         sinceEpochMillis: Long?,
     ): Flow<List<Message>> {
         if (!config.isConfigured) return flowOf(emptyList())
+        val currentUserId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
 
-        return queryForConversation(conversationId)
+        return inboundMessagesCollection(currentUserId)
             .snapshots
-            .map { snapshot ->
-                snapshot.documents
-                    .mapNotNull { it.toMessageOrNull() }
-                    .sortedBy { it.createdAt }
-            }
-            .map { messages ->
-                sinceEpochMillis?.let { ts -> messages.filter { it.createdAt > ts } } ?: messages
+            .mapLatest { snapshot ->
+                val mapped = mutableListOf<Message>()
+                snapshot.documents.forEach { document ->
+                    val payload = document.toTransportMessageOrNull() ?: return@forEach
+                    if (!payload.isAddressedTo(currentUserId)) return@forEach
+                    if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@forEach
+
+                    val contentType = payload.type.toMessageContentType()
+                    val remoteContent = payload.content.orEmpty()
+                    val mediaPath =
+                        if (contentType.isMedia()) {
+                            downloadMediaToLocal(remoteContent, contentType)
+                        } else {
+                            remoteContent
+                        }
+                    val extraMetadata =
+                        buildMap {
+                            put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                            if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
+                            if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
+                        }
+                    val message =
+                        payload.toDomainMessage(
+                            documentId = document.id,
+                            conversationId = payload.senderId.orEmpty(),
+                            contentTypeOverride = contentType,
+                            bodyOverride = mediaPath,
+                            extraMetadata = extraMetadata,
+                        )
+                    mapped += message
+                    deleteRemoteMessage(
+                        recipientId = currentUserId,
+                        documentId = document.id,
+                        payload = payload,
+                        deleteMedia = contentType.isMedia(),
+                    )
+                }
+                mapped.sortBy { it.createdAt }
+                sinceEpochMillis?.let { ts -> mapped.filter { it.createdAt > ts } } ?: mapped
             }
             .flowOn(dispatcher)
     }
@@ -59,14 +88,43 @@ class FirebaseMessagesRemoteData(
     override suspend fun sendMessage(draft: MessageDraft): Message =
         withContext(dispatcher) {
             require(config.isConfigured) { "Firebase projectId is missing – cannot send message" }
+            require(draft.conversationId.isNotBlank()) { "Recipient conversationId is required to send messages" }
 
-            val documentId = draft.resolveDocumentId()
-            ensureConversation(draft.conversationId, draft.senderId, userPhone = null, peer = null)
-            val document = messagesCollection(draft.conversationId).document(documentId)
-            val payload = draft.toFirestorePayload()
-            document.set(payload, merge = true)
+            val senderId =
+                draft.senderId.takeIf { it.isNotBlank() }
+                    ?: sessionProvider.currentUserId()
+                        ?: error("Cannot send message without a senderId")
+            val timestamp = draft.createdAt.takeIf { it != 0L } ?: currentEpochMillis()
+            val mediaUpload = uploadMediaIfNeeded(draft, senderId, timestamp)
+            val payload =
+                draft.toTransportPayload(
+                    senderId = senderId,
+                    timestamp = timestamp,
+                    content = mediaUpload?.downloadUrl ?: draft.body,
+                    status = STATUS_PENDING,
+                )
 
-            document.get().toMessageOrNull() ?: draft.toFallbackMessage(documentId)
+            outboundMessagesCollection(draft.conversationId).document(draft.conversationId).set(payload, merge = false)
+
+            val extraMetadata =
+                buildMap<String, String> {
+                    put(META_RECEIVER_ID, draft.conversationId)
+                    mediaUpload?.let {
+                        put(META_REMOTE_URL, it.downloadUrl)
+                        put(META_LOCAL_PATH, draft.body)
+                    }
+                }
+
+            Message(
+                id = draft.senderId,
+                conversationId = draft.conversationId,
+                senderId = senderId,
+                body = draft.body,
+                createdAt = timestamp,
+                status = MessageStatus.DELIVERED,
+                contentType = draft.contentType,
+                metadata = extraMetadata,
+            )
         }
 
     override suspend fun ensureConversation(
@@ -75,8 +133,11 @@ class FirebaseMessagesRemoteData(
         userPhone: String?,
         peer: ConversationPeer?,
     ) {
+        if (!config.isConfigured) return
         withContext(dispatcher) {
-            ensureConversationDocument(conversationId, userId, userPhone, peer)
+            firestore.collection(config.conversationsCollection)
+                .document(conversationId)
+                .set(mapOf(FIELD_CREATED_AT to FieldValue.serverTimestamp), merge = true)
         }
     }
 
@@ -87,325 +148,234 @@ class FirebaseMessagesRemoteData(
         withContext(dispatcher) {
             if (!config.isConfigured) return@withContext emptyList()
 
-            val documents = queryForConversation(conversationId).get().documents
+            val currentUserId = sessionProvider.currentUserId() ?: return@withContext emptyList()
+            val documents =
+                runCatching { inboundMessagesCollection(currentUserId).get().documents }
+                    .onFailure { throwable ->
+                        if (throwable.isPermissionDenied()) {
+                            println("Firestore permission denied while pulling history: ${throwable.message}")
+                        }
+                    }.getOrNull()
+                    ?: return@withContext emptyList()
             val mapped =
-                documents
-                    .mapNotNull { it.toMessageOrNull() }
+                documents.mapNotNull { document ->
+                    val payload = document.toTransportMessageOrNull() ?: return@mapNotNull null
+                    if (!payload.isAddressedTo(currentUserId)) return@mapNotNull null
+                    if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@mapNotNull null
+
+                    val contentType = payload.type.toMessageContentType()
+                    val remoteContent = payload.content.orEmpty()
+                    val mediaPath =
+                        if (contentType.isMedia()) {
+                            downloadMediaToLocal(remoteContent, contentType)
+                        } else {
+                            remoteContent
+                        }
+                    val extraMetadata =
+                        buildMap {
+                            put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                            if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
+                            if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
+                        }
+                    val message =
+                        payload.toDomainMessage(
+                            documentId = document.id,
+                            conversationId = payload.senderId.orEmpty(),
+                            contentTypeOverride = contentType,
+                            bodyOverride = mediaPath,
+                            extraMetadata = extraMetadata,
+                        )
+                    deleteRemoteMessage(
+                        recipientId = currentUserId,
+                        documentId = document.id,
+                        payload = payload,
+                        deleteMedia = contentType.isMedia(),
+                    )
+                    message
+                }
                     .sortedBy { it.createdAt }
             sinceEpochMillis?.let { ts -> mapped.filter { it.createdAt > ts } } ?: mapped
         }
 
-    private fun queryForConversation(conversationId: String): Query {
-        return messagesCollection(conversationId)
-            .where { FIELD_CONVERSATION_ID equalTo conversationId }
-            .orderBy(FIELD_CREATED_AT)
-    }
-
-    private fun messagesCollection(conversationId: String): CollectionReference =
-        firestore
-            .collection(config.conversationsCollection)
-            .document(conversationId)
+    private fun inboundMessagesCollection(recipientId: String) =
+        firestore.collection(config.conversationsCollection)
+            .document(recipientId)
             .collection(config.messagesCollection)
 
-    private suspend fun ensureConversationDocument(
-        conversationId: String,
-        userId: String,
-        userPhone: String?,
-        peer: ConversationPeer?,
-    ) {
-        val conversationRef = firestore.collection(config.conversationsCollection).document(conversationId)
-        val snapshot = runCatching { conversationRef.get() }.getOrNull()
-        val existing = runCatching { snapshot?.data(ConversationDoc.serializer()) }.getOrNull() ?: ConversationDoc()
-        val participantUids = (existing.participant_uids ?: emptyList()).toMutableSet()
-        participantUids += userId
-        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { participantUids += it }
+    private fun outboundMessagesCollection(recipientId: String) =
+        firestore.collection(config.conversationsCollection)
+            .document(recipientId)
+            .collection(config.messagesCollection)
 
-        val participantPhones = (existing.participant_phones ?: emptyList()).toMutableSet()
-        userPhone.asNormalizedPhone()?.let { participantPhones += it }
-        peer?.phoneNumber.asNormalizedPhone()?.let { participantPhones += it }
+    private fun DocumentSnapshot.toTransportMessageOrNull(): TransportMessageDoc? =
+        runCatching { data(TransportMessageDoc.serializer()) }.getOrNull()
 
-        val updatedRoles = (existing.roles ?: emptyMap()).toMutableMap()
-        updatedRoles[userId] = OWNER_ROLE
-        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { uid ->
-            updatedRoles.putIfAbsent(uid, MEMBER_ROLE)
-        }
+    private fun TransportMessageDoc.isAddressedTo(userId: String): Boolean =
+        receiverId?.isNotBlank() == true && receiverId == userId
 
-        val payload = mutableMapOf<String, Any?>(
-            FIELD_CONVERSATION_ID to conversationId,
-            FIELD_PARTICIPANT_UIDS to participantUids.toList(),
+    private fun TransportMessageDoc.timestampMillis(): Long? =
+        timestamp?.toMilliseconds()?.toLong() ?: timestamp_long
+
+    private fun TransportMessageDoc.toDomainMessage(
+        documentId: String,
+        conversationId: String = senderId.orEmpty(),
+        contentTypeOverride: MessageContentType? = null,
+        bodyOverride: String? = null,
+        extraMetadata: Map<String, String> = emptyMap(),
+    ): Message {
+        val createdAt = timestampMillis() ?: currentEpochMillis()
+        val contentType = contentTypeOverride ?: type.toMessageContentType()
+        val status = status.toMessageStatus()
+        val resolvedConversationId = conversationId.takeIf { it.isNotBlank() } ?: senderId.orEmpty()
+        return Message(
+            id = documentId,
+            conversationId = resolvedConversationId,
+            senderId = senderId.orEmpty(),
+            body = bodyOverride ?: content.orEmpty(),
+            createdAt = createdAt,
+            status = status,
+            contentType = contentType,
+            metadata =
+                buildMap {
+                    put(META_RECEIVER_ID, receiverId.orEmpty())
+                    putAll(extraMetadata)
+                },
         )
-        if (participantPhones.isNotEmpty()) {
-            payload[FIELD_PARTICIPANT_PHONES] = participantPhones.toList()
-        }
-        if (updatedRoles.isNotEmpty()) {
-            payload[FIELD_ROLES] = updatedRoles
-        }
-        if (snapshot?.exists != true) {
-            payload[FIELD_CREATED_AT] = FieldValue.serverTimestamp
-            payload[FIELD_CREATED_BY] = userId
-        }
-        conversationRef.set(payload, merge = true)
+    }
 
-        ensureParticipantDocument(
-            conversationRef = conversationRef,
-            userId = userId,
-            role = OWNER_ROLE,
-            normalizedPhone = userPhone.asNormalizedPhone(),
-        )
-
-        peer?.firebaseUid?.takeIf { it.isNotBlank() }?.let { peerUid ->
-            ensureParticipantDocument(
-                conversationRef = conversationRef,
-                userId = peerUid,
-                role = MEMBER_ROLE,
-                normalizedPhone = peer.phoneNumber.asNormalizedPhone(),
-            )
+    private fun MessageDraft.toTransportPayload(
+        senderId: String,
+        timestamp: Long,
+        content: String,
+        status: String,
+    ): Map<String, Any?> {
+        val messageType = contentType.toTransportType()
+        return buildMap {
+            put(FIELD_SENDER_ID, senderId)
+            put(FIELD_RECEIVER_ID, conversationId)
+            put(FIELD_TIMESTAMP, FieldValue.serverTimestamp)
+            put(FIELD_TIMESTAMP_LONG, timestamp)
+            put(FIELD_TYPE, messageType)
+            put(FIELD_CONTENT, content)
+            put(FIELD_STATUS, status)
         }
     }
 
-    private suspend fun ensureParticipantDocument(
-        conversationRef: DocumentReference,
-        userId: String,
-        role: String,
-        normalizedPhone: String?,
-    ) {
-        val participantRef = conversationRef.collection(PARTICIPANTS_COLLECTION).document(userId)
-        val snapshot = runCatching { participantRef.get() }.getOrNull()
-        if (snapshot?.exists == true) return
-        val payload = mutableMapOf<String, Any?>(
-            FIELD_USER_ID to userId,
-            FIELD_ROLE to role,
-            FIELD_JOINED_AT to FieldValue.serverTimestamp,
-        )
-        normalizedPhone?.let { payload[FIELD_PHONE_NUMBER] = it }
-        participantRef.set(payload, merge = true)
+    private fun String?.toMessageContentType(): MessageContentType =
+        when (this?.lowercase()) {
+            "image" -> MessageContentType.Image
+            "audio" -> MessageContentType.Audio
+            else -> MessageContentType.Text
+        }
+
+    private fun MessageContentType.toTransportType(): String =
+        when (this) {
+            MessageContentType.Image -> "image"
+            MessageContentType.Audio -> "audio"
+            else -> "text"
+        }
+
+    private fun String?.toMessageStatus(): MessageStatus =
+        when (this?.lowercase()) {
+            "pending" -> MessageStatus.SENDING
+            "delivered" -> MessageStatus.DELIVERED
+            else -> MessageStatus.SENT
+        }
+
+    private fun MessageContentType.isMedia(): Boolean =
+        this == MessageContentType.Image || this == MessageContentType.Audio
+
+    private suspend fun uploadMediaIfNeeded(
+        draft: MessageDraft,
+        senderId: String,
+        timestamp: Long,
+    ): MediaUpload? {
+        if (!draft.contentType.isMedia()) return null
+        val localPath = draft.body
+        val bytes = MediaFileStore.readBytes(localPath) ?: error("Missing media at $localPath")
+        val extension =
+            when (draft.contentType) {
+                MessageContentType.Image -> "jpg"
+                MessageContentType.Audio -> "m4a"
+                else -> "bin"
+            }
+        val objectPath = "messages/${draft.conversationId}/${senderId}_${timestamp}.$extension"
+        val downloadUrl = storage.uploadBytes(objectPath, bytes)
+        return MediaUpload(downloadUrl = downloadUrl, objectPath = objectPath)
     }
 
-    private fun String?.asNormalizedPhone(): String? =
-        this?.let(::normalizePhoneNumber)?.takeIf { it.isNotBlank() }
+    private suspend fun downloadMediaToLocal(
+        remoteUrl: String,
+        contentType: MessageContentType,
+    ): String {
+        val bytes = storage.downloadBytes(remoteUrl, MAX_DOWNLOAD_BYTES)
+        val extension =
+            when (contentType) {
+                MessageContentType.Image -> "jpg"
+                MessageContentType.Audio -> "m4a"
+                else -> "bin"
+            }
+        return MediaFileStore.saveBytes(prefix = "msg_", extension = extension, data = bytes)
+    }
 
-    @Serializable
-    private data class ConversationDoc(
-        val conversation_id: String? = null,
-        val participant_uids: List<String>? = null,
-        val participant_phones: List<String>? = null,
-        val roles: Map<String, String>? = null,
-        val created_by: String? = null,
+    private suspend fun deleteRemoteMessage(
+        recipientId: String,
+        documentId: String,
+        payload: TransportMessageDoc,
+        deleteMedia: Boolean,
+    ) {
+        runCatching<Unit> { inboundMessagesCollection(recipientId).document(documentId).delete() }
+        if (deleteMedia && payload.isMediaMessage()) {
+            payload.content?.let { url ->
+                runCatching<Unit> { storage.deleteRemote(url) }
+            }
+        } else {
+        }
+    }
+
+    private fun TransportMessageDoc.isMediaMessage(): Boolean {
+        val normalized = type?.lowercase() ?: return false
+        return normalized == "image" || normalized == "audio"
+    }
+
+    private data class MediaUpload(
+        val downloadUrl: String,
+        val objectPath: String,
     )
 
-    private fun MessageDraft.resolveDocumentId(): String =
-        localId.takeIf { it.isNotBlank() } ?: randomDocumentId()
+    private fun Throwable.isPermissionDenied(): Boolean =
+        (this.message ?: "").contains("PERMISSION_DENIED", ignoreCase = true)
 
-    private fun MessageDraft.toFirestorePayload(): Map<String, Any?> =
-        buildMap {
-            put(FIELD_CONVERSATION_ID, conversationId)
-            put(FIELD_SENDER_ID, senderId)
-            put(FIELD_BODY, body)
-            if (ciphertext != null) put(FIELD_CIPHERTEXT, ciphertext)
-            put(FIELD_CREATED_AT, createdAt.takeIf { it != 0L } ?: FieldValue.serverTimestamp)
-            put(FIELD_STATUS, MessageStatus.SENT.name)
-            put(FIELD_LOCAL_TEMP_ID, localId)
-            put(FIELD_CONTENT_TYPE, contentType.name)
-            if (replyToMessageId != null) put(FIELD_REPLY_TO_MESSAGE_ID, replyToMessageId)
-            if (threadRootId != null) put(FIELD_THREAD_ROOT_ID, threadRootId)
-            if (attachments.isNotEmpty()) put(FIELD_ATTACHMENTS, encodeAttachments(attachments))
-            if (metadata.isNotEmpty()) put(FIELD_METADATA, encodeMetadata(metadata))
-            put(FIELD_SERVER_ACK_AT, FieldValue.serverTimestamp)
-        }
-
-    private fun MessageDraft.toFallbackMessage(serverId: String): Message =
-        Message(
-            id = serverId,
-            conversationId = conversationId,
-            senderId = senderId,
-            body = body,
-            createdAt = createdAt,
-            status = MessageStatus.SENT,
-            localTempId = localId,
-            contentType = contentType,
-            ciphertext = ciphertext,
-            attachments = attachments,
-            replyToMessageId = replyToMessageId,
-            threadRootId = threadRootId,
-            metadata = metadata,
-        )
-
-    private fun DocumentSnapshot.toMessageOrNull(): Message? {
-        val doc = runCatching { data(MessageDoc.serializer()) }.getOrNull() ?: return null
-        val conversationId = doc.conversationId().orEmpty()
-        if (conversationId.isBlank()) return null
-
-        val status =
-            doc.status?.let { runCatching { MessageStatus.valueOf(it) }.getOrDefault(MessageStatus.SENT) }
-                ?: MessageStatus.SENT
-        val contentType =
-            doc.contentType()?.let { runCatching { MessageContentType.valueOf(it) }.getOrDefault(MessageContentType.Text) }
-                ?: MessageContentType.Text
-
-        return Message(
-            id = id.ifBlank { doc.localTempId().orEmpty() },
-            conversationId = conversationId,
-            senderId = doc.senderId().orEmpty(),
-            body = doc.body.orEmpty(),
-            createdAt = doc.createdAtMillis() ?: 0L,
-            status = status,
-            localTempId = doc.localTempId(),
-            messageSeq = doc.messageSeq(),
-            serverAckAt = doc.serverAckAtMillis(),
-            contentType = contentType,
-            ciphertext = doc.ciphertext,
-            attachments = decodeAttachments(doc.attachments),
-            replyToMessageId = doc.replyToMessageId(),
-            threadRootId = doc.threadRootId(),
-            editedAt = doc.editedAtMillis(),
-            deletedForAllAt = doc.deletedForAllAtMillis(),
-            metadata = decodeMetadata(doc.metadata),
-        )
+    private fun log(message: String) {
+        println("$COMM_TAG: $message")
     }
-
-    private fun encodeAttachments(attachments: List<AttachmentRef>): String =
-        json.encodeToString(attachmentsSerializer, attachments.map { it.toPayload() })
-
-    private fun decodeAttachments(raw: String?): List<AttachmentRef> =
-        raw?.takeIf { it.isNotBlank() }
-            ?.let { runCatching { json.decodeFromString(attachmentsSerializer, it) }.getOrNull() }
-            ?.map { it.toDomain() }
-            ?: emptyList()
-
-    private fun encodeMetadata(metadata: Map<String, String>): String =
-        json.encodeToString(metadataSerializer, metadata)
-
-    private fun decodeMetadata(raw: String?): Map<String, String> =
-        raw?.takeIf { it.isNotBlank() }
-            ?.let { runCatching { json.decodeFromString(metadataSerializer, it) }.getOrDefault(emptyMap()) }
-            ?: emptyMap()
-
-    @Serializable
-    private data class MessageDoc(
-        val conversation_id: String? = null,
-        val sender_id: String? = null,
-        val body: String? = null,
-        val created_at: Timestamp? = null,
-        val created_at_long: Long? = null,
-        val status: String? = null,
-        val local_temp_id: String? = null,
-        val message_seq: Long? = null,
-        val server_ack_at: Timestamp? = null,
-        val server_ack_at_long: Long? = null,
-        val content_type: String? = null,
-        val ciphertext: String? = null,
-        val attachments: String? = null,
-        val reply_to_message_id: String? = null,
-        val thread_root_id: String? = null,
-        val edited_at: Timestamp? = null,
-        val deleted_for_all_at: Timestamp? = null,
-        val metadata: String? = null,
-    ) {
-        fun conversationId(): String? = conversation_id
-        fun senderId(): String? = sender_id
-        fun createdAtMillis(): Long? = created_at?.toMilliseconds()?.toLong() ?: created_at_long
-        fun serverAckAtMillis(): Long? = server_ack_at?.toMilliseconds()?.toLong() ?: server_ack_at_long
-        fun editedAtMillis(): Long? = edited_at?.toMilliseconds()?.toLong()
-        fun deletedForAllAtMillis(): Long? = deleted_for_all_at?.toMilliseconds()?.toLong()
-        fun contentType(): String? = content_type
-        fun localTempId(): String? = local_temp_id
-        fun messageSeq(): Long? = message_seq
-        fun replyToMessageId(): String? = reply_to_message_id
-        fun threadRootId(): String? = thread_root_id
-    }
-
-    private fun Timestamp?.asEpochMillis(): Long? = this?.let { (seconds * 1_000L) + (nanoseconds / 1_000_000L) }
-
-    @kotlinx.serialization.Serializable
-    private data class AttachmentPayload(
-        val objectKey: String,
-        val mimeType: String,
-        val sizeBytes: Long,
-        val thumbnailKey: String? = null,
-        val cipherInfo: CipherInfoPayload? = null,
-    ) {
-        fun toDomain(): AttachmentRef =
-            AttachmentRef(
-                objectKey = objectKey,
-                mimeType = mimeType,
-                sizeBytes = sizeBytes,
-                thumbnailKey = thumbnailKey,
-                cipherInfo = cipherInfo?.toDomain(),
-            )
-    }
-
-    @kotlinx.serialization.Serializable
-    private data class CipherInfoPayload(
-        val algorithm: String,
-        val keyId: String,
-        val nonce: String,
-        val associatedData: String? = null,
-    ) {
-        fun toDomain(): CipherInfo =
-            CipherInfo(
-                algorithm = algorithm,
-                keyId = keyId,
-                nonce = nonce,
-                associatedData = associatedData,
-            )
-    }
-
-    private fun AttachmentRef.toPayload(): AttachmentPayload =
-        AttachmentPayload(
-            objectKey = objectKey,
-            mimeType = mimeType,
-            sizeBytes = sizeBytes,
-            thumbnailKey = thumbnailKey,
-            cipherInfo = cipherInfo?.toPayload(),
-        )
-
-    private fun CipherInfo.toPayload(): CipherInfoPayload =
-        CipherInfoPayload(
-            algorithm = algorithm,
-            keyId = keyId,
-            nonce = nonce,
-            associatedData = associatedData,
-        )
 
     private companion object {
-        const val FIELD_CONVERSATION_ID = "conversation_id"
-        const val FIELD_SENDER_ID = "sender_id"
-        const val FIELD_BODY = "body"
-        const val FIELD_CREATED_AT = "created_at"
+        const val FIELD_SENDER_ID = "senderId"
+        const val FIELD_RECEIVER_ID = "receiverId"
+        const val FIELD_TIMESTAMP = "timestamp"
+        const val FIELD_TIMESTAMP_LONG = "timestamp_long"
+        const val FIELD_TYPE = "type"
+        const val FIELD_CONTENT = "content"
         const val FIELD_STATUS = "status"
-        const val FIELD_LOCAL_TEMP_ID = "local_temp_id"
-        const val FIELD_MESSAGE_SEQ = "message_seq"
-        const val FIELD_SERVER_ACK_AT = "server_ack_at"
-        const val FIELD_CONTENT_TYPE = "content_type"
-        const val FIELD_CIPHERTEXT = "ciphertext"
-        const val FIELD_ATTACHMENTS = "attachments"
-        const val FIELD_REPLY_TO_MESSAGE_ID = "reply_to_message_id"
-        const val FIELD_THREAD_ROOT_ID = "thread_root_id"
-        const val FIELD_EDITED_AT = "edited_at"
-        const val FIELD_DELETED_FOR_ALL_AT = "deleted_for_all_at"
-        const val FIELD_METADATA = "metadata"
-        const val FIELD_PARTICIPANT_UIDS = "participant_uids"
-        const val FIELD_PARTICIPANT_PHONES = "participant_phones"
-        const val FIELD_ROLES = "roles"
-        const val FIELD_USER_ID = "user_id"
-        const val FIELD_ROLE = "role"
-        const val FIELD_JOINED_AT = "joined_at"
-        const val FIELD_PHONE_NUMBER = "phone_number"
-        const val FIELD_CREATED_BY = "created_by"
-
-        val attachmentsSerializer = ListSerializer(AttachmentPayload.serializer())
-        val metadataSerializer = MapSerializer(String.serializer(), String.serializer())
-
-        const val PARTICIPANTS_COLLECTION = "participants"
-        const val OWNER_ROLE = "owner"
-        const val MEMBER_ROLE = "member"
+        const val FIELD_CREATED_AT = "created_at"
+        const val STATUS_PENDING = "pending"
+        const val STATUS_DELIVERED = "delivered"
+        const val META_REMOTE_URL = "remoteUrl"
+        const val META_LOCAL_PATH = "localPath"
+        const val META_RECEIVER_ID = "receiverId"
+        const val STORAGE_BUCKET = "gs://livechat-3ad1d.firebasestorage.app"
+        const val MAX_DOWNLOAD_BYTES = 20L * 1024L * 1024L
     }
 }
-    private fun randomDocumentId(): String {
-        val alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
-        return buildString(20) {
-            repeat(20) {
-                append(alphabet[Random.nextInt(alphabet.length)])
-            }
-        }
-    }
+
+@Serializable
+private data class TransportMessageDoc(
+    val senderId: String? = null,
+    val receiverId: String? = null,
+    val timestamp: Timestamp? = null,
+    val timestamp_long: Long? = null,
+    val type: String? = null,
+    val content: String? = null,
+    val status: String? = null,
+)

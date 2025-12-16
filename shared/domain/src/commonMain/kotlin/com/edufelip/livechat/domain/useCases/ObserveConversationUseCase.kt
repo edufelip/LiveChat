@@ -13,4 +13,6 @@ class ObserveConversationUseCase(
     ): Flow<List<Message>> {
         return messagesRepository.observeConversation(conversationId, pageSize)
     }
+
+    fun observeAll(): Flow<List<Message>> = messagesRepository.observeAllIncomingMessages()
 }
