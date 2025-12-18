@@ -21,6 +21,8 @@ import com.edufelip.livechat.ui.features.conversations.detail.rememberPermission
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberConversationPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
+import com.edufelip.livechat.domain.utils.currentEpochMillis
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -39,7 +41,10 @@ fun ConversationDetailRoute(
             currentUserId = "preview-user",
             onSendMessage = {},
             isRecording = false,
-            onToggleRecording = {},
+            recordingDurationMillis = 0L,
+            onStartRecording = {},
+            onCancelRecording = {},
+            onSendRecording = {},
             onPickImage = {},
             onTakePhoto = {},
             onBack = {},
@@ -59,6 +64,7 @@ fun ConversationDetailRoute(
     val permissionViewModel = rememberPermissionViewModel()
     val permissionUiState by permissionViewModel.uiState.collectAsState()
     var isRecording by androidx.compose.runtime.remember { mutableStateOf(false) }
+    var recordingDurationMillis by androidx.compose.runtime.remember { mutableStateOf(0L) }
 
     LaunchedEffect(permissionViewModel) {
         permissionViewModel.events.collect { event ->
@@ -91,6 +97,16 @@ fun ConversationDetailRoute(
         )
     }
 
+    LaunchedEffect(isRecording) {
+        if (!isRecording) return@LaunchedEffect
+        val startedAt = currentEpochMillis()
+        recordingDurationMillis = 0L
+        while (isRecording) {
+            recordingDurationMillis = currentEpochMillis() - startedAt
+            delay(250)
+        }
+    }
+
     ConversationDetailScreen(
         modifier = modifier,
         state = state,
@@ -98,36 +114,49 @@ fun ConversationDetailRoute(
         currentUserId = currentUserId,
         onSendMessage = { body -> presenter.sendMessage(body) },
         isRecording = isRecording,
-        onToggleRecording = {
+        recordingDurationMillis = recordingDurationMillis,
+        onStartRecording = {
             scope.launch {
-                if (isRecording) {
-                    val path = mediaController.stopAudioRecording()
-                    isRecording = false
-                    path?.let { presenter.sendAudio(it) }
-                } else {
-                    when (val result = mediaController.startAudioRecording()) {
-                        is MediaResult.Success -> {
-                            isRecording = true
-                            permissionViewModel.clearAll()
-                        }
-                        is MediaResult.Permission -> {
-                            isRecording = false
-                            permissionViewModel.handlePermission(
-                                status = result.status,
-                                hint = "Microphone permission is required to record audio.",
-                                dialog = "Microphone permission is blocked. Please enable it in Settings.",
-                            )
-                        }
-                        MediaResult.Cancelled -> {
-                            isRecording = false
-                            permissionViewModel.clearAll()
-                        }
-                        is MediaResult.Error -> {
-                            isRecording = false
-                            permissionViewModel.onError(result.message ?: "Unable to start recording.")
-                        }
+                if (isRecording) return@launch
+                when (val result = mediaController.startAudioRecording()) {
+                    is MediaResult.Success -> {
+                        isRecording = true
+                        permissionViewModel.clearAll()
+                    }
+                    is MediaResult.Permission -> {
+                        isRecording = false
+                        permissionViewModel.handlePermission(
+                            status = result.status,
+                            hint = "Microphone permission is required to record audio.",
+                            dialog = "Microphone permission is blocked. Please enable it in Settings.",
+                        )
+                    }
+                    MediaResult.Cancelled -> {
+                        isRecording = false
+                        permissionViewModel.clearAll()
+                    }
+                    is MediaResult.Error -> {
+                        isRecording = false
+                        permissionViewModel.onError(result.message ?: "Unable to start recording.")
                     }
                 }
+            }
+        },
+        onCancelRecording = {
+            scope.launch {
+                if (!isRecording) return@launch
+                mediaController.stopAudioRecording()
+                isRecording = false
+                recordingDurationMillis = 0L
+            }
+        },
+        onSendRecording = {
+            scope.launch {
+                if (!isRecording) return@launch
+                val path = mediaController.stopAudioRecording()
+                isRecording = false
+                recordingDurationMillis = 0L
+                path?.let { presenter.sendAudio(it) }
             }
         },
         onPickImage = {

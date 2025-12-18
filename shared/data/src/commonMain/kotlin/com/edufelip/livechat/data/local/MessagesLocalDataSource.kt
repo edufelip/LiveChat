@@ -5,6 +5,7 @@ import com.edufelip.livechat.data.mappers.toDomain
 import com.edufelip.livechat.data.mappers.toEntity
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.models.Participant
 import com.edufelip.livechat.domain.models.ParticipantRole
@@ -142,6 +143,9 @@ class MessagesLocalDataSource(
 
     private fun ConversationSummaryRow.toConversationSummary(): ConversationSummary {
         val statusEnum = runCatching { MessageStatus.valueOf(status) }.getOrDefault(MessageStatus.SENT)
+        val contentTypeEnum =
+            runCatching { MessageContentType.valueOf(contentType ?: MessageContentType.Text.name) }
+                .getOrDefault(MessageContentType.Text)
         val lastMessage =
             Message(
                 id = messageId,
@@ -150,6 +154,7 @@ class MessagesLocalDataSource(
                 body = body,
                 createdAt = createdAt,
                 status = statusEnum,
+                contentType = contentTypeEnum,
                 localTempId = null,
             )
         val muteValue = muteUntil

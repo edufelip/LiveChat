@@ -246,6 +246,7 @@ class ConversationPresenter(
         if (body.isBlank()) return
         val conversationId = _uiState.value.conversationId
         if (conversationId.isBlank()) return
+        if (_uiState.value.isSending) return
 
         scope.launch {
             val senderId = userSessionProvider.currentUserId()
