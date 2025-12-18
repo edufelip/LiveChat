@@ -1,96 +1,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function conversationPath(conversationId) {
-      return /databases/$(database)/documents/conversations/$(conversationId);
+    function isInboxOwner(conversationId) {
+      return request.auth != null && request.auth.uid == conversationId;
     }
 
-    function conversationDoc(conversationId) {
-      return get(conversationPath(conversationId));
-    }
-
-    function isConversationMember(conversationId) {
-      return request.auth != null && (
-        exists(/databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid)) ||
-        (
-          exists(conversationPath(conversationId)) &&
-          conversationDoc(conversationId).data.participant_uids != null &&
-          conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid])
-        ) ||
-        conversationDoc(conversationId).data.created_by == request.auth.uid
-      );
-    }
-
-    function participantRole(conversationId) {
-      return isConversationMember(conversationId)
-        ? conversationDoc(conversationId).data.roles[request.auth.uid]
-        : null;
+    function isValidMessage(data, conversationId) {
+      return data.sender_id is string
+        && data.receiver_id == conversationId
+        && data.type in ['text', 'image', 'audio']
+        && data.content is string
+        && data.status in ['pending', 'delivered']
+        && data.created_at is timestamp
+        && (!('created_at_ms' in data) || data.created_at_ms is int);
     }
 
     match /conversations/{conversationId} {
-      allow read: if isConversationMember(conversationId);
-      allow create: if request.auth != null;
-      allow update, delete:
-        if participantRole(conversationId) in ['owner', 'admin'] ||
-           conversationDoc(conversationId).data.created_by == request.auth.uid ||
-           conversationDoc(conversationId).data.participant_uids.hasAny([request.auth.uid]);
-
-      match /participants/{userId} {
-        allow read: if isConversationMember(conversationId);
-        allow create:
-          if request.auth != null && (
-            request.auth.uid == userId ||
-            conversationDoc(conversationId).data.created_by == request.auth.uid ||
-            (
-              conversationDoc(conversationId).data.participant_uids != null &&
-              conversationDoc(conversationId).data.participant_uids.hasAny([userId])
-            )
-          );
-        allow update, delete:
-          if request.auth != null &&
-            (request.auth.uid == userId || participantRole(conversationId) == 'owner');
-      }
+      // Conversation ID is the recipient user ID.
+      allow read: if isInboxOwner(conversationId);
+      allow create, update: if request.auth != null;
+      allow delete: if isInboxOwner(conversationId);
 
       match /messages/{messageId} {
-        allow read: if isConversationMember(conversationId);
+        // Only the inbox owner can read or delete.
+        allow read, delete: if isInboxOwner(conversationId);
 
+        // Any authenticated sender can enqueue a message to a recipient inbox.
         allow create:
-          if isConversationMember(conversationId)
+          if request.auth != null
             && request.resource.data.sender_id == request.auth.uid
-            && request.resource.data.created_at is int
-            && request.resource.data.status in ['SENDING','SENT','DELIVERED','READ','ERROR']
-            && (!('content_type' in request.resource.data) || request.resource.data.content_type is string)
-            && (!('ciphertext' in request.resource.data) || request.resource.data.ciphertext is string)
-            && (!('attachments' in request.resource.data) || request.resource.data.attachments is list)
-            && (!('metadata' in request.resource.data) || request.resource.data.metadata is map);
-
-        allow update:
-          if isConversationMember(conversationId)
-            && (request.auth.uid == resource.data.sender_id || participantRole(conversationId) in ['owner','admin'])
-            && request.resource.data.sender_id == resource.data.sender_id
-            && request.resource.data.conversation_id == resource.data.conversation_id
-            && request.resource.data.created_at == resource.data.created_at;
-
-        allow delete:
-          if request.auth.uid == resource.data.sender_id
-            || participantRole(conversationId) in ['owner','admin'];
-      }
-
-      match /receipts/{receiptId} {
-        allow read: if isConversationMember(conversationId);
-        allow write: if isConversationMember(conversationId)
-          && request.resource.data.user_id == request.auth.uid
-          && request.resource.data.message_seq is int
-          && request.resource.data.delivered_at is int
-          && (!('read_at' in request.resource.data) || request.resource.data.read_at is int);
-      }
-
-      match /reactions/{reactionId} {
-        allow read: if isConversationMember(conversationId);
-        allow write: if isConversationMember(conversationId)
-          && request.resource.data.user_id == request.auth.uid
-          && request.resource.data.message_seq is int
-          && request.resource.data.emoji is string;
+            && isValidMessage(request.resource.data, conversationId);
       }
     }
   }

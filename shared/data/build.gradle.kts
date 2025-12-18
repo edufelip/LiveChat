@@ -1,5 +1,6 @@
 import org.gradle.api.JavaVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
@@ -106,6 +107,16 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        val localProps = Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localProps.load(localPropsFile.inputStream())
+        }
+        val storageBucketUrl =
+            (localProps.getProperty("storage.bucket.url")
+                ?: System.getenv("STORAGE_BUCKET_URL")
+                ?: "")
+        buildConfigField("String", "STORAGE_BUCKET_URL", "\"$storageBucketUrl\"")
     }
 
     compileOptions {

@@ -28,11 +28,13 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ComposerBar(
     isSending: Boolean,
+    errorMessage: String? = null,
     onSend: (String) -> Unit,
     isRecording: Boolean,
-    onToggleRecording: () -> Unit,
+    onStartRecording: () -> Unit,
     onPickImage: () -> Unit = {},
     onTakePhoto: () -> Unit = {},
+    onErrorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
@@ -60,8 +62,8 @@ fun ComposerBar(
                 Icon(imageVector = AppIcons.camera, contentDescription = "Take photo")
             }
             FilledIconButton(
-                enabled = !isSending,
-                onClick = onToggleRecording,
+                enabled = !isSending && !isRecording,
+                onClick = onStartRecording,
             ) {
                 val icon = if (isRecording) AppIcons.stop else AppIcons.mic
                 val description = if (isRecording) "Stop recording" else "Record audio"
@@ -93,6 +95,18 @@ fun ComposerBar(
                         },
                     ),
             )
+            if (!errorMessage.isNullOrBlank()) {
+                FilledIconButton(
+                    enabled = true,
+                    onClick = { onErrorClick?.invoke() },
+                ) {
+                    Icon(
+                        imageVector = AppIcons.error,
+                        contentDescription = "Message failed",
+                        tint = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
             FilledIconButton(
                 enabled = sendEnabled,
                 onClick = {
@@ -114,6 +128,12 @@ fun ComposerBar(
 @Composable
 private fun ComposerBarPreview() {
     LiveChatPreviewContainer {
-        ComposerBar(isSending = false, isRecording = false, onSend = {}, onToggleRecording = {})
+        ComposerBar(
+            isSending = false,
+            isRecording = false,
+            onSend = {},
+            onStartRecording = {},
+            errorMessage = "Failed to send",
+        )
     }
 }

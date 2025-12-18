@@ -32,6 +32,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun RowWithActions(
     title: String,
     subtitle: String,
+    subtitleContent: (@Composable () -> Unit)? = null,
     endContent: @Composable () -> Unit,
     onClick: () -> Unit,
     highlight: Boolean = false,
@@ -73,13 +74,17 @@ fun RowWithActions(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (subtitleContent != null) {
+                    subtitleContent()
+                } else {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
             endContent()
