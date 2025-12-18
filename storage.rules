@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Media uploaded for messages.
+    // Path convention: messages/{receiverId}/{senderId}/{timestamp}.{ext}
+    match /messages/{receiverId}/{senderId}/{fileName} {
+      allow read: if request.auth != null
+        && (request.auth.uid == receiverId || request.auth.uid == senderId);
+
+      // Only the sender uploads/updates their own media, bounded by a reasonable size limit.
+      allow create, update: if request.auth != null
+        && request.auth.uid == senderId
+        && request.resource.size < 25 * 1024 * 1024;
+
+      // Either party can delete media (recipient deletes after download in app logic).
+      allow delete: if request.auth != null
+        && (request.auth.uid == receiverId || request.auth.uid == senderId);
+    }
+
+    // Default-deny for everything else.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

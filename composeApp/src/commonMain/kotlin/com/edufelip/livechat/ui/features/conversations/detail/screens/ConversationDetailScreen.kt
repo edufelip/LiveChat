@@ -9,13 +9,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -51,7 +64,10 @@ fun ConversationDetailScreen(
     currentUserId: String,
     onSendMessage: (String) -> Unit,
     isRecording: Boolean,
-    onToggleRecording: () -> Unit,
+    recordingDurationMillis: Long,
+    onStartRecording: () -> Unit,
+    onCancelRecording: () -> Unit,
+    onSendRecording: () -> Unit,
     onPickImage: () -> Unit,
     onTakePhoto: () -> Unit,
     onBack: () -> Unit,
@@ -163,16 +179,23 @@ fun ConversationDetailScreen(
                 ErrorBanner(message = message, onDismiss = onDismissError)
             }
 
-            RecordingIndicator(isRecording = isRecording)
+            RecordingControlsBar(
+                isRecording = isRecording,
+                durationMillis = recordingDurationMillis,
+                onCancel = onCancelRecording,
+                onSend = onSendRecording,
+            )
             PermissionHint(hint = permissionHint)
 
             ComposerBar(
                 isSending = state.isSending,
+                errorMessage = state.errorMessage,
                 onSend = onSendMessage,
                 isRecording = isRecording,
-                onToggleRecording = onToggleRecording,
+                onStartRecording = onStartRecording,
                 onPickImage = onPickImage,
                 onTakePhoto = onTakePhoto,
+                onErrorClick = onDismissError,
             )
         }
     }
@@ -198,7 +221,10 @@ private fun ConversationMessagesList(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         contentPadding = PaddingValues(vertical = 12.dp),
     ) {
-        items(messages, key = Message::id) { message ->
+        items(
+            items = messages,
+            key = { message -> "${message.id}:${message.localTempId ?: message.createdAt}" },
+        ) { message ->
             MessageBubble(
                 message = message,
                 isOwn = message.senderId == currentUserId,
@@ -213,13 +239,48 @@ private fun ConversationMessagesList(
 }
 
 @Composable
-private fun RecordingIndicator(isRecording: Boolean) {
-    if (!isRecording) return
-    Text(
-        text = "Recording… tap stop to send",
-        color = MaterialTheme.colorScheme.error,
-        style = MaterialTheme.typography.bodyMedium,
-    )
+private fun RecordingControlsBar(
+    isRecording: Boolean,
+    durationMillis: Long,
+    onCancel: () -> Unit,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = isRecording,
+        enter = fadeIn() + slideInVertically { fullHeight -> -fullHeight / 2 },
+        exit = fadeOut() + slideOutVertically { fullHeight -> -fullHeight / 2 },
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onCancel) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "Cancel recording",
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = "Recording ${formatDurationMillis(durationMillis)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                FilledIconButton(onClick = onSend) {
+                    Icon(imageVector = AppIcons.confirm, contentDescription = "Send recording")
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -243,7 +304,10 @@ private fun ConversationDetailScreenPreview() {
             currentUserId = "preview-user",
             onSendMessage = {},
             isRecording = false,
-            onToggleRecording = {},
+            recordingDurationMillis = 0L,
+            onStartRecording = {},
+            onCancelRecording = {},
+            onSendRecording = {},
             onPickImage = {},
             onTakePhoto = {},
             onBack = {},
@@ -251,6 +315,13 @@ private fun ConversationDetailScreenPreview() {
             permissionHint = null,
         )
     }
+}
+
+private fun formatDurationMillis(millis: Long): String {
+    val totalSeconds = (millis / 1000).coerceAtLeast(0)
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%02d:%02d".format(minutes, seconds)
 }
 
 @DevicePreviews
@@ -276,7 +347,12 @@ private fun ConversationMessagesListPreview() {
 @Composable
 private fun RecordingIndicatorPreview() {
     LiveChatPreviewContainer {
-        RecordingIndicator(isRecording = true)
+        RecordingControlsBar(
+            isRecording = true,
+            durationMillis = 12_000,
+            onCancel = {},
+            onSend = {},
+        )
     }
 }
 

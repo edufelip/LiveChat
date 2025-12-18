@@ -8,7 +8,7 @@ import dev.gitlive.firebase.storage.referenceFromUrl
  * iOS implementation uses gitlive Firebase storage APIs.
  */
 actual suspend fun FirebaseStorage.uploadBytes(objectPath: String, data: ByteArray): String {
-    val ref = reference.child(objectPath)
+    val ref = referenceFromUrl(STORAGE_BUCKET_URL).child(objectPath)
     ref.putBytes(data)
     return ref.toString()
 }

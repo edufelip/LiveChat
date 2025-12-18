@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Mic
@@ -30,6 +31,7 @@ object AppIcons {
     val archive: ImageVector = Icons.Rounded.Archive
     val unarchive: ImageVector = Icons.Rounded.Unarchive
     val confirm: ImageVector = Icons.Rounded.CheckCircle
+    val error: ImageVector = Icons.Rounded.ErrorOutline
     val mic: ImageVector = Icons.Rounded.Mic
     val camera: ImageVector = Icons.Rounded.PhotoCamera
     val gallery: ImageVector = Icons.Rounded.Image
