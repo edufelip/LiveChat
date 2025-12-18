@@ -4,6 +4,7 @@ import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
+import com.edufelip.livechat.data.remote.STORAGE_BUCKET_URL
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
@@ -15,7 +16,7 @@ val firebaseBackendModule =
     module {
         single { Firebase.firestore }
         single { Firebase.functions }
-        single { Firebase.storage }
+        single { Firebase.storage(STORAGE_BUCKET_URL) }
         single<IContactsRemoteData> {
             FirebaseRestContactsRemoteData(
                 firestore = get(),

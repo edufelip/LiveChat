@@ -40,14 +40,12 @@ fun ConversationListScreen(
     onFilterSelected: (ConversationFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pinned =
+    val uniqueConversations =
         remember(state.conversations, state.searchQuery) {
-            state.conversations.filter { it.isPinned }
+            state.conversations.distinctBy { it.conversationId }
         }
-    val others =
-        remember(state.conversations, state.searchQuery) {
-            state.conversations.filterNot { it.isPinned }
-        }
+    val pinned = remember(uniqueConversations, state.searchQuery) { uniqueConversations.filter { it.isPinned } }
+    val others = remember(uniqueConversations, state.searchQuery) { uniqueConversations.filterNot { it.isPinned } }
     val selectedFilter = state.selectedFilter
 
     Column(
@@ -90,7 +88,7 @@ fun ConversationListScreen(
                 ) {
                     if (pinned.isNotEmpty() && selectedFilter != ConversationFilter.Pinned && selectedFilter != ConversationFilter.Archived) {
                         item { SectionHeader(title = "Pinned") }
-                        items(pinned, key = { it.conversationId }) { summary ->
+                        items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(
                                 summary = summary,
                                 onTogglePin = onTogglePin,
@@ -103,7 +101,7 @@ fun ConversationListScreen(
                             item { SectionHeader(title = "Others") }
                         }
                     }
-                    items(others, key = { it.conversationId }) { summary ->
+                    items(others, key = { "conv-${it.conversationId}" }) { summary ->
                         ConversationListRow(
                             summary = summary,
                             onTogglePin = onTogglePin,
@@ -113,7 +111,7 @@ fun ConversationListScreen(
                         )
                     }
                     if (selectedFilter == ConversationFilter.Pinned) {
-                        items(pinned, key = { it.conversationId }) { summary ->
+                        items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(
                                 summary = summary,
                                 onTogglePin = onTogglePin,

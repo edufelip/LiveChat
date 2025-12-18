@@ -12,6 +12,7 @@ import com.edufelip.livechat.domain.utils.currentEpochMillis
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.FirebaseFirestore
+import dev.gitlive.firebase.firestore.ServerTimestampBehavior
 import dev.gitlive.firebase.firestore.Timestamp
 import dev.gitlive.firebase.firestore.toMilliseconds
 import dev.gitlive.firebase.storage.FirebaseStorage
@@ -47,7 +48,7 @@ class FirebaseMessagesRemoteData(
                 snapshot.documents.forEach { document ->
                     val payload = document.toTransportMessageOrNull() ?: return@forEach
                     if (!payload.isAddressedTo(currentUserId)) return@forEach
-                    if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@forEach
+                    if (conversationId.isNotBlank() && payload.sender_id.orEmpty() != conversationId) return@forEach
 
                     val contentType = payload.type.toMessageContentType()
                     val remoteContent = payload.content.orEmpty()
@@ -59,14 +60,14 @@ class FirebaseMessagesRemoteData(
                         }
                     val extraMetadata =
                         buildMap {
-                            put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                            put(META_RECEIVER_ID, payload.receiver_id.orEmpty())
                             if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
                             if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
                         }
                     val message =
                         payload.toDomainMessage(
                             documentId = document.id,
-                            conversationId = payload.senderId.orEmpty(),
+                            conversationId = payload.sender_id.orEmpty(),
                             contentTypeOverride = contentType,
                             bodyOverride = mediaPath,
                             extraMetadata = extraMetadata,
@@ -104,7 +105,9 @@ class FirebaseMessagesRemoteData(
                     status = STATUS_PENDING,
                 )
 
-            outboundMessagesCollection(draft.conversationId).document(draft.conversationId).set(payload, merge = false)
+            val outboundCollection = outboundMessagesCollection(draft.conversationId)
+            val document = outboundCollection.document(draft.localId.ifBlank { timestamp.toString() })
+            document.set(payload, merge = false)
 
             val extraMetadata =
                 buildMap<String, String> {
@@ -116,7 +119,7 @@ class FirebaseMessagesRemoteData(
                 }
 
             Message(
-                id = draft.senderId,
+                id = document.id,
                 conversationId = draft.conversationId,
                 senderId = senderId,
                 body = draft.body,
@@ -161,7 +164,7 @@ class FirebaseMessagesRemoteData(
                 documents.mapNotNull { document ->
                     val payload = document.toTransportMessageOrNull() ?: return@mapNotNull null
                     if (!payload.isAddressedTo(currentUserId)) return@mapNotNull null
-                    if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@mapNotNull null
+                    if (conversationId.isNotBlank() && payload.sender_id.orEmpty() != conversationId) return@mapNotNull null
 
                     val contentType = payload.type.toMessageContentType()
                     val remoteContent = payload.content.orEmpty()
@@ -173,14 +176,14 @@ class FirebaseMessagesRemoteData(
                         }
                     val extraMetadata =
                         buildMap {
-                            put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                            put(META_RECEIVER_ID, payload.receiver_id.orEmpty())
                             if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
                             if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
                         }
                     val message =
                         payload.toDomainMessage(
                             documentId = document.id,
-                            conversationId = payload.senderId.orEmpty(),
+                            conversationId = payload.sender_id.orEmpty(),
                             contentTypeOverride = contentType,
                             bodyOverride = mediaPath,
                             extraMetadata = extraMetadata,
@@ -208,17 +211,22 @@ class FirebaseMessagesRemoteData(
             .collection(config.messagesCollection)
 
     private fun DocumentSnapshot.toTransportMessageOrNull(): TransportMessageDoc? =
-        runCatching { data(TransportMessageDoc.serializer()) }.getOrNull()
+        runCatching<TransportMessageDoc> {
+            data(
+                strategy = TransportMessageDoc.serializer(),
+                serverTimestampBehavior = ServerTimestampBehavior.NONE,
+            )
+        }.getOrNull()
 
     private fun TransportMessageDoc.isAddressedTo(userId: String): Boolean =
-        receiverId?.isNotBlank() == true && receiverId == userId
+        receiver_id?.isNotBlank() == true && receiver_id == userId
 
     private fun TransportMessageDoc.timestampMillis(): Long? =
-        timestamp?.toMilliseconds()?.toLong() ?: timestamp_long
+        created_at?.toMilliseconds()?.toLong() ?: created_at_ms
 
     private fun TransportMessageDoc.toDomainMessage(
         documentId: String,
-        conversationId: String = senderId.orEmpty(),
+        conversationId: String = sender_id.orEmpty(),
         contentTypeOverride: MessageContentType? = null,
         bodyOverride: String? = null,
         extraMetadata: Map<String, String> = emptyMap(),
@@ -226,18 +234,18 @@ class FirebaseMessagesRemoteData(
         val createdAt = timestampMillis() ?: currentEpochMillis()
         val contentType = contentTypeOverride ?: type.toMessageContentType()
         val status = status.toMessageStatus()
-        val resolvedConversationId = conversationId.takeIf { it.isNotBlank() } ?: senderId.orEmpty()
+        val resolvedConversationId = conversationId.takeIf { it.isNotBlank() } ?: sender_id.orEmpty()
         return Message(
             id = documentId,
             conversationId = resolvedConversationId,
-            senderId = senderId.orEmpty(),
+            senderId = sender_id.orEmpty(),
             body = bodyOverride ?: content.orEmpty(),
             createdAt = createdAt,
             status = status,
             contentType = contentType,
             metadata =
                 buildMap {
-                    put(META_RECEIVER_ID, receiverId.orEmpty())
+                    put(META_RECEIVER_ID, receiver_id.orEmpty())
                     putAll(extraMetadata)
                 },
         )
@@ -253,8 +261,8 @@ class FirebaseMessagesRemoteData(
         return buildMap {
             put(FIELD_SENDER_ID, senderId)
             put(FIELD_RECEIVER_ID, conversationId)
-            put(FIELD_TIMESTAMP, FieldValue.serverTimestamp)
-            put(FIELD_TIMESTAMP_LONG, timestamp)
+            put(FIELD_CREATED_AT, FieldValue.serverTimestamp)
+            put(FIELD_CREATED_AT_MS, timestamp)
             put(FIELD_TYPE, messageType)
             put(FIELD_CONTENT, content)
             put(FIELD_STATUS, status)
@@ -299,7 +307,7 @@ class FirebaseMessagesRemoteData(
                 MessageContentType.Audio -> "m4a"
                 else -> "bin"
             }
-        val objectPath = "messages/${draft.conversationId}/${senderId}_${timestamp}.$extension"
+        val objectPath = "messages/${draft.conversationId}/${senderId}/${timestamp}.$extension"
         val downloadUrl = storage.uploadBytes(objectPath, bytes)
         return MediaUpload(downloadUrl = downloadUrl, objectPath = objectPath)
     }
@@ -351,30 +359,28 @@ class FirebaseMessagesRemoteData(
     }
 
     private companion object {
-        const val FIELD_SENDER_ID = "senderId"
-        const val FIELD_RECEIVER_ID = "receiverId"
-        const val FIELD_TIMESTAMP = "timestamp"
-        const val FIELD_TIMESTAMP_LONG = "timestamp_long"
+        const val FIELD_SENDER_ID = "sender_id"
+        const val FIELD_RECEIVER_ID = "receiver_id"
+        const val FIELD_CREATED_AT = "created_at"
+        const val FIELD_CREATED_AT_MS = "created_at_ms"
         const val FIELD_TYPE = "type"
         const val FIELD_CONTENT = "content"
         const val FIELD_STATUS = "status"
-        const val FIELD_CREATED_AT = "created_at"
         const val STATUS_PENDING = "pending"
         const val STATUS_DELIVERED = "delivered"
         const val META_REMOTE_URL = "remoteUrl"
         const val META_LOCAL_PATH = "localPath"
         const val META_RECEIVER_ID = "receiverId"
-        const val STORAGE_BUCKET = "gs://livechat-3ad1d.firebasestorage.app"
         const val MAX_DOWNLOAD_BYTES = 20L * 1024L * 1024L
     }
 }
 
 @Serializable
 private data class TransportMessageDoc(
-    val senderId: String? = null,
-    val receiverId: String? = null,
-    val timestamp: Timestamp? = null,
-    val timestamp_long: Long? = null,
+    val sender_id: String? = null,
+    val receiver_id: String? = null,
+    val created_at: Timestamp? = null,
+    val created_at_ms: Long? = null,
     val type: String? = null,
     val content: String? = null,
     val status: String? = null,
