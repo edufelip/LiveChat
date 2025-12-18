@@ -105,6 +105,10 @@ android {
     namespace = "com.edufelip.livechat.shared.data"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
         val localProps = Properties()
