@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4F0F1C2C2C61B7F8008F12B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12A4 /* AppDelegate.swift */; };
 		4F0F1C2C2C61B7F8008F12B2 /* LiveChatCompose.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */; };
 		4F0F1C2C2C61B7F8008F12B3 /* LiveChatCompose.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4F0F1C2C2C61B7F8008F12C1 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */; };
+		7F0AD4BE2D45E3D700C6A1E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BD2D45E3D700C6A1E1 /* AppDelegate.swift */; };
+		7F0AD4C02D45E50C00C6A1E1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BF2D45E50C00C6A1E1 /* SceneDelegate.swift */; };
+		7F0AD4C22D45E5B500C6A1E1 /* LiveChatRootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4C12D45E5B500C6A1E1 /* LiveChatRootViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,11 +30,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4F0F1C2C2C61B7F8008F12A4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../composeApp/build/XCFrameworks/release/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
-		4F0F1C2C2C61B7F8008F12A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F0F1C2C2C61B7F8008F12AF /* LiveChatIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveChatIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		7F0AD4BD2D45E3D700C6A1E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/AppDelegate.swift; sourceTree = SOURCE_ROOT; };
+		7F0AD4BF2D45E50C00C6A1E1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/SceneDelegate.swift; sourceTree = SOURCE_ROOT; };
+		7F0AD4C12D45E5B500C6A1E1 /* LiveChatRootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/LiveChatRootViewController.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,20 +54,13 @@
 		4F0F1C2C2C61B7F8008F129F = {
 			isa = PBXGroup;
 			children = (
-				4F0F1C2C2C61B7F8008F12A3 /* LiveChatIOS */,
+				7F0AD4BD2D45E3D700C6A1E1 /* AppDelegate.swift */,
+				7F0AD4BF2D45E50C00C6A1E1 /* SceneDelegate.swift */,
+				7F0AD4C12D45E5B500C6A1E1 /* LiveChatRootViewController.swift */,
 				4F0F1C2C2C61B7F8008F12A8 /* Frameworks */,
 				4F0F1C2C2C61B7F8008F12A9 /* Products */,
 			);
 			sourceTree = "<group>";
-		};
-		4F0F1C2C2C61B7F8008F12A3 /* LiveChatIOS */ = {
-			isa = PBXGroup;
-			children = (
-				4F0F1C2C2C61B7F8008F12A4 /* AppDelegate.swift */,
-				4F0F1C2C2C61B7F8008F12A7 /* Info.plist */,
-			);
-			path = LiveChatIOS;
-			sourceTree = SOURCE_ROOT;
 		};
 		4F0F1C2C2C61B7F8008F12A8 /* Frameworks */ = {
 			isa = PBXGroup;
@@ -138,13 +134,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-	4F0F1C2C2C61B7F8008F12AC /* Resources */ = {
-		isa = PBXResourcesBuildPhase;
-		buildActionMask = 2147483647;
-		files = (
-		);
-		runOnlyForDeploymentPostprocessing = 0;
-	};
+		4F0F1C2C2C61B7F8008F12AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -152,7 +148,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4F0F1C2C2C61B7F8008F12B0 /* AppDelegate.swift in Sources */,
+				7F0AD4BE2D45E3D700C6A1E1 /* AppDelegate.swift in Sources */,
+				7F0AD4C02D45E50C00C6A1E1 /* SceneDelegate.swift in Sources */,
+				7F0AD4C22D45E5B500C6A1E1 /* LiveChatRootViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,7 +299,7 @@
 		4F0F1C2C2C61B7F8008F12B8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-			DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
@@ -327,7 +325,7 @@
 		4F0F1C2C2C61B7F8008F12B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-			DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
@@ -372,7 +370,6 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = 4F0F1C2C2C61B7F8008F12A0 /* Project object */;
 }
