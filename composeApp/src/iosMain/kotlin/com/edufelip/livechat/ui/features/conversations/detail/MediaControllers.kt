@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.edufelip.livechat.ui.features.conversations.detail
 
 import androidx.compose.runtime.Composable
@@ -9,28 +11,32 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import platform.AVFoundation.AVAudioRecorder
-import platform.AVFoundation.AVAudioSession
-import platform.AVFoundation.AVAudioSessionCategoryPlayAndRecord
-import platform.AVFoundation.AVAudioSessionModeDefault
-import platform.AVFoundation.AVAudioSessionRecordPermissionDenied
-import platform.AVFoundation.AVAudioSessionRecordPermissionGranted
-import platform.AVFoundation.AVAudioSessionRecordPermissionUndetermined
-import platform.AVFoundation.AVEncoderAudioQualityKey
-import platform.AVFoundation.AVFormatIDKey
-import platform.AVFoundation.AVNumberOfChannelsKey
-import platform.AVFoundation.AVSampleRateKey
 import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.AVAuthorizationStatusAuthorized
-import platform.AVFoundation.AVAuthorizationStatusDenied
-import platform.AVFoundation.AVAuthorizationStatusNotDetermined
-import platform.AVFoundation.AVAuthorizationStatusRestricted
-import platform.AVFoundation.kAudioFormatMPEG4AAC
+import platform.AVFAudio.AVAudioRecorder
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryPlayAndRecord
+import platform.AVFAudio.AVAudioSessionModeDefault
+import platform.AVFAudio.AVAudioSessionRecordPermissionDenied
+import platform.AVFAudio.AVAudioSessionRecordPermissionGranted
+import platform.AVFAudio.AVAudioSessionRecordPermissionUndetermined
+import platform.AVFAudio.AVEncoderAudioQualityKey
+import platform.AVFAudio.AVFormatIDKey
+import platform.AVFAudio.AVNumberOfChannelsKey
+import platform.AVFAudio.AVSampleRateKey
+import platform.AVFAudio.setActive
+import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.NSUUID
 import platform.Foundation.writeToFile
+import platform.AVFoundation.AVAuthorizationStatusAuthorized
+import platform.AVFoundation.AVAuthorizationStatusDenied
+import platform.AVFoundation.AVAuthorizationStatusNotDetermined
+import platform.AVFoundation.AVAuthorizationStatusRestricted
+import platform.AVFoundation.authorizationStatusForMediaType
+import platform.AVFoundation.requestAccessForMediaType
+import platform.Photos.PHAuthorizationStatus
 import platform.Photos.PHAuthorizationStatusAuthorized
 import platform.Photos.PHAuthorizationStatusDenied
 import platform.Photos.PHAuthorizationStatusLimited
@@ -45,12 +51,9 @@ import platform.UIKit.UIImagePickerController.Companion.isSourceTypeAvailable
 import platform.UIKit.UIImagePickerControllerDelegateProtocol
 import platform.UIKit.UIImagePickerControllerOriginalImage
 import platform.UIKit.UIImagePickerControllerSourceType
-import platform.UIKit.UIImagePickerControllerSourceTypeCamera
-import platform.UIKit.UIImagePickerControllerSourceTypePhotoLibrary
 import platform.UIKit.UINavigationControllerDelegateProtocol
 import platform.UIKit.UIViewController
-import platform.UIKit.dismissViewControllerAnimated
-import platform.UIKit.presentViewController
+import platform.UIKit.UIWindow
 import platform.darwin.NSObject
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
@@ -68,7 +71,10 @@ private class IosConversationMediaController : ConversationMediaController {
     override suspend fun pickImage(): MediaResult<String> {
         return when (ensurePhotoPermission()) {
             PermissionStatus.GRANTED -> {
-                val path = presentImagePicker(sourceType = UIImagePickerControllerSourceTypePhotoLibrary)
+                val path =
+                    presentImagePicker(
+                        sourceType = UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypePhotoLibrary,
+                    )
                 if (path != null) MediaResult.Success(path) else MediaResult.Cancelled
             }
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
@@ -79,7 +85,10 @@ private class IosConversationMediaController : ConversationMediaController {
     override suspend fun capturePhoto(): MediaResult<String> {
         return when (ensureCameraPermission()) {
             PermissionStatus.GRANTED -> {
-                val path = presentImagePicker(sourceType = UIImagePickerControllerSourceTypeCamera)
+                val path =
+                    presentImagePicker(
+                        sourceType = UIImagePickerControllerSourceType.UIImagePickerControllerSourceTypeCamera,
+                    )
                 if (path != null) MediaResult.Success(path) else MediaResult.Cancelled
             }
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
@@ -100,7 +109,7 @@ private class IosConversationMediaController : ConversationMediaController {
                             options = 0u,
                             error = null,
                         )
-                        session.setActive(true, error = null)
+                        session.setActive(active = true, withOptions = 0u, error = null)
                         val tempPath = (NSTemporaryDirectory() ?: "/tmp/") + "aud_${NSUUID().UUIDString}.m4a"
                         val settings = mapOf<Any?, Any?>(
                             AVFormatIDKey to kAudioFormatMPEG4AAC,
@@ -108,7 +117,12 @@ private class IosConversationMediaController : ConversationMediaController {
                             AVNumberOfChannelsKey to 1,
                             AVEncoderAudioQualityKey to 96,
                         )
-                        val recorderInstance = AVAudioRecorder(URL = NSURL.fileURLWithPath(tempPath), settings = settings, error = null)
+                        val recorderInstance =
+                            AVAudioRecorder(
+                                uRL = NSURL.fileURLWithPath(tempPath),
+                                settings = settings,
+                                error = null,
+                            )
                         if (recorderInstance == null || !recorderInstance.prepareToRecord()) return@withContext false
                         recorderInstance.record()
                         recorder = recorderInstance
@@ -170,7 +184,11 @@ private class IosConversationMediaController : ConversationMediaController {
 
     private fun currentRootController(): UIViewController? {
         val app = UIApplication.sharedApplication
-        return app.windows?.firstOrNull { it.isKeyWindow }?.rootViewController ?: app.keyWindow?.rootViewController
+        val window =
+            app.windows
+                ?.mapNotNull { it as? UIWindow }
+                ?.firstOrNull { it.isKeyWindow() }
+        return window?.rootViewController
     }
 
     private class PickerDelegate(
@@ -211,7 +229,7 @@ private suspend fun ensureMicPermission(): PermissionStatus {
         AVAudioSessionRecordPermissionGranted -> PermissionStatus.GRANTED
         AVAudioSessionRecordPermissionUndetermined -> {
             val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                session.requestRecordPermission { ok ->
+                session.requestRecordPermission { ok: Boolean ->
                     cont.resume(ok)
                 }
             }
@@ -226,10 +244,12 @@ private suspend fun ensureCameraPermission(): PermissionStatus {
     val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
     return when (status) {
         AVAuthorizationStatusAuthorized -> PermissionStatus.GRANTED
-        AVAuthorizationStatusDenied, AVAuthorizationStatusRestricted -> PermissionStatus.BLOCKED
+        AVAuthorizationStatusDenied,
+        AVAuthorizationStatusRestricted,
+        -> PermissionStatus.BLOCKED
         AVAuthorizationStatusNotDetermined -> {
             val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { ok ->
+                AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { ok: Boolean ->
                     cont.resume(ok)
                 }
             }
@@ -246,7 +266,7 @@ private suspend fun ensurePhotoPermission(): PermissionStatus {
         PHAuthorizationStatusDenied, PHAuthorizationStatusRestricted -> PermissionStatus.BLOCKED
         PHAuthorizationStatusNotDetermined -> {
             val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                PHPhotoLibrary.requestAuthorization { newStatus ->
+                PHPhotoLibrary.requestAuthorization { newStatus: PHAuthorizationStatus ->
                     cont.resume(
                         newStatus == PHAuthorizationStatusAuthorized ||
                             newStatus == PHAuthorizationStatusLimited,
