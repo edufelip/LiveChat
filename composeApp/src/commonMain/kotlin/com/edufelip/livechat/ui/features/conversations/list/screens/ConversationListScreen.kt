@@ -11,11 +11,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.edufelip.livechat.domain.models.ConversationFilter
+import com.edufelip.livechat.domain.models.ConversationListUiState
+import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -24,9 +27,6 @@ import com.edufelip.livechat.ui.components.molecules.EmptyState
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.features.conversations.list.components.ConversationListRow
 import com.edufelip.livechat.ui.theme.spacing
-import com.edufelip.livechat.domain.models.ConversationFilter
-import com.edufelip.livechat.domain.models.ConversationListUiState
-import com.edufelip.livechat.domain.models.ConversationSummary
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -86,7 +86,11 @@ fun ConversationListScreen(
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                     contentPadding = PaddingValues(bottom = MaterialTheme.spacing.xl),
                 ) {
-                    if (pinned.isNotEmpty() && selectedFilter != ConversationFilter.Pinned && selectedFilter != ConversationFilter.Archived) {
+                    if (
+                        pinned.isNotEmpty() &&
+                        selectedFilter != ConversationFilter.Pinned &&
+                        selectedFilter != ConversationFilter.Archived
+                    ) {
                         item { SectionHeader(title = "Pinned") }
                         items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(

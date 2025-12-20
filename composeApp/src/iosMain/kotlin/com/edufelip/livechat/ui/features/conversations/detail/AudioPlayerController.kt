@@ -4,12 +4,12 @@ package com.edufelip.livechat.ui.features.conversations.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioPlayerDelegateProtocol
@@ -17,8 +17,7 @@ import platform.Foundation.NSURL
 import platform.darwin.NSObject
 
 @Composable
-actual fun rememberAudioPlayerController(): AudioPlayerController =
-    remember { IosAudioPlayerController() }
+actual fun rememberAudioPlayerController(): AudioPlayerController = remember { IosAudioPlayerController() }
 
 private class IosAudioPlayerController : AudioPlayerController {
     private var player: AVAudioPlayer? = null
@@ -52,7 +51,10 @@ private class IosAudioPlayerController : AudioPlayerController {
             startProgressUpdates()
             instance.delegate =
                 object : NSObject(), AVAudioPlayerDelegateProtocol {
-                    override fun audioPlayerDidFinishPlaying(player: AVAudioPlayer, successfully: Boolean) {
+                    override fun audioPlayerDidFinishPlaying(
+                        player: AVAudioPlayer,
+                        successfully: Boolean,
+                    ) {
                         stopInternal()
                     }
                 }

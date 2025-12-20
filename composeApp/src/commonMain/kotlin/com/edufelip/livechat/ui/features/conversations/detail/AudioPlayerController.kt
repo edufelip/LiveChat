@@ -9,7 +9,9 @@ interface AudioPlayerController {
     val progress: StateFlow<Float>
     val durationMillis: StateFlow<Long>
     val positionMillis: StateFlow<Long>
+
     suspend fun play(path: String)
+
     suspend fun stop()
 }
 

@@ -3,17 +3,16 @@ package com.edufelip.livechat.ui.features.conversations.detail
 import android.media.MediaPlayer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-actual fun rememberAudioPlayerController(): AudioPlayerController =
-    remember { AndroidAudioPlayerController() }
+actual fun rememberAudioPlayerController(): AudioPlayerController = remember { AndroidAudioPlayerController() }
 
 private class AndroidAudioPlayerController : AudioPlayerController {
     private val player = MediaPlayer()
