@@ -4,7 +4,6 @@ import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDictionary
 import platform.Foundation.NSNumber
-import platform.Foundation.NSLocale
 import platform.Foundation.dictionaryWithContentsOfFile
 
 private const val DEFAULT_USERS_COLLECTION = "users"
@@ -70,9 +69,7 @@ fun loadFirebaseRestConfigFromPlist(
     val invitesCollection =
         (dictionary[INVITES_COLLECTION_KEY] as? String)
             ?: DEFAULT_INVITES_COLLECTION
-    val defaultRegionIso =
-        (dictionary[DEFAULT_REGION_ISO_KEY] as? String)
-            ?: NSLocale.currentLocale.countryCode
+    val defaultRegionIso = dictionary[DEFAULT_REGION_ISO_KEY] as? String
 
     return FirebaseRestConfig(
         projectId = projectId,

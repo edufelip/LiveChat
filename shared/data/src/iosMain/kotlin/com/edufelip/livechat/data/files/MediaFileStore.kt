@@ -1,16 +1,18 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+
 package com.edufelip.livechat.data.files
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.memcpy
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import platform.Foundation.NSData
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.create
 import platform.Foundation.writeToFile
+import platform.posix.memcpy
 import platform.posix.rand
 
 actual object MediaFileStore {
