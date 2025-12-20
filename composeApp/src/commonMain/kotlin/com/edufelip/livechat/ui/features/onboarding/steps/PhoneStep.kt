@@ -2,18 +2,14 @@ package com.edufelip.livechat.ui.features.onboarding.steps
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -48,90 +44,88 @@ internal fun PhoneStep(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(horizontal = MaterialTheme.spacing.xl)
+                .padding(
+                    top = MaterialTheme.spacing.xxxl,
+                    bottom = (MaterialTheme.spacing.xxxl + MaterialTheme.spacing.xxl) / 2,
+                ),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.Top),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Column(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = MaterialTheme.spacing.xl)
-                    .imePadding(),
-            contentPadding =
-                PaddingValues(
-                    top = MaterialTheme.spacing.xxxl,
-                    bottom = MaterialTheme.spacing.xxxl + MaterialTheme.spacing.xxl,
-                ),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.CenterVertically),
+                    .fillMaxWidth()
+                    .padding(top = MaterialTheme.spacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
-            item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
-                ) {
-                    Text(
-                        modifier = Modifier.padding(top = MaterialTheme.spacing.md),
-                        text = strings.phoneTitle,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = strings.phoneSubtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    )
-                }
-            }
-
-            item {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
-                    Surface(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable(onClick = onPickCountry),
-                        shape = RoundedCornerShape(16.dp),
-                        tonalElevation = 2.dp,
-                    ) {
-                        Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
-                            Text(
-                                text = selectedCountry.flag + " " + selectedCountry.name,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            Text(
-                                text = selectedCountry.dialCode,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = phoneNumber,
-                        onValueChange = onPhoneChanged,
-                        label = { Text(strings.phoneFieldLabel) },
-                        placeholder = { Text(strings.phoneFieldPlaceholder) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        supportingText = {
-                            if (phoneError != null) {
-                                Text(text = phoneError, color = MaterialTheme.colorScheme.error)
-                            } else {
-                                Spacer(modifier = Modifier.height(0.dp))
-                            }
-                        },
-                    )
-                }
-            }
+            Text(
+                text = strings.phoneTitle,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = strings.phoneSubtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            )
         }
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        ) {
+            Surface(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onPickCountry),
+                shape = RoundedCornerShape(16.dp),
+                tonalElevation = 2.dp,
+            ) {
+                Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
+                    Text(
+                        text = selectedCountry.flag + " " + selectedCountry.name,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        text = selectedCountry.dialCode,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = phoneNumber,
+                onValueChange = onPhoneChanged,
+                label = { Text(strings.phoneFieldLabel) },
+                placeholder = { Text(strings.phoneFieldPlaceholder) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = {
+                    if (phoneError != null) {
+                        Text(text = phoneError, color = MaterialTheme.colorScheme.error)
+                    } else {
+                        Spacer(modifier = Modifier.height(0.dp))
+                    }
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
 
         Button(
             modifier =
                 Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = MaterialTheme.spacing.xl, vertical = MaterialTheme.spacing.xxxl)
+                    .fillMaxWidth()
                     .heightIn(min = 48.dp),
             onClick = onContinue,
             enabled = phoneNumber.isNotBlank() && !isLoading,
