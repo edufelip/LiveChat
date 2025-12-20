@@ -1,7 +1,9 @@
 package com.edufelip.livechat.shared.data.database
 
+import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.RoomDatabaseConstructor
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 
@@ -15,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
     version = 2,
     exportSchema = true,
 )
+@ConstructedBy(LiveChatDatabaseConstructor::class)
 abstract class LiveChatDatabase : RoomDatabase() {
     abstract fun contactsDao(): ContactsDao
     abstract fun messagesDao(): MessagesDao
@@ -22,10 +25,12 @@ abstract class LiveChatDatabase : RoomDatabase() {
     abstract fun onboardingStatusDao(): OnboardingStatusDao
 }
 
+expect object LiveChatDatabaseConstructor : RoomDatabaseConstructor<LiveChatDatabase>
+
 fun RoomDatabase.Builder<LiveChatDatabase>.configureDefaults(): RoomDatabase.Builder<LiveChatDatabase> =
     this.setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(dropAllTables = false)
 
 fun buildLiveChatDatabase(builder: RoomDatabase.Builder<LiveChatDatabase>): LiveChatDatabase =
     builder.configureDefaults().build()

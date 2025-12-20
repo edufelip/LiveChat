@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.edufelip.livechat.shared.data.database
 
 import androidx.room.Room
