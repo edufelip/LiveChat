@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -25,6 +24,7 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.util.isDigitsOnly
+import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
@@ -45,7 +45,7 @@ internal fun OnboardingFlowScreen(
     var otp by rememberSaveable { mutableStateOf("") }
     var showCountryPicker by remember { mutableStateOf(false) }
     val inspectionMode = LocalInspectionMode.current
-    val context = LocalContext.current
+    val context = rememberPlatformContext()
 
     LaunchedEffect(phoneAuthState.session?.verificationId) {
         otp = ""
