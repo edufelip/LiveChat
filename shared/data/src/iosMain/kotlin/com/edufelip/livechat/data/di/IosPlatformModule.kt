@@ -2,7 +2,7 @@ package com.edufelip.livechat.data.di
 
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
-import com.edufelip.livechat.data.repositories.UnsupportedPhoneAuthRepository
+import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
@@ -31,7 +31,7 @@ fun iosPlatformModule(
         single<LiveChatDatabase> { buildLiveChatDatabase(createIosDatabaseBuilder()) }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
-        single<IPhoneAuthRepository> { UnsupportedPhoneAuthRepository() }
+        single<IPhoneAuthRepository> { FirebasePhoneAuthRepository() }
         single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 

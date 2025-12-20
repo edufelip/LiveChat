@@ -61,6 +61,7 @@ firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-common-kt = { module = "dev.gitlive:firebase-common", version.ref = "firebase-kotlin" }
 firebase-app-kt = { module = "dev.gitlive:firebase-app", version.ref = "firebase-kotlin" }
+firebase-auth-kt = { module = "dev.gitlive:firebase-auth", version.ref = "firebase-kotlin" }
 firebase-firestore-kt = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-kotlin" }
 firebase-functions-kt = { module = "dev.gitlive:firebase-functions", version.ref = "firebase-kotlin" }
 firebase-storage-kt = { module = "dev.gitlive:firebase-storage", version.ref = "firebase-kotlin" }
