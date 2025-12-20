@@ -1,5 +1,14 @@
 package com.edufelip.livechat.ui.app
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,44 +36,54 @@ fun LiveChatApp(
     onOpenSettingsSection: (SettingsNavigationRequest) -> Unit = {},
 ) {
     LiveChatTheme {
-        val contentModifier = modifier
-        if (LocalInspectionMode.current) {
-            HomeScreen(
-                modifier = contentModifier,
-                state = HomeUiState(),
-                onSelectTab = {},
-                onOpenConversation = { _, _ -> },
-                onStartConversationWithContact = { _, _ -> },
-                onShareInvite = onShareInvite,
-                onBackFromConversation = {},
-                phoneContactsProvider = phoneContactsProvider,
-                onOpenSettingsSection = onOpenSettingsSection,
-            )
-            return@LiveChatTheme
-        }
-
-        val presenter = rememberAppPresenter()
-        val state by presenter.collectState()
-
-        when (state.destination) {
-            AppDestination.Onboarding ->
-                OnboardingFlowScreen(
-                    modifier = contentModifier,
-                    onFinished = { presenter.onOnboardingFinished() },
-                )
-
-            is AppDestination.Home ->
+        Box(
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+        ) {
+            val contentModifier =
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+            if (LocalInspectionMode.current) {
                 HomeScreen(
                     modifier = contentModifier,
-                    state = state.home,
-                    onSelectTab = presenter::selectTab,
-                    onOpenConversation = presenter::openConversation,
-                    onStartConversationWithContact = presenter::startConversationWith,
+                    state = HomeUiState(),
+                    onSelectTab = {},
+                    onOpenConversation = { _, _ -> },
+                    onStartConversationWithContact = { _, _ -> },
                     onShareInvite = onShareInvite,
-                    onBackFromConversation = presenter::closeConversation,
+                    onBackFromConversation = {},
                     phoneContactsProvider = phoneContactsProvider,
                     onOpenSettingsSection = onOpenSettingsSection,
                 )
+                return@LiveChatTheme
+            }
+
+            val presenter = rememberAppPresenter()
+            val state by presenter.collectState()
+
+            when (state.destination) {
+                AppDestination.Onboarding ->
+                    OnboardingFlowScreen(
+                        modifier = contentModifier,
+                        onFinished = { presenter.onOnboardingFinished() },
+                    )
+
+                is AppDestination.Home ->
+                    HomeScreen(
+                        modifier = contentModifier,
+                        state = state.home,
+                        onSelectTab = presenter::selectTab,
+                        onOpenConversation = presenter::openConversation,
+                        onStartConversationWithContact = presenter::startConversationWith,
+                        onShareInvite = onShareInvite,
+                        onBackFromConversation = presenter::closeConversation,
+                        phoneContactsProvider = phoneContactsProvider,
+                        onOpenSettingsSection = onOpenSettingsSection,
+                    )
+            }
         }
     }
 }

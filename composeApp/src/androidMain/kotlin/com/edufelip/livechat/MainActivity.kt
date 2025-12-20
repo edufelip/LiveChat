@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import android.graphics.Color
 import android.widget.Toast
 import com.edufelip.livechat.contacts.AndroidContactsProvider
 import com.edufelip.livechat.ui.app.LiveChatApp
@@ -14,8 +16,16 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        // Ensure system bars are transparent so content can draw behind them.
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            // Keep icons legible by following the current theme background.
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
         setContent {
-            enableEdgeToEdge()
             LiveChatApp(
                 phoneContactsProvider = {
                     AndroidContactsProvider.fetch(applicationContext)

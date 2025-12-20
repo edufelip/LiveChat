@@ -1,9 +1,14 @@
 package com.edufelip.livechat.ui.features.onboarding
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,15 +73,20 @@ internal fun OnboardingFlowScreen(
             ?.takeIf { phoneAuthState.session != null }
             ?.toMessage(strings.onboarding)
 
-    Surface(
-        modifier =
-            modifier
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { padding ->
+        val contentModifier =
+            Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-    ) {
+                .padding(padding)
+                .imePadding()
         when (currentStep) {
             OnboardingStep.PhoneEntry ->
                 PhoneStep(
+                    modifier = contentModifier,
                     selectedCountry = selectedCountry,
                     phoneNumber = phoneNumber,
                     phoneError = phoneErrorMessage,
@@ -111,6 +121,7 @@ internal fun OnboardingFlowScreen(
 
             OnboardingStep.OTP ->
                 OTPStep(
+                    modifier = contentModifier,
                     otp = otp,
                     countdown = phoneAuthState.countdownSeconds,
                     canResend = phoneAuthState.canResend,
