@@ -1,23 +1,31 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+
 package com.edufelip.livechat.ui.features.conversations.detail
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import platform.Foundation.NSData
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.usePinned
 import org.jetbrains.skia.Image
-import kotlinx.cinterop.memcpy
-import kotlinx.cinterop.refTo
+import platform.Foundation.NSData
+import platform.Foundation.create
+import platform.posix.memcpy
 
 actual fun loadLocalImageBitmap(path: String): ImageBitmap? {
     val data = NSData.create(contentsOfFile = path) ?: return null
     val skiaImage =
         runCatching { Image.makeFromEncoded(data.toByteArray()) }.getOrNull() ?: return null
-    return skiaImage.asImageBitmap()
+    return skiaImage.toComposeImageBitmap()
 }
 
 private fun NSData.toByteArray(): ByteArray {
-    val buffer = this.bytes ?: return ByteArray(0)
-    val size = length.toInt()
-    val byteArray = ByteArray(size)
-    memcpy(byteArray.refTo(0), buffer, length)
-    return byteArray
+    if (length == 0UL) return ByteArray(0)
+    val buffer = bytes?.reinterpret<ByteVar>() ?: return ByteArray(0)
+    val result = ByteArray(length.toInt())
+    result.usePinned {
+        memcpy(it.addressOf(0), buffer, length)
+    }
+    return result
 }

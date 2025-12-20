@@ -9,11 +9,6 @@ import com.edufelip.livechat.data.di.startKoinForiOS
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.providers.model.UserSession
-import platform.Foundation.NSCharacterSet
-import platform.Foundation.NSLocale
-import platform.Foundation.NSString
-import platform.Foundation.NSURL
-import platform.Foundation.create
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIAlertAction
 import platform.UIKit.UIAlertActionStyleDefault
@@ -21,9 +16,9 @@ import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UIApplication
 import platform.UIKit.UINavigationController
+import platform.UIKit.UIRectEdgeAll
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
-import platform.UIKit.keyWindow
 
 @Suppress("ktlint:standard:function-naming")
 fun MainViewController(
@@ -44,6 +39,9 @@ fun MainViewController(
                 presentSettingsSection(request)
             },
         )
+    }.apply {
+        edgesForExtendedLayout = UIRectEdgeAll
+        extendedLayoutIncludesOpaqueBars = true
     }
 }
 
@@ -88,7 +86,7 @@ fun defaultFirebaseConfig() =
         invitesCollection = "invites",
         websocketEndpoint = "",
         pollingIntervalMs = 5_000,
-        defaultRegionIso = NSLocale.currentLocale.countryCode,
+        defaultRegionIso = null,
     )
 
 private fun presentShareSheet(message: String) {
@@ -100,7 +98,7 @@ private fun presentShareSheet(message: String) {
 private fun presentSettingsSection(request: SettingsNavigationRequest) {
     val controller = topViewController() ?: return
     val alert =
-        UIAlertController(
+        UIAlertController.alertControllerWithTitle(
             title = request.title,
             message = request.description,
             preferredStyle = UIAlertControllerStyleAlert,
@@ -128,8 +126,7 @@ private fun topViewController(root: UIViewController? = currentRootViewControlle
 }
 
 private fun currentRootViewController(): UIViewController? {
-    UIApplication.sharedApplication.keyWindow?.rootViewController?.let { return it }
     val windows = UIApplication.sharedApplication.windows as? List<*>
-    val keyWindow = windows?.firstOrNull { (it as? UIWindow)?.isKeyWindow == true } as? UIWindow
+    val keyWindow = windows?.firstOrNull { (it as? UIWindow)?.isKeyWindow() == true } as? UIWindow
     return (keyWindow ?: windows?.firstOrNull() as? UIWindow)?.rootViewController
 }

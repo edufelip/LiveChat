@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.edufelip.livechat.ui.features.conversations.detail
 
 import androidx.compose.runtime.Composable
@@ -9,8 +11,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import platform.AVFoundation.AVAudioPlayer
-import platform.AVFoundation.AVAudioPlayerDelegateProtocol
+import platform.AVFAudio.AVAudioPlayer
+import platform.AVFAudio.AVAudioPlayerDelegateProtocol
 import platform.Foundation.NSURL
 import platform.darwin.NSObject
 
@@ -74,14 +76,14 @@ private class IosAudioPlayerController : AudioPlayerController {
     }
 
     private fun startProgressUpdates() {
-        kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             while (_isPlaying.value) {
                 val current = player?.currentTime ?: 0.0
                 val dur = _durationMillis.value
                 val posMs = (current * 1000).toLong()
                 _positionMillis.value = posMs
                 _progress.value = if (dur > 0) posMs.toFloat() / dur.toFloat() else 0f
-                kotlinx.coroutines.delay(200)
+                delay(200)
             }
         }
     }
