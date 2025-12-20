@@ -66,6 +66,7 @@ kotlin {
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
+                implementation(libs.firebase.auth.kt)
                 implementation(libs.ktor.client.darwin)
             }
         }
