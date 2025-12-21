@@ -1,14 +1,21 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.ConversationPeer
+import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.HomeTab
+import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageDraft
+import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
+import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -126,6 +133,7 @@ class AppPresenterTest {
         scope: TestScope,
     ) = AppPresenter(
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
+        observeConversationUseCase = ObserveConversationUseCase(FakeMessagesRepository()),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
         scope = scope,
@@ -147,5 +155,40 @@ class AppPresenterTest {
 
         val currentValue: Boolean
             get() = state.value
+    }
+
+    private class FakeMessagesRepository : IMessagesRepository {
+        override fun observeConversation(
+            conversationId: String,
+            pageSize: Int,
+        ): Flow<List<Message>> = emptyFlow()
+
+        override suspend fun sendMessage(draft: MessageDraft): Message = error("Not used in test")
+
+        override suspend fun syncConversation(
+            conversationId: String,
+            sinceEpochMillis: Long?,
+        ): List<Message> = emptyList()
+
+        override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = emptyFlow()
+
+        override suspend fun markConversationAsRead(
+            conversationId: String,
+            lastReadAt: Long,
+            lastReadSeq: Long?,
+        ) = Unit
+
+        override suspend fun setConversationPinned(
+            conversationId: String,
+            pinned: Boolean,
+            pinnedAt: Long?,
+        ) = Unit
+
+        override suspend fun ensureConversation(
+            conversationId: String,
+            peer: ConversationPeer?,
+        ) = Unit
+
+        override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
     }
 }

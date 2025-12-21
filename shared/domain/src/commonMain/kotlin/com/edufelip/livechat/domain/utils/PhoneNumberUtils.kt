@@ -4,8 +4,7 @@ package com.edufelip.livechat.domain.utils
  * Removes any non-digit characters so phone numbers like "+5511987654321" and "5511987654321"
  * can be compared reliably.
  */
-fun normalizePhoneNumber(phoneNumber: String): String =
-    phoneNumber.filter { it.isDigit() }
+fun normalizePhoneNumber(phoneNumber: String): String = phoneNumber.filter { it.isDigit() }
 
 /**
  * Ensures the number contains a leading '+' when digits are available. If the contact was saved

@@ -1,6 +1,7 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.ConversationFilter
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -191,7 +192,10 @@ class ConversationListPresenterTest {
             // no-op for filter tests
         }
 
-        override suspend fun ensureConversation(conversationId: String, peer: ConversationPeer?) = Unit
+        override suspend fun ensureConversation(
+            conversationId: String,
+            peer: ConversationPeer?,
+        ) = Unit
 
         override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
     }
@@ -214,11 +218,17 @@ class ConversationListPresenterTest {
             pinnedAt: Long?,
         ) = Unit
 
-        override suspend fun setMuteUntil(conversationId: String, muteUntil: Long?) {
+        override suspend fun setMuteUntil(
+            conversationId: String,
+            muteUntil: Long?,
+        ) {
             muteRequests += conversationId to muteUntil
         }
 
-        override suspend fun setArchived(conversationId: String, archived: Boolean) {
+        override suspend fun setArchived(
+            conversationId: String,
+            archived: Boolean,
+        ) {
             archiveRequests += conversationId to archived
         }
     }
