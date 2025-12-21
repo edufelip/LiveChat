@@ -81,7 +81,7 @@ The iOS experience is now entirely Compose Multiplatform. There are two ways to 
   ./gradlew :composeApp:assembleLiveChatComposeXCFramework
   ```
 
-  You’ll find the framework under `composeApp/build/XCFrameworks/LiveChatCompose`. Drag that folder into Xcode (or reference it through SwiftPM) and call `MainViewController()`/`updateLiveChatSession()` from Swift just like before&mdash;no SwiftUI glue code required.
+  You’ll find the framework under `composeApp/build/XCFrameworks/LiveChatCompose`. Drag that folder into Xcode (or reference it through SwiftPM) and call `MainViewController(...)`/`updateLiveChatSession()` from Swift just like before&mdash;no SwiftUI glue code required. `MainViewController` now requires an iOS bridge bundle so Kotlin can route Firebase calls to Swift.
 
 - **Use the bundled Xcode target** &mdash; `iosApp/LiveChatIOS.xcodeproj` already links the generated `LiveChatCompose.xcframework` and boots the UIKit wrapper (`AppDelegate` + `MainViewControllerKt`).
   1. Generate the framework first (command above).
