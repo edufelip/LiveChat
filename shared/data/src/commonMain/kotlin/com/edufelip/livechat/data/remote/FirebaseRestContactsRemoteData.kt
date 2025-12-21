@@ -1,11 +1,10 @@
 package com.edufelip.livechat.data.remote
 
+import com.edufelip.livechat.data.bridge.ContactsRemoteBridge
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.utils.canonicalPhoneNumber
 import com.edufelip.livechat.domain.utils.currentEpochMillis
-import dev.gitlive.firebase.firestore.FirebaseFirestore
-import dev.gitlive.firebase.functions.FirebaseFunctions
 import io.ktor.client.HttpClient
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
@@ -24,8 +23,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class FirebaseRestContactsRemoteData(
-    private val firestore: FirebaseFirestore,
-    private val functions: FirebaseFunctions,
+    private val contactsBridge: ContactsRemoteBridge,
     private val config: FirebaseRestConfig,
     private val httpClient: HttpClient,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
@@ -76,24 +74,12 @@ class FirebaseRestContactsRemoteData(
             }.isSuccess
         }
 
-    private suspend fun queryFirestoreDirectly(e164: String): Boolean {
-        val snap =
-            firestore
-                .collection(config.usersCollection)
-                .where { PHONE_NUMBER_FIELD equalTo e164 }
-                .limit(1)
-                .get()
-        return snap.documents.isNotEmpty()
-    }
-
-    private suspend fun FlowCollector<Contact>.emitBatchResults(
-        canonicalContacts: List<Pair<String, Contact>>,
-    ) {
+    private suspend fun FlowCollector<Contact>.emitBatchResults(canonicalContacts: List<Pair<String, Contact>>) {
         val canonicalPhones = canonicalContacts.map { it.first }
         val result =
             runCatching {
                 withTimeout(FUNCTION_TIMEOUT_MS) {
-                    functions.phoneExistsMany(canonicalPhones)
+                    contactsBridge.phoneExistsMany(canonicalPhones)
                 }
             }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
         val registeredPhones = result.registeredPhones.toSet()
@@ -104,7 +90,7 @@ class FirebaseRestContactsRemoteData(
                 if (registeredPhones.contains(canonical)) {
                     true
                 } else {
-                    runCatching { queryFirestoreDirectly(canonical) }.getOrDefault(false)
+                    runCatching { contactsBridge.isUserRegistered(canonical) }.getOrDefault(false)
                 }
             if (exists) {
                 val matchedUid = matchByPhone[canonical]?.uid
@@ -118,11 +104,11 @@ class FirebaseRestContactsRemoteData(
             val result =
                 runCatching {
                     withTimeout(FUNCTION_TIMEOUT_MS) {
-                        functions.phoneExists(canonical)
+                        contactsBridge.phoneExists(canonical)
                     }
                 }.getOrNull()
             val exists =
-                result?.exists ?: runCatching { queryFirestoreDirectly(canonical) }.getOrDefault(false)
+                result?.exists ?: runCatching { contactsBridge.isUserRegistered(canonical) }.getOrDefault(false)
             if (exists) {
                 emit(contact.copy(isRegistered = true, firebaseUid = result?.uid ?: contact.firebaseUid))
             }
@@ -141,7 +127,6 @@ class FirebaseRestContactsRemoteData(
     )
 
     private companion object {
-        const val PHONE_NUMBER_FIELD = "phone_num"
         const val FUNCTION_TIMEOUT_MS = 5_000L
         const val BATCH_THRESHOLD = 25
     }

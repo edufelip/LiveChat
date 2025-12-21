@@ -41,10 +41,17 @@ interface MessagesDao {
         WHERE local_temp_id = :localId
         """,
     )
-    suspend fun updateStatusByLocalId(localId: String, serverId: String, status: String)
+    suspend fun updateStatusByLocalId(
+        localId: String,
+        serverId: String,
+        status: String,
+    )
 
     @Query("UPDATE messages SET status = :status WHERE id = :messageId")
-    suspend fun updateStatus(messageId: String, status: String)
+    suspend fun updateStatus(
+        messageId: String,
+        status: String,
+    )
 
     @Query(
         """
@@ -66,7 +73,10 @@ interface MessagesDao {
           AND id NOT IN (:messageIds)
         """,
     )
-    suspend fun deleteMessagesOutsideConversation(conversationId: String, messageIds: List<String>)
+    suspend fun deleteMessagesOutsideConversation(
+        conversationId: String,
+        messageIds: List<String>,
+    )
 
     @Query(
         """
@@ -76,7 +86,10 @@ interface MessagesDao {
         )
         """,
     )
-    suspend fun hasMessage(conversationId: String, messageId: String): Boolean
+    suspend fun hasMessage(
+        conversationId: String,
+        messageId: String,
+    ): Boolean
 
     @Query(
         """

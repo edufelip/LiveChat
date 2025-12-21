@@ -15,8 +15,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -177,11 +177,11 @@ class MessagesRepository(
         conversationId: String,
         peer: ConversationPeer?,
     ) {
-        val userId = sessionProvider.currentUserId()
-            ?: error("User must be authenticated before ensuring conversations.")
+        val userId =
+            sessionProvider.currentUserId()
+                ?: error("User must be authenticated before ensuring conversations.")
         val userPhone = sessionProvider.currentUserPhone()
         println("$logTag: repo ensureConversation conv=$conversationId peer=$peer")
         remoteData.ensureConversation(conversationId, userId, userPhone, peer)
     }
-
 }

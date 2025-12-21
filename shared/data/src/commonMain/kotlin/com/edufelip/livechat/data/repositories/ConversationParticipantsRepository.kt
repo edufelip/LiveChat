@@ -13,7 +13,6 @@ class ConversationParticipantsRepository(
     private val localData: IMessagesLocalData,
     private val sessionProvider: UserSessionProvider,
 ) : IConversationParticipantsRepository {
-
     override fun observeParticipant(conversationId: String): Flow<Participant?> =
         localData.observeParticipant(conversationId).onEach { participant ->
             if (participant == null) {

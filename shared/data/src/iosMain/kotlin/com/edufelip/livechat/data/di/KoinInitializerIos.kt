@@ -1,6 +1,7 @@
 package com.edufelip.livechat.data.di
 
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
+import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.presentation.AppPresenter
@@ -31,11 +32,12 @@ object IosKoinBridge : KoinComponent {
 
 fun startKoinForiOS(
     config: FirebaseRestConfig,
+    bridgeBundle: IosBridgeBundle,
     httpClient: HttpClient = defaultHttpClient(),
     backendModules: List<Module>? = null,
 ): KoinApplication {
     return initSharedKoin(
-        platformModules = listOf(iosPlatformModule(config, httpClient)),
+        platformModules = listOf(iosPlatformModule(config, bridgeBundle, httpClient)),
         backendModules = backendModules ?: listOf(firebaseBackendModule),
     )
 }

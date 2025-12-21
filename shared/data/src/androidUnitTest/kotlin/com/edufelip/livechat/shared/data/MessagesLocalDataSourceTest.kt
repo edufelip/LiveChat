@@ -19,64 +19,65 @@ import kotlin.test.assertEquals
 @RunWith(AndroidJUnit4::class)
 class MessagesLocalDataSourceTest {
     @Test
-    fun insertOutgoingMessagePersistsExtendedFields() = runTest {
-        val database = createTestDatabase()
-        val dispatcher = StandardTestDispatcher(testScheduler)
-        val dataSource = MessagesLocalDataSource(database, dispatcher = dispatcher)
-        val message =
-            Message(
-                id = "local-1",
-                conversationId = "conversation-1",
-                senderId = "user-123",
-                body = "Encrypted payload",
-                createdAt = 1000L,
-                status = MessageStatus.SENDING,
-                localTempId = "local-1",
-                messageSeq = 42L,
-                serverAckAt = 1010L,
-                contentType = MessageContentType.Encrypted,
-                ciphertext = "cipher-text",
-                replyToMessageId = "local-0",
-                threadRootId = "root-thread",
-                editedAt = 1020L,
-                attachments =
-                    listOf(
-                        AttachmentRef(
-                            objectKey = "object-key",
-                            mimeType = "image/png",
-                            sizeBytes = 2048,
-                            thumbnailKey = "thumb-key",
-                            cipherInfo =
-                                CipherInfo(
-                                    algorithm = "AES-GCM",
-                                    keyId = "key-1",
-                                    nonce = "nonce",
-                                    associatedData = "assoc",
-                                ),
+    fun insertOutgoingMessagePersistsExtendedFields() =
+        runTest {
+            val database = createTestDatabase()
+            val dispatcher = StandardTestDispatcher(testScheduler)
+            val dataSource = MessagesLocalDataSource(database, dispatcher = dispatcher)
+            val message =
+                Message(
+                    id = "local-1",
+                    conversationId = "conversation-1",
+                    senderId = "user-123",
+                    body = "Encrypted payload",
+                    createdAt = 1000L,
+                    status = MessageStatus.SENDING,
+                    localTempId = "local-1",
+                    messageSeq = 42L,
+                    serverAckAt = 1010L,
+                    contentType = MessageContentType.Encrypted,
+                    ciphertext = "cipher-text",
+                    replyToMessageId = "local-0",
+                    threadRootId = "root-thread",
+                    editedAt = 1020L,
+                    attachments =
+                        listOf(
+                            AttachmentRef(
+                                objectKey = "object-key",
+                                mimeType = "image/png",
+                                sizeBytes = 2048,
+                                thumbnailKey = "thumb-key",
+                                cipherInfo =
+                                    CipherInfo(
+                                        algorithm = "AES-GCM",
+                                        keyId = "key-1",
+                                        nonce = "nonce",
+                                        associatedData = "assoc",
+                                    ),
+                            ),
                         ),
-                    ),
-                metadata = mapOf("channel" to "sms"),
-            )
+                    metadata = mapOf("channel" to "sms"),
+                )
 
-        dataSource.insertOutgoingMessage(message)
+            dataSource.insertOutgoingMessage(message)
 
-        val storedRow = database.messagesDao().getMessages("conversation-1").first()
-        assertEquals(42L, storedRow.messageSeq)
-        assertEquals("Encrypted", storedRow.contentType)
-        assertEquals("cipher-text", storedRow.ciphertext)
-        assertEquals("local-0", storedRow.replyToMessageId)
-        assertEquals("root-thread", storedRow.threadRootId)
-        assertEquals(1020L, storedRow.editedAt)
+            val storedRow = database.messagesDao().getMessages("conversation-1").first()
+            assertEquals(42L, storedRow.messageSeq)
+            assertEquals("Encrypted", storedRow.contentType)
+            assertEquals("cipher-text", storedRow.ciphertext)
+            assertEquals("local-0", storedRow.replyToMessageId)
+            assertEquals("root-thread", storedRow.threadRootId)
+            assertEquals(1020L, storedRow.editedAt)
 
-        val domain = storedRow.toDomain()
-        assertEquals(MessageContentType.Encrypted, domain.contentType)
-        assertEquals(42L, domain.messageSeq)
-        assertEquals("cipher-text", domain.ciphertext)
-        assertEquals("local-0", domain.replyToMessageId)
-        assertEquals("root-thread", domain.threadRootId)
-        assertEquals(1, domain.attachments.size)
-        assertEquals("sms", domain.metadata["channel"])
+            val domain = storedRow.toDomain()
+            assertEquals(MessageContentType.Encrypted, domain.contentType)
+            assertEquals(42L, domain.messageSeq)
+            assertEquals("cipher-text", domain.ciphertext)
+            assertEquals("local-0", domain.replyToMessageId)
+            assertEquals("root-thread", domain.threadRootId)
+            assertEquals(1, domain.attachments.size)
+            assertEquals("sms", domain.metadata["channel"])
 
-        database.close()
-    }
+            database.close()
+        }
 }

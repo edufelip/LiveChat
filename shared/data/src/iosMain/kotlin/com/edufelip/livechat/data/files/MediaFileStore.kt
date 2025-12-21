@@ -2,12 +2,12 @@
 
 package com.edufelip.livechat.data.files
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import platform.Foundation.NSData
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.create
@@ -29,7 +29,11 @@ actual object MediaFileStore {
             result
         }
 
-    actual suspend fun saveBytes(prefix: String, extension: String, data: ByteArray): String =
+    actual suspend fun saveBytes(
+        prefix: String,
+        extension: String,
+        data: ByteArray,
+    ): String =
         withContext(ioDispatcher) {
             val tempDir = NSTemporaryDirectory() ?: "/tmp/"
             val fileName = "$prefix-${rand()}.$extension"

@@ -20,8 +20,11 @@ import kotlinx.coroutines.Dispatchers
 @ConstructedBy(LiveChatDatabaseConstructor::class)
 abstract class LiveChatDatabase : RoomDatabase() {
     abstract fun contactsDao(): ContactsDao
+
     abstract fun messagesDao(): MessagesDao
+
     abstract fun conversationStateDao(): ConversationStateDao
+
     abstract fun onboardingStatusDao(): OnboardingStatusDao
 }
 
@@ -32,7 +35,6 @@ fun RoomDatabase.Builder<LiveChatDatabase>.configureDefaults(): RoomDatabase.Bui
         .setQueryCoroutineContext(Dispatchers.Default)
         .fallbackToDestructiveMigration(dropAllTables = false)
 
-fun buildLiveChatDatabase(builder: RoomDatabase.Builder<LiveChatDatabase>): LiveChatDatabase =
-    builder.configureDefaults().build()
+fun buildLiveChatDatabase(builder: RoomDatabase.Builder<LiveChatDatabase>): LiveChatDatabase = builder.configureDefaults().build()
 
 const val LIVE_CHAT_DB_NAME = "livechat.db"

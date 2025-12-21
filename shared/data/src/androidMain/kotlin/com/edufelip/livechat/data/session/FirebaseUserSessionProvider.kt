@@ -1,10 +1,10 @@
 package com.edufelip.livechat.data.session
 
+import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.providers.model.UserSession
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GetTokenResult
-import com.edufelip.livechat.domain.providers.UserSessionProvider
-import com.edufelip.livechat.domain.providers.model.UserSession
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

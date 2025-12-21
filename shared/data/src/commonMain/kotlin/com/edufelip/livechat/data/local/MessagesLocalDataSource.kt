@@ -212,7 +212,6 @@ class MessagesLocalDataSource(
 
         fun encode(metadata: Map<String, String>): String = json.encodeToString(serializer, metadata)
 
-        fun decode(raw: String): Map<String, String> =
-            runCatching { json.decodeFromString(serializer, raw) }.getOrDefault(emptyMap())
+        fun decode(raw: String): Map<String, String> = runCatching { json.decodeFromString(serializer, raw) }.getOrDefault(emptyMap())
     }
 }

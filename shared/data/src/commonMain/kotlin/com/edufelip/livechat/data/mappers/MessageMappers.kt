@@ -7,7 +7,6 @@ import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.shared.data.database.MessageEntity
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -27,8 +26,9 @@ fun MessageEntity.toDomain(): Message =
         localTempId = localTempId,
         messageSeq = messageSeq,
         serverAckAt = serverAckAt,
-        contentType = runCatching { MessageContentType.valueOf(contentType ?: MessageContentType.Text.name) }
-            .getOrDefault(MessageContentType.Text),
+        contentType =
+            runCatching { MessageContentType.valueOf(contentType ?: MessageContentType.Text.name) }
+                .getOrDefault(MessageContentType.Text),
         ciphertext = ciphertext,
         attachments = attachments?.let { AttachmentAdapter.decode(it) } ?: emptyList(),
         replyToMessageId = replyToMessageId,
@@ -91,8 +91,7 @@ private object AttachmentAdapter {
 }
 
 internal object MetadataAdapter {
-    fun encode(metadata: Map<String, String>): String =
-        messageJson.encodeToString(metadataMapSerializer, metadata)
+    fun encode(metadata: Map<String, String>): String = messageJson.encodeToString(metadataMapSerializer, metadata)
 
     fun decode(raw: String): Map<String, String> =
         runCatching { messageJson.decodeFromString(metadataMapSerializer, raw) }
