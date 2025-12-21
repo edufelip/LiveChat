@@ -16,6 +16,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             FirebaseApp.configure()
         }
         #endif
+        let environment = ProcessInfo.processInfo.environment
+        let arguments = ProcessInfo.processInfo.arguments
+        let isUiTest =
+            environment["UITEST_MODE"] == "1" ||
+            environment["XCTestConfigurationFilePath"] != nil ||
+            arguments.contains("-ui-testing")
+        UserDefaults.standard.set(isUiTest, forKey: "UITEST_MODE")
+        if let uiTestPhone = environment["UITEST_PHONE"] {
+            UserDefaults.standard.set(uiTestPhone, forKey: "UITEST_PHONE")
+        }
+        if let uiTestOtp = environment["UITEST_OTP"] {
+            UserDefaults.standard.set(uiTestOtp, forKey: "UITEST_OTP")
+        }
         return true
     }
 }

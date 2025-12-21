@@ -12,6 +12,7 @@ final class LiveChatRootViewController: UIViewController {
     ) {
         composeViewController = MainViewControllerKt.MainViewController(
             config: config,
+            bridgeBundle: LiveChatBridgeFactory.make(config: config),
             userId: userId,
             idToken: idToken,
             phoneContactsProvider: { [] }
