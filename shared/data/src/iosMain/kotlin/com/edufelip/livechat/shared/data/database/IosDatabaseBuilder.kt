@@ -16,12 +16,13 @@ fun createIosDatabaseBuilder(): RoomDatabase.Builder<LiveChatDatabase> {
 
 private fun documentDirectory(): String {
     val manager = NSFileManager.defaultManager
-    val url: NSURL? = manager.URLForDirectory(
-        directory = NSDocumentDirectory,
-        inDomain = NSUserDomainMask,
-        appropriateForURL = null,
-        create = true,
-        error = null,
-    )
+    val url: NSURL? =
+        manager.URLForDirectory(
+            directory = NSDocumentDirectory,
+            inDomain = NSUserDomainMask,
+            appropriateForURL = null,
+            create = true,
+            error = null,
+        )
     return requireNotNull(url?.path) { "Unable to resolve iOS documents directory" }
 }

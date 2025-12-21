@@ -2,20 +2,20 @@ package com.edufelip.livechat.data.di
 
 import android.content.Context
 import android.telephony.TelephonyManager
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
 import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
+import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.FirebaseUserSessionProvider
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
-import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.shared.data.database.LiveChatDatabase
 import com.edufelip.livechat.shared.data.database.buildLiveChatDatabase
 import com.edufelip.livechat.shared.data.database.createAndroidDatabaseBuilder
 import com.edufelip.livechat.shared.data.initSharedKoin
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -24,11 +24,11 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
-import java.util.Locale
 import kotlinx.serialization.json.Json
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import java.util.Locale
 
 fun startKoinForAndroid(
     context: Context,

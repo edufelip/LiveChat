@@ -5,6 +5,10 @@ package com.edufelip.livechat.data.files
  */
 expect object MediaFileStore {
     suspend fun readBytes(path: String): ByteArray?
-    suspend fun saveBytes(prefix: String, extension: String, data: ByteArray): String
-}
 
+    suspend fun saveBytes(
+        prefix: String,
+        extension: String,
+        data: ByteArray,
+    ): String
+}

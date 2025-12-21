@@ -10,7 +10,6 @@ import kotlinx.coroutines.runBlocking
 class RoomOnboardingStatusRepository(
     private val database: LiveChatDatabase,
 ) : IOnboardingStatusRepository {
-
     private val dao = database.onboardingStatusDao()
 
     override val onboardingComplete: Flow<Boolean> =
@@ -20,6 +19,5 @@ class RoomOnboardingStatusRepository(
         dao.upsert(OnboardingStatusEntity(complete = complete))
     }
 
-    override fun currentStatus(): Boolean =
-        runBlocking { dao.current() ?: false }
+    override fun currentStatus(): Boolean = runBlocking { dao.current() ?: false }
 }

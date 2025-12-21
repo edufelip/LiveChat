@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
@@ -34,32 +35,33 @@ class KoinInitializationTest {
     }
 
     @Test
-    fun initSharedKoinProvidesDependencies() = runTest {
-        val database = createTestDatabase()
-        val platformModule =
-            module {
-                single { database }
-                single<UserSessionProvider> { StubUserSessionProvider }
-            }
+    fun initSharedKoinProvidesDependencies() =
+        runTest {
+            val database = createTestDatabase()
+            val platformModule =
+                module {
+                    single { database }
+                    single<UserSessionProvider> { StubUserSessionProvider }
+                }
 
-        val backendModule =
-            module {
-                single<IContactsRemoteData> { StubContactsRemoteData }
-                single<IMessagesRemoteData> { StubMessagesRemoteData }
-            }
+            val backendModule =
+                module {
+                    single<IContactsRemoteData> { StubContactsRemoteData }
+                    single<IMessagesRemoteData> { StubMessagesRemoteData }
+                }
 
-        koinApplication =
-            initSharedKoin(
-                platformModules = listOf(platformModule),
-                backendModules = listOf(backendModule),
-            )
+            koinApplication =
+                initSharedKoin(
+                    platformModules = listOf(platformModule),
+                    backendModules = listOf(backendModule),
+                )
 
-        val koin = koinApplication!!.koin
-        assertNotNull(koin.get<LiveChatDatabase>())
-        assertNotNull(koin.get<IContactsRepository>())
+            val koin = koinApplication!!.koin
+            assertNotNull(koin.get<LiveChatDatabase>())
+            assertNotNull(koin.get<IContactsRepository>())
 
-        database.close()
-    }
+            database.close()
+        }
 
     private object StubContactsRemoteData : IContactsRemoteData {
         override fun checkContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()
@@ -87,6 +89,13 @@ class KoinInitializationTest {
             conversationId: String,
             sinceEpochMillis: Long?,
         ): List<Message> = emptyList()
+
+        override suspend fun ensureConversation(
+            conversationId: String,
+            userId: String,
+            userPhone: String?,
+            peer: ConversationPeer?,
+        ) = Unit
     }
 
     private object StubUserSessionProvider : UserSessionProvider {
@@ -95,5 +104,7 @@ class KoinInitializationTest {
         override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = null
 
         override fun currentUserId(): String? = null
+
+        override fun currentUserPhone(): String? = null
     }
 }

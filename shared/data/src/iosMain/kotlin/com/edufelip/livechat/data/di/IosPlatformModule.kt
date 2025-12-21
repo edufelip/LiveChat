@@ -1,8 +1,9 @@
 package com.edufelip.livechat.data.di
 
+import com.edufelip.livechat.data.auth.phone.IosPhoneAuthRepository
+import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
-import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
@@ -23,15 +24,20 @@ import org.koin.dsl.module
 
 fun iosPlatformModule(
     config: FirebaseRestConfig,
+    bridgeBundle: IosBridgeBundle,
     httpClient: HttpClient = defaultHttpClient(),
 ): Module =
     module {
         single { config }
         single { httpClient }
+        single { bridgeBundle.messagesBridge }
+        single { bridgeBundle.contactsBridge }
+        single { bridgeBundle.storageBridge }
+        single { bridgeBundle.phoneAuthBridge }
         single<LiveChatDatabase> { buildLiveChatDatabase(createIosDatabaseBuilder()) }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
-        single<IPhoneAuthRepository> { FirebasePhoneAuthRepository() }
+        single<IPhoneAuthRepository> { IosPhoneAuthRepository(get()) }
         single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 

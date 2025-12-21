@@ -3,7 +3,6 @@ package com.edufelip.livechat.shared.data
 import androidx.room.Room
 import com.edufelip.livechat.shared.data.database.LiveChatDatabase
 import com.edufelip.livechat.shared.data.database.buildLiveChatDatabase
-import kotlinx.coroutines.Dispatchers
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSUUID
 

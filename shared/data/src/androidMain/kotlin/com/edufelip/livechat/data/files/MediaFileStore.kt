@@ -13,7 +13,11 @@ actual object MediaFileStore {
             runCatching { File(path).takeIf { it.exists() }?.readBytes() }.getOrNull()
         }
 
-    actual suspend fun saveBytes(prefix: String, extension: String, data: ByteArray): String =
+    actual suspend fun saveBytes(
+        prefix: String,
+        extension: String,
+        data: ByteArray,
+    ): String =
         withContext(ioDispatcher) {
             val temp = createTempFile(prefix, ".$extension").toFile()
             temp.writeBytes(data)

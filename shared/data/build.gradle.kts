@@ -33,10 +33,6 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.firebase.common.kt)
-                implementation(libs.firebase.firestore.kt)
-                implementation(libs.firebase.functions.kt)
-                implementation(libs.firebase.storage.kt)
             }
         }
         val commonTest by getting {
@@ -48,10 +44,11 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation(libs.firebase.auth)
-                implementation("com.google.firebase:firebase-common-ktx:20.4.2")
-                implementation("com.google.firebase:firebase-firestore-ktx:25.1.0")
-                implementation(libs.firebase.storage.android)
+                implementation("com.google.firebase:firebase-auth:24.0.1")
+                implementation("com.google.firebase:firebase-common:22.0.1")
+                implementation("com.google.firebase:firebase-firestore:26.0.2")
+                implementation("com.google.firebase:firebase-functions:22.0.1")
+                implementation("com.google.firebase:firebase-storage:22.0.1")
                 implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.androidx.room.sqlite.wrapper)
@@ -66,7 +63,6 @@ kotlin {
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
             dependencies {
-                implementation(libs.firebase.auth.kt)
                 implementation(libs.ktor.client.darwin)
             }
         }
@@ -118,9 +114,11 @@ android {
             localProps.load(localPropsFile.inputStream())
         }
         val storageBucketUrl =
-            (localProps.getProperty("storage.bucket.url")
-                ?: System.getenv("STORAGE_BUCKET_URL")
-                ?: "")
+            (
+                localProps.getProperty("storage.bucket.url")
+                    ?: System.getenv("STORAGE_BUCKET_URL")
+                    ?: ""
+            )
         buildConfigField("String", "STORAGE_BUCKET_URL", "\"$storageBucketUrl\"")
     }
 
