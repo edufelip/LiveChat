@@ -1,13 +1,13 @@
 package com.edufelip.livechat
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
-import android.graphics.Color
-import android.widget.Toast
 import com.edufelip.livechat.contacts.AndroidContactsProvider
 import com.edufelip.livechat.ui.app.LiveChatApp
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest

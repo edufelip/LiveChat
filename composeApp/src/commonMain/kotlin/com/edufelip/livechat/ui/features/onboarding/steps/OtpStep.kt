@@ -1,6 +1,8 @@
 package com.edufelip.livechat.ui.features.onboarding.steps
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,11 +18,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -36,6 +45,7 @@ internal fun OTPStep(
     onOtpChanged: (String) -> Unit,
     onResend: () -> Unit,
     onVerify: () -> Unit,
+    verifyEnabled: Boolean = otp.length == 6 && !isVerifying,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
@@ -43,6 +53,7 @@ internal fun OTPStep(
         modifier =
             modifier
                 .fillMaxSize()
+                .testTag(OnboardingTestTags.OTP_STEP)
                 .padding(horizontal = MaterialTheme.spacing.xl, vertical = MaterialTheme.spacing.xxxl),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,20 +78,27 @@ internal fun OTPStep(
                 onValueChange = onOtpChanged,
                 label = { Text(strings.otpFieldLabel) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag(OnboardingTestTags.OTP_INPUT),
             )
             if (errorMessage != null) {
                 Text(
                     text = errorMessage,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag(OnboardingTestTags.OTP_ERROR),
                 )
             }
             if (canResend) {
                 TextButton(
                     onClick = onResend,
                     enabled = !isRequesting,
-                    modifier = Modifier.heightIn(min = 48.dp),
+                    modifier =
+                        Modifier
+                            .heightIn(min = 48.dp)
+                            .testTag(OnboardingTestTags.OTP_RESEND_BUTTON),
                 ) {
                     Text(strings.resendCta)
                 }
@@ -93,15 +111,40 @@ internal fun OTPStep(
             }
         }
 
-        Button(
-            onClick = onVerify,
-            enabled = otp.length == 6 && !isVerifying,
-            modifier = Modifier.heightIn(min = 48.dp),
+        Box(
+            modifier =
+                Modifier
+                    .heightIn(min = 48.dp)
+                    .testTag(OnboardingTestTags.OTP_VERIFY_BUTTON)
+                    .clickable(enabled = verifyEnabled, onClick = onVerify)
+                    .semantics {
+                        role = Role.Button
+                        if (!verifyEnabled) {
+                            disabled()
+                        }
+                        onClick {
+                            if (verifyEnabled) {
+                                onVerify()
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                    },
         ) {
-            if (isVerifying) {
-                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
-            } else {
-                Text(strings.verifyCta)
+            Button(
+                onClick = onVerify,
+                enabled = verifyEnabled,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                if (isVerifying) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.OTP_VERIFY_LOADING),
+                    )
+                } else {
+                    Text(strings.verifyCta)
+                }
             }
         }
     }

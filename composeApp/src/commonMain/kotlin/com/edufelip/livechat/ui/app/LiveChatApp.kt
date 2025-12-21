@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.edufelip.livechat.domain.models.AppDestination
+import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.HomeUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -23,9 +26,6 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
-import com.edufelip.livechat.domain.models.AppDestination
-import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.HomeUiState
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable

@@ -1,5 +1,10 @@
 package com.edufelip.livechat.ui.features.conversations.detail.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,20 +16,15 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -39,23 +39,24 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.edufelip.livechat.domain.models.ConversationUiState
+import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.app.AppIcons
 import com.edufelip.livechat.ui.components.molecules.ErrorBanner
 import com.edufelip.livechat.ui.components.molecules.LoadingState
-import com.edufelip.livechat.ui.features.conversations.detail.rememberAudioPlayerController
 import com.edufelip.livechat.ui.features.conversations.detail.components.ComposerBar
 import com.edufelip.livechat.ui.features.conversations.detail.components.MessageBubble
 import com.edufelip.livechat.ui.features.conversations.detail.components.rememberLazyListStateWithAutoscroll
+import com.edufelip.livechat.ui.features.conversations.detail.rememberAudioPlayerController
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
-import com.edufelip.livechat.domain.models.ConversationUiState
-import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.ui.util.formatDurationMillis
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -320,15 +321,6 @@ private fun ConversationDetailScreenPreview() {
             permissionHint = null,
         )
     }
-}
-
-private fun formatDurationMillis(millis: Long): String {
-    val totalSeconds = (millis / 1000).coerceAtLeast(0)
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    val minutesText = minutes.toString().padStart(2, '0')
-    val secondsText = seconds.toString().padStart(2, '0')
-    return "$minutesText:$secondsText"
 }
 
 @DevicePreviews

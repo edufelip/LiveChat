@@ -95,6 +95,6 @@ fun ConversationListRoute(
 @Composable
 private fun ConversationListRoutePreview() {
     LiveChatPreviewContainer {
-        ConversationListRoute(onConversationSelected = {_, _ -> })
+        ConversationListRoute(onConversationSelected = { _, _ -> })
     }
 }

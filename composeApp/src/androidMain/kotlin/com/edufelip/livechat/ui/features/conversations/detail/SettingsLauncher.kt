@@ -17,4 +17,3 @@ actual fun openAppSettings() {
         }
     ContextCompat.startActivity(context, intent, null)
 }
-

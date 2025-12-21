@@ -2,14 +2,15 @@ package com.edufelip.livechat
 
 import android.app.Application
 import com.edufelip.livechat.data.di.startKoinForAndroid
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.initialize
+import com.google.firebase.FirebaseApp
 
 class App : Application() {
     override fun onCreate() {
         instance = this
         super.onCreate()
-        Firebase.initialize(this)
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(this)
+        }
         startKoinForAndroid(applicationContext)
     }
 

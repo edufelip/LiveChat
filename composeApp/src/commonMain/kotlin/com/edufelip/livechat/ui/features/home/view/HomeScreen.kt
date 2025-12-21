@@ -10,8 +10,8 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,6 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.HomeDestination
+import com.edufelip.livechat.domain.models.HomeTab
+import com.edufelip.livechat.domain.models.HomeUiState
 import com.edufelip.livechat.ui.app.navigation.defaultHomeTabs
 import com.edufelip.livechat.ui.features.contacts.ContactsRoute
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
@@ -36,10 +40,6 @@ import com.edufelip.livechat.ui.features.settings.SettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
-import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.HomeDestination
-import com.edufelip.livechat.domain.models.HomeTab
-import com.edufelip.livechat.domain.models.HomeUiState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable

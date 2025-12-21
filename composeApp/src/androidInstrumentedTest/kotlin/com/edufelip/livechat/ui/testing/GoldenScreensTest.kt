@@ -1,0 +1,117 @@
+package com.edufelip.livechat.ui.testing
+
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import com.edufelip.livechat.preview.PreviewFixtures
+import com.edufelip.livechat.ui.features.contacts.screens.ContactsScreen
+import com.edufelip.livechat.ui.features.conversations.detail.screens.ConversationDetailScreen
+import com.edufelip.livechat.ui.features.conversations.list.screens.ConversationListScreen
+import com.edufelip.livechat.ui.features.onboarding.CountryOption
+import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
+import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
+import com.edufelip.livechat.ui.theme.LiveChatTheme
+import org.junit.Rule
+import org.junit.Test
+
+class GoldenScreensTest {
+    @get:Rule
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun goldenPhoneStep() {
+        composeRule.setContent {
+            LiveChatTheme {
+                PhoneStep(
+                    selectedCountry = CountryOption.fromIsoCode("US"),
+                    phoneNumber = "6505553434",
+                    phoneError = null,
+                    isLoading = false,
+                    onPickCountry = {},
+                    onPhoneChanged = {},
+                    onContinue = {},
+                )
+            }
+        }
+        GoldenAssertions.assertGolden(composeRule, "phone_step")
+    }
+
+    @Test
+    fun goldenOtpStep() {
+        composeRule.setContent {
+            LiveChatTheme {
+                OTPStep(
+                    otp = "123123",
+                    countdown = 20,
+                    canResend = false,
+                    isRequesting = false,
+                    isVerifying = false,
+                    errorMessage = null,
+                    onOtpChanged = {},
+                    onResend = {},
+                    onVerify = {},
+                )
+            }
+        }
+        GoldenAssertions.assertGolden(composeRule, "otp_step")
+    }
+
+    @Test
+    fun goldenConversationList() {
+        composeRule.setContent {
+            LiveChatTheme {
+                ConversationListScreen(
+                    state = PreviewFixtures.conversationListState,
+                    onSearch = {},
+                    onConversationSelected = {},
+                    onTogglePin = { _, _ -> },
+                    onToggleMute = { _, _ -> },
+                    onToggleArchive = { _, _ -> },
+                    onFilterSelected = {},
+                )
+            }
+        }
+        GoldenAssertions.assertGolden(composeRule, "conversation_list")
+    }
+
+    @Test
+    fun goldenContacts() {
+        composeRule.setContent {
+            LiveChatTheme {
+                ContactsScreen(
+                    state = PreviewFixtures.contactsState,
+                    onInvite = {},
+                    onContactSelected = {},
+                    onSync = {},
+                    onDismissError = {},
+                )
+            }
+        }
+        GoldenAssertions.assertGolden(composeRule, "contacts")
+    }
+
+    @Test
+    fun goldenConversationDetail() {
+        val state = PreviewFixtures.conversationUiState
+        composeRule.setContent {
+            LiveChatTheme {
+                ConversationDetailScreen(
+                    state = state,
+                    contactName = "Preview Contact",
+                    currentUserId = "preview-user",
+                    onSendMessage = {},
+                    isRecording = false,
+                    recordingDurationMillis = 0L,
+                    onStartRecording = {},
+                    onCancelRecording = {},
+                    onSendRecording = {},
+                    onPickImage = {},
+                    onTakePhoto = {},
+                    onBack = {},
+                    onDismissError = {},
+                    permissionHint = null,
+                )
+            }
+        }
+        GoldenAssertions.assertGolden(composeRule, "conversation_detail")
+    }
+}
