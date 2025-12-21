@@ -10,4 +10,3 @@ actual fun openAppSettings() {
         UIApplication.sharedApplication.openURL(url)
     }
 }
-

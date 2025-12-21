@@ -12,11 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import kotlinx.coroutines.launch
@@ -33,6 +35,7 @@ internal fun SuccessStep(
         modifier =
             modifier
                 .fillMaxSize()
+                .testTag(OnboardingTestTags.SUCCESS_STEP)
                 .padding(horizontal = MaterialTheme.spacing.xxl, vertical = MaterialTheme.spacing.xxxl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xl, Alignment.CenterVertically),
@@ -52,7 +55,10 @@ internal fun SuccessStep(
             onClick = {
                 scope.launch { onFinished() }
             },
-            modifier = Modifier.heightIn(min = 48.dp),
+            modifier =
+                Modifier
+                    .heightIn(min = 48.dp)
+                    .testTag(OnboardingTestTags.SUCCESS_BUTTON),
         ) {
             Text(strings.successCta)
         }

@@ -8,4 +8,3 @@ actual fun loadLocalImageBitmap(path: String): ImageBitmap? {
     val bitmap = BitmapFactory.decodeFile(path) ?: return null
     return bitmap.asImageBitmap()
 }
-

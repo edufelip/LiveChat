@@ -1,14 +1,15 @@
 package com.edufelip.livechat
 
 import androidx.compose.ui.window.ComposeUIViewController
-import com.edufelip.livechat.ui.app.LiveChatApp
-import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
-import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.di.startKoinForiOS
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.providers.model.UserSession
+import com.edufelip.livechat.ui.app.LiveChatApp
+import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
+import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIAlertAction
 import platform.UIKit.UIAlertActionStyleDefault
@@ -23,11 +24,12 @@ import platform.UIKit.UIWindow
 @Suppress("ktlint:standard:function-naming")
 fun MainViewController(
     config: FirebaseRestConfig = defaultFirebaseConfig(),
+    bridgeBundle: IosBridgeBundle,
     userId: String = "demo-user",
     idToken: String? = null,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
 ): UIViewController {
-    LiveChatIosInitializer.ensure(config)
+    LiveChatIosInitializer.ensure(config, bridgeBundle)
     LiveChatIosInitializer.updateSession(userId, idToken)
     return ComposeUIViewController {
         LiveChatApp(
@@ -55,9 +57,12 @@ fun updateLiveChatSession(
 private object LiveChatIosInitializer {
     private var started = false
 
-    fun ensure(config: FirebaseRestConfig) {
+    fun ensure(
+        config: FirebaseRestConfig,
+        bridgeBundle: IosBridgeBundle,
+    ) {
         if (!started) {
-            startKoinForiOS(config)
+            startKoinForiOS(config, bridgeBundle)
             started = true
         }
     }

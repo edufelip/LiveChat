@@ -4,8 +4,8 @@ package com.edufelip.livechat.ui.resources
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.edufelip.livechat.resources.Res
 import com.edufelip.livechat.resources.*
+import com.edufelip.livechat.resources.Res
 import org.jetbrains.compose.resources.stringResource
 
 @Suppress("LongParameterList")

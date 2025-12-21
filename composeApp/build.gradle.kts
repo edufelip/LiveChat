@@ -37,8 +37,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.firebase.app.kt)
-                implementation(libs.firebase.common.kt)
                 api(project(":shared:data"))
                 implementation(compose.components.uiToolingPreview)
             }
@@ -97,6 +95,7 @@ android {
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     packaging {
@@ -122,7 +121,11 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.androidx.activity.compose)
     implementation(libs.google.android.material)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 compose {

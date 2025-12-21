@@ -1,5 +1,6 @@
 package com.edufelip.livechat
 
+import com.edufelip.livechat.data.bridge.IosBridgeDefaults
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ExportObjCClass
 import kotlinx.cinterop.autoreleasepool
@@ -38,7 +39,7 @@ class LiveChatAppDelegate : UIResponder(), UIApplicationDelegateProtocol {
     ): Boolean {
         windowHolder =
             UIWindow(frame = UIScreen.mainScreen.bounds).apply {
-                rootViewController = MainViewController()
+                rootViewController = MainViewController(bridgeBundle = IosBridgeDefaults.empty())
                 makeKeyAndVisible()
             }
         return true

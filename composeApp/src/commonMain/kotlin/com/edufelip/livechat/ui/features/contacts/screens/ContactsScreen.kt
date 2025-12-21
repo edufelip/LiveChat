@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,6 +25,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.ContactsUiState
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -37,9 +39,6 @@ import com.edufelip.livechat.ui.components.molecules.RowWithActions
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.models.ContactsUiState
-import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -109,10 +108,11 @@ private fun EmptyContactsState(
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(
-            MaterialTheme.spacing.md,
-            alignment = Alignment.CenterVertically,
-        ),
+        verticalArrangement =
+            Arrangement.spacedBy(
+                MaterialTheme.spacing.md,
+                alignment = Alignment.CenterVertically,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -129,11 +129,11 @@ private fun EmptyContactsState(
                 modifier =
                     Modifier
                         .heightIn(min = 48.dp)
-                            .semantics {
-                                if (isSyncing) {
-                                    stateDescription = strings.contacts.syncingStateDescription
-                                }
-                            },
+                        .semantics {
+                            if (isSyncing) {
+                                stateDescription = strings.contacts.syncingStateDescription
+                            }
+                        },
             ) {
                 Text(if (isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
             }

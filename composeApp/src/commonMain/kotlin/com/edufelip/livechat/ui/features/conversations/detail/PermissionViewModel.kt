@@ -34,7 +34,11 @@ class PermissionViewModel(
     private val eventsChannel = Channel<PermissionEvent>(capacity = Channel.BUFFERED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val events: Flow<PermissionEvent> = eventsChannel.receiveAsFlow()
 
-    fun handlePermission(status: PermissionStatus, hint: String, dialog: String) {
+    fun handlePermission(
+        status: PermissionStatus,
+        hint: String,
+        dialog: String,
+    ) {
         when (status) {
             PermissionStatus.GRANTED -> clearAll()
             PermissionStatus.DENIED -> _uiState.value = PermissionUiState(hintMessage = hint)

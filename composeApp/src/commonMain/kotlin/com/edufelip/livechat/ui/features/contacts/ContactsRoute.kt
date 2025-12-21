@@ -1,7 +1,5 @@
 package com.edufelip.livechat.ui.features.contacts
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.contacts.PermissionState
 import com.edufelip.livechat.contacts.rememberContactsPermissionManager
+import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.presentation.ContactsEvent
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -20,8 +20,6 @@ import com.edufelip.livechat.ui.features.contacts.screens.ContactsScreen
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberContactsPresenter
-import com.edufelip.livechat.domain.models.Contact
-import com.edufelip.livechat.domain.presentation.ContactsEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

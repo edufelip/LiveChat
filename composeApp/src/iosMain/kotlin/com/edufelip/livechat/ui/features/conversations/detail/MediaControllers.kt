@@ -11,8 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFAudio.AVAudioRecorder
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayAndRecord
@@ -25,17 +23,19 @@ import platform.AVFAudio.AVFormatIDKey
 import platform.AVFAudio.AVNumberOfChannelsKey
 import platform.AVFAudio.AVSampleRateKey
 import platform.AVFAudio.setActive
+import platform.AVFoundation.AVAuthorizationStatusAuthorized
+import platform.AVFoundation.AVAuthorizationStatusDenied
+import platform.AVFoundation.AVAuthorizationStatusNotDetermined
+import platform.AVFoundation.AVAuthorizationStatusRestricted
+import platform.AVFoundation.AVCaptureDevice
+import platform.AVFoundation.AVMediaTypeVideo
+import platform.AVFoundation.authorizationStatusForMediaType
+import platform.AVFoundation.requestAccessForMediaType
 import platform.CoreAudioTypes.kAudioFormatMPEG4AAC
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.NSUUID
 import platform.Foundation.writeToFile
-import platform.AVFoundation.AVAuthorizationStatusAuthorized
-import platform.AVFoundation.AVAuthorizationStatusDenied
-import platform.AVFoundation.AVAuthorizationStatusNotDetermined
-import platform.AVFoundation.AVAuthorizationStatusRestricted
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.AVFoundation.requestAccessForMediaType
 import platform.Photos.PHAuthorizationStatus
 import platform.Photos.PHAuthorizationStatusAuthorized
 import platform.Photos.PHAuthorizationStatusDenied
@@ -60,8 +60,7 @@ import platform.darwin.dispatch_get_main_queue
 import kotlin.coroutines.resume
 
 @Composable
-actual fun rememberConversationMediaController(): ConversationMediaController =
-    remember { IosConversationMediaController() }
+actual fun rememberConversationMediaController(): ConversationMediaController = remember { IosConversationMediaController() }
 
 private class IosConversationMediaController : ConversationMediaController {
     private var recorder: AVAudioRecorder? = null
@@ -111,12 +110,13 @@ private class IosConversationMediaController : ConversationMediaController {
                         )
                         session.setActive(active = true, withOptions = 0u, error = null)
                         val tempPath = (NSTemporaryDirectory() ?: "/tmp/") + "aud_${NSUUID().UUIDString}.m4a"
-                        val settings = mapOf<Any?, Any?>(
-                            AVFormatIDKey to kAudioFormatMPEG4AAC,
-                            AVSampleRateKey to 44100.0,
-                            AVNumberOfChannelsKey to 1,
-                            AVEncoderAudioQualityKey to 96,
-                        )
+                        val settings =
+                            mapOf<Any?, Any?>(
+                                AVFormatIDKey to kAudioFormatMPEG4AAC,
+                                AVSampleRateKey to 44100.0,
+                                AVNumberOfChannelsKey to 1,
+                                AVEncoderAudioQualityKey to 96,
+                            )
                         val recorderInstance =
                             AVAudioRecorder(
                                 uRL = NSURL.fileURLWithPath(tempPath),
@@ -127,10 +127,11 @@ private class IosConversationMediaController : ConversationMediaController {
                         recorderInstance.record()
                         recorder = recorderInstance
                         recorderPath = tempPath
-                        autoStopJob = CoroutineScope(Dispatchers.Default).launch {
-                            delay(60_000)
-                            stopAudioRecording()
-                        }
+                        autoStopJob =
+                            CoroutineScope(Dispatchers.Default).launch {
+                                delay(60_000)
+                                stopAudioRecording()
+                            }
                         true
                     }
                 if (started) MediaResult.Success(Unit) else MediaResult.Error("Unable to start recording")
@@ -163,10 +164,11 @@ private class IosConversationMediaController : ConversationMediaController {
                 }
                 val controller = UIImagePickerController()
                 controller.sourceType = sourceType
-                val delegate = PickerDelegate { path, _ ->
-                    controller.dismissViewControllerAnimated(true, completion = null)
-                    cont.resume(path)
-                }
+                val delegate =
+                    PickerDelegate { path, _ ->
+                        controller.dismissViewControllerAnimated(true, completion = null)
+                        cont.resume(path)
+                    }
                 controller.delegate = delegate
                 val root = currentRootController()
                 if (root == null) {
@@ -228,11 +230,12 @@ private suspend fun ensureMicPermission(): PermissionStatus {
     return when (session.recordPermission) {
         AVAudioSessionRecordPermissionGranted -> PermissionStatus.GRANTED
         AVAudioSessionRecordPermissionUndetermined -> {
-            val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                session.requestRecordPermission { ok: Boolean ->
-                    cont.resume(ok)
+            val granted =
+                suspendCancellableCoroutine<Boolean> { cont ->
+                    session.requestRecordPermission { ok: Boolean ->
+                        cont.resume(ok)
+                    }
                 }
-            }
             if (granted) PermissionStatus.GRANTED else PermissionStatus.BLOCKED
         }
         AVAudioSessionRecordPermissionDenied -> PermissionStatus.BLOCKED
@@ -248,11 +251,12 @@ private suspend fun ensureCameraPermission(): PermissionStatus {
         AVAuthorizationStatusRestricted,
         -> PermissionStatus.BLOCKED
         AVAuthorizationStatusNotDetermined -> {
-            val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { ok: Boolean ->
-                    cont.resume(ok)
+            val granted =
+                suspendCancellableCoroutine<Boolean> { cont ->
+                    AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { ok: Boolean ->
+                        cont.resume(ok)
+                    }
                 }
-            }
             if (granted) PermissionStatus.GRANTED else PermissionStatus.BLOCKED
         }
         else -> PermissionStatus.BLOCKED
@@ -265,14 +269,15 @@ private suspend fun ensurePhotoPermission(): PermissionStatus {
         PHAuthorizationStatusAuthorized, PHAuthorizationStatusLimited -> PermissionStatus.GRANTED
         PHAuthorizationStatusDenied, PHAuthorizationStatusRestricted -> PermissionStatus.BLOCKED
         PHAuthorizationStatusNotDetermined -> {
-            val granted = suspendCancellableCoroutine<Boolean> { cont ->
-                PHPhotoLibrary.requestAuthorization { newStatus: PHAuthorizationStatus ->
-                    cont.resume(
-                        newStatus == PHAuthorizationStatusAuthorized ||
-                            newStatus == PHAuthorizationStatusLimited,
-                    )
+            val granted =
+                suspendCancellableCoroutine<Boolean> { cont ->
+                    PHPhotoLibrary.requestAuthorization { newStatus: PHAuthorizationStatus ->
+                        cont.resume(
+                            newStatus == PHAuthorizationStatusAuthorized ||
+                                newStatus == PHAuthorizationStatusLimited,
+                        )
+                    }
                 }
-            }
             if (granted) PermissionStatus.GRANTED else PermissionStatus.BLOCKED
         }
         else -> PermissionStatus.BLOCKED

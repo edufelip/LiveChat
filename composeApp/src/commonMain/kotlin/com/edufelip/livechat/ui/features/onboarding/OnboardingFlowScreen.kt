@@ -18,21 +18,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.testTag
+import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
+import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
+import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.onboarding.dialogs.CountryPickerDialog
 import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
 import com.edufelip.livechat.ui.features.onboarding.steps.SuccessStep
+import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.OnboardingStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.util.isDigitsOnly
-import com.edufelip.livechat.ui.platform.rememberPlatformContext
-import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
-import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
-import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
+import com.edufelip.livechat.ui.util.isUiTestMode
+import com.edufelip.livechat.ui.util.uiTestOverrides
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -40,6 +43,11 @@ internal fun OnboardingFlowScreen(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val uiTestMode = isUiTestMode()
+    if (uiTestMode) {
+        UiTestOnboardingFlow(onFinished = onFinished, modifier = modifier)
+        return
+    }
     val strings = liveChatStrings()
     val phoneAuthPresenter = rememberPhoneAuthPresenter()
     val phoneAuthState by phoneAuthPresenter.collectState()
@@ -51,6 +59,7 @@ internal fun OnboardingFlowScreen(
     var showCountryPicker by remember { mutableStateOf(false) }
     val inspectionMode = LocalInspectionMode.current
     val context = rememberPlatformContext()
+    val allowVerification = !inspectionMode
 
     LaunchedEffect(phoneAuthState.session?.verificationId) {
         otp = ""
@@ -102,7 +111,7 @@ internal fun OnboardingFlowScreen(
                             phoneInputError = strings.onboarding.invalidPhoneError
                             return@PhoneStep
                         }
-                        if (inspectionMode) return@PhoneStep
+                        if (!allowVerification) return@PhoneStep
                         val presentationContext =
                             runCatching { phoneAuthPresentationContext(context) }
                                 .getOrElse {
@@ -135,7 +144,7 @@ internal fun OnboardingFlowScreen(
                         }
                     },
                     onResend = {
-                        if (!inspectionMode) {
+                        if (allowVerification) {
                             phoneAuthState.session?.let {
                                 val presentationContext =
                                     runCatching { phoneAuthPresentationContext(context) }.getOrNull()
@@ -145,10 +154,114 @@ internal fun OnboardingFlowScreen(
                         }
                     },
                     onVerify = {
-                        if (!inspectionMode && otp.length == 6) {
+                        if (allowVerification && otp.length == 6) {
                             phoneAuthPresenter.verifyCode(otp)
                         }
                     },
+                )
+
+            OnboardingStep.Success -> SuccessStep(onFinished = onFinished)
+        }
+    }
+
+    if (showCountryPicker) {
+        CountryPickerDialog(
+            currentSelection = selectedCountry,
+            onDismiss = { showCountryPicker = false },
+            onSelect = {
+                selectedCountryCode = it.isoCode
+                showCountryPicker = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun UiTestOnboardingFlow(
+    onFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val strings = liveChatStrings()
+    val overrides = uiTestOverrides()
+    val phoneOverride = remember(overrides.phone) { overrides.phone?.filter(Char::isDigit) }
+    val otpOverride = remember(overrides.otp) { overrides.otp?.filter(Char::isDigit)?.take(6) }
+    var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
+    val selectedCountry = remember(selectedCountryCode) { CountryOption.fromIsoCode(selectedCountryCode) }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    var phoneInputError by remember { mutableStateOf<String?>(null) }
+    var otp by rememberSaveable { mutableStateOf("") }
+    var otpError by remember { mutableStateOf<String?>(null) }
+    var showCountryPicker by remember { mutableStateOf(false) }
+    var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
+
+    Scaffold(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .testTag(OnboardingTestTags.UI_TEST_MODE),
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { padding ->
+        val contentModifier =
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .imePadding()
+        when (step) {
+            OnboardingStep.PhoneEntry ->
+                PhoneStep(
+                    modifier = contentModifier,
+                    selectedCountry = selectedCountry,
+                    phoneNumber = phoneNumber,
+                    phoneError = phoneInputError,
+                    isLoading = false,
+                    onPickCountry = { showCountryPicker = true },
+                    onPhoneChanged = { input ->
+                        phoneNumber = input.filter(Char::isDigit).take(20)
+                        phoneInputError = null
+                    },
+                    onContinue = {
+                        val candidate = phoneNumber.ifBlank { phoneOverride.orEmpty() }
+                        if (!candidate.isDigitsOnly() || candidate.length < 7) {
+                            phoneInputError = strings.onboarding.invalidPhoneError
+                            return@PhoneStep
+                        }
+                        phoneNumber = candidate
+                        phoneInputError = null
+                        otp = ""
+                        otpError = null
+                        step = OnboardingStep.OTP
+                    },
+                    continueEnabled = true,
+                )
+
+            OnboardingStep.OTP ->
+                OTPStep(
+                    modifier = contentModifier,
+                    otp = otp,
+                    countdown = 0,
+                    canResend = false,
+                    isRequesting = false,
+                    isVerifying = false,
+                    errorMessage = otpError,
+                    onOtpChanged = { value ->
+                        if (value.length <= 6 && value.all(Char::isDigit)) {
+                            otp = value
+                            otpError = null
+                        }
+                    },
+                    onResend = {},
+                    onVerify = {
+                        val candidate = otp.ifBlank { otpOverride.orEmpty() }
+                        if (candidate.length == 6) {
+                            if (candidate == UI_TEST_OTP) {
+                                step = OnboardingStep.Success
+                            } else {
+                                otpError = strings.onboarding.invalidVerificationCode
+                            }
+                        }
+                    },
+                    verifyEnabled = true,
                 )
 
             OnboardingStep.Success -> SuccessStep(onFinished = onFinished)
@@ -188,3 +301,5 @@ private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =
         is PhoneAuthError.Configuration -> this.message ?: strings.configurationError
         is PhoneAuthError.Unknown -> this.message ?: strings.unknownError
     }
+
+private const val UI_TEST_OTP = "123123"

@@ -25,8 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.InputStream
@@ -169,10 +169,11 @@ private class AndroidConversationMediaController(
                             mediaRecorder.start()
                             recorder = mediaRecorder
                             recorderFile = output
-                            autoStopJob = kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
-                                delay(60_000)
-                                stopAudioRecording()
-                            }
+                            autoStopJob =
+                                kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                                    delay(60_000)
+                                    stopAudioRecording()
+                                }
                             true
                         }.getOrDefault(false)
                     }

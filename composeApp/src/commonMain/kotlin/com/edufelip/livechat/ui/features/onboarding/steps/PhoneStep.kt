@@ -2,11 +2,11 @@ package com.edufelip.livechat.ui.features.onboarding.steps
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,6 +21,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.onboarding.CountryOption
+import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -41,6 +48,7 @@ internal fun PhoneStep(
     onPickCountry: () -> Unit,
     onPhoneChanged: (String) -> Unit,
     onContinue: () -> Unit,
+    continueEnabled: Boolean = phoneNumber.isNotBlank() && !isLoading,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
@@ -48,6 +56,7 @@ internal fun PhoneStep(
         modifier =
             modifier
                 .fillMaxSize()
+                .testTag(OnboardingTestTags.PHONE_STEP)
                 .padding(horizontal = MaterialTheme.spacing.xl)
                 .padding(
                     top = MaterialTheme.spacing.xxxl,
@@ -85,6 +94,7 @@ internal fun PhoneStep(
                 modifier =
                     Modifier
                         .fillMaxWidth()
+                        .testTag(OnboardingTestTags.PHONE_COUNTRY_SELECTOR)
                         .clickable(onClick = onPickCountry),
                 shape = RoundedCornerShape(16.dp),
                 tonalElevation = 2.dp,
@@ -103,37 +113,68 @@ internal fun PhoneStep(
             }
 
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .testTag(OnboardingTestTags.PHONE_INPUT),
                 value = phoneNumber,
                 onValueChange = onPhoneChanged,
                 label = { Text(strings.phoneFieldLabel) },
                 placeholder = { Text(strings.phoneFieldPlaceholder) },
                 singleLine = true,
+                isError = phoneError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                supportingText = {
-                    if (phoneError != null) {
-                        Text(text = phoneError, color = MaterialTheme.colorScheme.error)
-                    } else {
-                        Spacer(modifier = Modifier.height(0.dp))
-                    }
-                },
             )
+            if (phoneError != null) {
+                Text(
+                    text = phoneError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.testTag(OnboardingTestTags.PHONE_ERROR),
+                )
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Button(
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp),
-            onClick = onContinue,
-            enabled = phoneNumber.isNotBlank() && !isLoading,
+                    .heightIn(min = 48.dp)
+                    .testTag(OnboardingTestTags.PHONE_CONTINUE_BUTTON)
+                    .clickable(enabled = continueEnabled, onClick = onContinue)
+                    .semantics {
+                        role = Role.Button
+                        if (!continueEnabled) {
+                            disabled()
+                        }
+                        onClick {
+                            if (continueEnabled) {
+                                onContinue()
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                    },
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
-            } else {
-                Text(strings.continueCta)
+            Button(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                onClick = onContinue,
+                enabled = continueEnabled,
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.PHONE_LOADING_INDICATOR),
+                    )
+                } else {
+                    Text(strings.continueCta)
+                }
             }
         }
     }
