@@ -8,8 +8,8 @@ import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
-import com.edufelip.livechat.domain.utils.asCStateFlow
 import com.edufelip.livechat.domain.utils.PhoneNumberFormatter
+import com.edufelip.livechat.domain.utils.asCStateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -52,7 +52,6 @@ class ContactsPresenter(
                     }
                 }
         }
-
     }
 
     fun shouldSyncContacts(

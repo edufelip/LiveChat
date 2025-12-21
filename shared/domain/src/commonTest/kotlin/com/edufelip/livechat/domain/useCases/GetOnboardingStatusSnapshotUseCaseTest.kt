@@ -7,7 +7,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GetOnboardingStatusSnapshotUseCaseTest {
-
     @Test
     fun `returns repository snapshot value`() {
         val repository = FakeRepository(initiallyComplete = true)

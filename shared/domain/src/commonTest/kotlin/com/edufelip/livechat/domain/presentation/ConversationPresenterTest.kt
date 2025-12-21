@@ -1,6 +1,7 @@
 package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.Contact
+import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -9,16 +10,16 @@ import com.edufelip.livechat.domain.models.Participant
 import com.edufelip.livechat.domain.models.ParticipantRole
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.providers.model.UserSession
-import com.edufelip.livechat.domain.repositories.IMessagesRepository
-import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
+import com.edufelip.livechat.domain.repositories.IMessagesRepository
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
-import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
+import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
-import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -239,12 +240,14 @@ class ConversationPresenterTest {
             pinnedAt: Long?,
         ) = Unit
 
-        override suspend fun ensureConversation(conversationId: String) {
+        override suspend fun ensureConversation(
+            conversationId: String,
+            peer: ConversationPeer?,
+        ) {
             ensured += conversationId
         }
 
         override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
-
     }
 
     private class FakeParticipantsRepository(
@@ -278,9 +281,15 @@ class ConversationPresenterTest {
             pinnedAt: Long?,
         ) = Unit
 
-        override suspend fun setMuteUntil(conversationId: String, muteUntil: Long?) = Unit
+        override suspend fun setMuteUntil(
+            conversationId: String,
+            muteUntil: Long?,
+        ) = Unit
 
-        override suspend fun setArchived(conversationId: String, archived: Boolean) = Unit
+        override suspend fun setArchived(
+            conversationId: String,
+            archived: Boolean,
+        ) = Unit
     }
 
     private class FakeContactsRepository : IContactsRepository {
@@ -314,8 +323,9 @@ class ConversationPresenterTest {
         override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = state.value
 
         override fun currentUserId(): String? = userId
-    }
 
+        override fun currentUserPhone(): String? = null
+    }
 }
 
 private fun participant(

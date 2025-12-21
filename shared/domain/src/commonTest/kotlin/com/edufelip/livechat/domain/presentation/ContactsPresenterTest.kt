@@ -5,12 +5,10 @@ import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
-import com.edufelip.livechat.domain.models.Participant
-import com.edufelip.livechat.domain.models.ParticipantRole
-import com.edufelip.livechat.domain.repositories.IContactsRepository
-import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.providers.model.UserSession
+import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
@@ -21,7 +19,6 @@ import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
 import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -29,8 +26,8 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -110,7 +107,9 @@ class ContactsPresenterTest {
             val setup = createPresenter(initialContacts = emptyList())
             try {
                 setup.presenter.syncContacts(phoneContacts)
+                setup.scope.advanceUntilIdle()
                 setup.presenter.syncContacts(phoneContacts)
+                setup.scope.advanceUntilIdle()
                 assertEquals(
                     1,
                     setup.repository.checkInvocations,
@@ -128,11 +127,18 @@ class ContactsPresenterTest {
         val sessionProvider = FakeUserSessionProvider()
         val messagesRepository = FakeMessagesRepository()
         val formatter = DefaultPhoneNumberFormatter()
+        val dispatcher = StandardTestDispatcher(testScheduler)
         val checkUseCase =
             CheckRegisteredContactsUseCase(
                 buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
                 applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
-                validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+                validateContactsUseCase =
+                    ValidateContactsUseCase(
+                        repository,
+                        dispatcher = dispatcher,
+                        phoneNumberFormatter = formatter,
+                    ),
+                dispatcher = dispatcher,
             )
         val presenter =
             ContactsPresenter(
@@ -164,20 +170,37 @@ class ContactsPresenterTest {
     }
 
     private class FakeMessagesRepository : IMessagesRepository {
-        override fun observeConversation(conversationId: String, pageSize: Int): Flow<List<Message>> = emptyFlow()
+        override fun observeConversation(
+            conversationId: String,
+            pageSize: Int,
+        ): Flow<List<Message>> = emptyFlow()
 
         override suspend fun sendMessage(draft: MessageDraft): Message =
             error("sendMessage should not be called in ContactsPresenter tests")
 
-        override suspend fun syncConversation(conversationId: String, sinceEpochMillis: Long?): List<Message> = emptyList()
+        override suspend fun syncConversation(
+            conversationId: String,
+            sinceEpochMillis: Long?,
+        ): List<Message> = emptyList()
 
         override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = emptyFlow()
 
-        override suspend fun markConversationAsRead(conversationId: String, lastReadAt: Long, lastReadSeq: Long?) = Unit
+        override suspend fun markConversationAsRead(
+            conversationId: String,
+            lastReadAt: Long,
+            lastReadSeq: Long?,
+        ) = Unit
 
-        override suspend fun setConversationPinned(conversationId: String, pinned: Boolean, pinnedAt: Long?) = Unit
+        override suspend fun setConversationPinned(
+            conversationId: String,
+            pinned: Boolean,
+            pinnedAt: Long?,
+        ) = Unit
 
-        override suspend fun ensureConversation(conversationId: String, peer: ConversationPeer?) = Unit
+        override suspend fun ensureConversation(
+            conversationId: String,
+            peer: ConversationPeer?,
+        ) = Unit
 
         override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
     }

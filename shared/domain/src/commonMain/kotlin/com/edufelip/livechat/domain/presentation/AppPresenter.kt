@@ -4,8 +4,8 @@ import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
-import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
+import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
