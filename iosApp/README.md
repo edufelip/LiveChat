@@ -27,7 +27,7 @@ To target a different simulator, pass a `IOS_SIMULATOR_DEVICE` property:
 
 ## Xcode target
 
-An Xcode project is now available under `iosApp/LiveChatIOS.xcodeproj`. It embeds the `LiveChatCompose.xcframework` exposed by the shared Compose module and launches the Kotlin UI via `MainViewController()`. Before opening the project, generate the framework:
+An Xcode project is now available under `iosApp/LiveChatIOS.xcodeproj`. It embeds the `LiveChatCompose.xcframework` exposed by the shared Compose module and launches the Kotlin UI via `MainViewController(...)` with a Swift-side bridge bundle (so Firebase stays in the platform layer). Before opening the project, generate the framework:
 
 ```
 ./gradlew :composeApp:assembleLiveChatComposeXCFramework
