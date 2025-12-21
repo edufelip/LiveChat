@@ -20,6 +20,7 @@ kotlinx-serialization = "1.7.3"
 androidxTestCore = "1.5.0"
 androidxTestExtJunit = "1.1.5"
 robolectric = "4.12.2"
+composeUi = "1.9.3"
 
 # @keep
 minSdk = "24"
@@ -31,6 +32,8 @@ compileSdk = "36"
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUi" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUi" }
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 google-android-material = { module = "com.google.android.material:material", version.ref = "material" }
 google-services = { module = "com.google.gms:google-services", version.ref = "google-services" }
