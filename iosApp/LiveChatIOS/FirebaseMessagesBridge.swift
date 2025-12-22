@@ -96,9 +96,12 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         let data = doc.data()
         let senderId = data["sender_id"] as? String
         let receiverId = data["receiver_id"] as? String
+        let payloadType = data["payload_type"] as? String
         let type = data["type"] as? String
         let content = data["content"] as? String
         let status = data["status"] as? String
+        let actionType = data["action_type"] as? String
+        let actionMessageId = data["action_message_id"] as? String
         let createdAtMillis =
             (data["created_at_ms"] as? NSNumber)?.int64Value
             ?? (data["created_at"] as? Timestamp).map { Int64($0.dateValue().timeIntervalSince1970 * 1000) }
@@ -109,9 +112,12 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
             senderId: senderId,
             receiverId: receiverId,
             createdAtMillis: kotlinCreatedAt,
+            payloadType: payloadType,
             type: type,
             content: content,
-            status: status
+            status: status,
+            actionType: actionType,
+            actionMessageId: actionMessageId
         )
     }
 }
@@ -122,10 +128,17 @@ private extension TransportMessagePayload {
             "sender_id": senderId ?? "",
             "receiver_id": receiverId ?? "",
             "created_at": FieldValue.serverTimestamp(),
+            "payload_type": payloadType ?? "message",
             "type": type ?? "text",
             "content": content ?? "",
             "status": status ?? "pending",
         ]
+        if let actionType {
+            payload["action_type"] = actionType
+        }
+        if let actionMessageId {
+            payload["action_message_id"] = actionMessageId
+        }
         if let createdAtMillis = createdAtMillis?.int64Value {
             payload["created_at_ms"] = createdAtMillis
         }
