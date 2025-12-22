@@ -56,6 +56,75 @@ final class LiveChatIOSUITests: XCTestCase {
         XCTAssertTrue(successStep.waitForExistence(timeout: 8))
     }
 
+    func testOtpErrorThenSuccessNavigatesHome() {
+        let app = launchApp(phoneOverride: "6505553434")
+        reachOtpStep(in: app, phone: "6505553434")
+
+        var otpInput = element(in: app, id: OnboardingTags.otpInput)
+        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
+        enterText("000000", into: otpInput, app: app)
+
+        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
+        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
+        tapElement(verifyButton)
+
+        let otpError = element(in: app, id: OnboardingTags.otpError)
+        XCTAssertTrue(otpError.waitForExistence(timeout: 5))
+
+        otpInput = element(in: app, id: OnboardingTags.otpInput)
+        enterText("123123", into: otpInput, app: app)
+        tapElement(verifyButton)
+
+        let successStep = element(in: app, id: OnboardingTags.successStep)
+        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
+
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 5))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+    }
+
+    func testContactsPermissionFlow() {
+        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true)
+        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+        tapElement(contactsTab)
+
+        let syncButton = app.buttons["Sync Contacts"]
+        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
+        tapElement(syncButton)
+
+        let syncComplete = element(in: app, id: "contacts_sync_complete")
+        XCTAssertTrue(syncComplete.waitForExistence(timeout: 8))
+    }
+
+    func testContactsPermissionDeniedShowsBanner() {
+        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true, contactsDeny: true)
+        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+        tapElement(contactsTab)
+
+        let syncButton = app.buttons["Sync Contacts"]
+        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
+        tapElement(syncButton)
+
+        let deniedMessage = app.staticTexts["Enable contacts permission to sync your phonebook."]
+        XCTAssertTrue(deniedMessage.waitForExistence(timeout: 8))
+    }
+
     func testPhoneValidationError() {
         let app = launchApp()
         let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
@@ -75,16 +144,17 @@ final class LiveChatIOSUITests: XCTestCase {
 
     private func launchApp(
         phoneOverride: String? = nil,
-        otpOverride: String? = nil
+        otpOverride: String? = nil,
+        contactsFlow: Bool = false,
+        contactsDeny: Bool = false
     ) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["UITEST_MODE"] = "1"
-        if let phoneOverride {
-            app.launchEnvironment["UITEST_PHONE"] = phoneOverride
-        }
-        if let otpOverride {
-            app.launchEnvironment["UITEST_OTP"] = otpOverride
-        }
+        app.launchEnvironment["UITEST_RESET_ONBOARDING"] = "1"
+        app.launchEnvironment["UITEST_PHONE"] = phoneOverride ?? ""
+        app.launchEnvironment["UITEST_OTP"] = otpOverride ?? ""
+        app.launchEnvironment["UITEST_CONTACTS_FLOW"] = contactsFlow ? "1" : "0"
+        app.launchEnvironment["UITEST_CONTACTS_DENY"] = contactsDeny ? "1" : "0"
         app.launchArguments.append("-ui-testing")
         app.launch()
         return app
@@ -103,8 +173,12 @@ final class LiveChatIOSUITests: XCTestCase {
         target.tap()
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 2))
-        if let existing = target.value as? String, !existing.isEmpty {
-            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count)
+        target.press(forDuration: 1.0)
+        let selectAll = app.menuItems["Select All"]
+        if selectAll.waitForExistence(timeout: 1) {
+            selectAll.tap()
+        } else {
+            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: 16)
             target.typeText(deleteString)
         }
         target.typeText(text)
@@ -148,6 +222,39 @@ final class LiveChatIOSUITests: XCTestCase {
     private func tapElement(_ element: XCUIElement) {
         let coordinate = element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         coordinate.tap()
+    }
+
+    private func reachOtpStep(in app: XCUIApplication, phone: String) {
+        let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
+        XCTAssertTrue(uiTestMode.waitForExistence(timeout: 5))
+
+        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
+        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
+        enterText(phone, into: phoneInput, app: app)
+
+        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
+        tapElement(continueButton)
+
+        let otpStep = element(in: app, id: OnboardingTags.otpStep)
+        XCTAssertTrue(otpStep.waitForExistence(timeout: 8))
+    }
+
+    private func completeOnboarding(in app: XCUIApplication, phone: String, otp: String) {
+        reachOtpStep(in: app, phone: phone)
+
+        let otpInput = element(in: app, id: OnboardingTags.otpInput)
+        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
+        enterText(otp, into: otpInput, app: app)
+
+        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
+        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
+        tapElement(verifyButton)
+
+        let successStep = element(in: app, id: OnboardingTags.successStep)
+        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
     }
 
 }
