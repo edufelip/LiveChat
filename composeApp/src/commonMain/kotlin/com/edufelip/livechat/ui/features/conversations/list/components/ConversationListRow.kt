@@ -22,6 +22,7 @@ import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.app.AppIcons
 import com.edufelip.livechat.ui.components.atoms.Badge
 import com.edufelip.livechat.ui.components.molecules.RowWithActions
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -33,6 +34,7 @@ fun ConversationListRow(
     onClick: (ConversationSummary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val conversationStrings = liveChatStrings().conversation
     val subtitleContent: (@Composable () -> Unit)? =
         if (summary.lastMessage.contentType == MessageContentType.Audio) {
             {
@@ -42,11 +44,11 @@ fun ConversationListRow(
                 ) {
                     Icon(
                         imageVector = AppIcons.mic,
-                        contentDescription = "Audio message",
+                        contentDescription = conversationStrings.audioMessageLabel,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "Audio",
+                        text = conversationStrings.audioShortLabel,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontStyle = FontStyle.Italic,
@@ -70,19 +72,34 @@ fun ConversationListRow(
                 IconButton(onClick = { onTogglePin(summary, !summary.isPinned) }) {
                     Icon(
                         imageVector = if (summary.isPinned) AppIcons.pinFilled else AppIcons.pin,
-                        contentDescription = if (summary.isPinned) "Unpin" else "Pin",
+                        contentDescription =
+                            if (summary.isPinned) {
+                                conversationStrings.unpinAction
+                            } else {
+                                conversationStrings.pinAction
+                            },
                     )
                 }
                 IconButton(onClick = { onToggleMute(summary, !summary.isMuted) }) {
                     Icon(
                         imageVector = if (summary.isMuted) AppIcons.muted else AppIcons.mute,
-                        contentDescription = if (summary.isMuted) "Unmute" else "Mute",
+                        contentDescription =
+                            if (summary.isMuted) {
+                                conversationStrings.unmuteAction
+                            } else {
+                                conversationStrings.muteAction
+                            },
                     )
                 }
                 IconButton(onClick = { onToggleArchive(summary, !summary.isArchived) }) {
                     Icon(
                         imageVector = if (summary.isArchived) AppIcons.unarchive else AppIcons.archive,
-                        contentDescription = if (summary.isArchived) "Unarchive" else "Archive",
+                        contentDescription =
+                            if (summary.isArchived) {
+                                conversationStrings.unarchiveAction
+                            } else {
+                                conversationStrings.archiveAction
+                            },
                     )
                 }
             },

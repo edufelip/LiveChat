@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -28,6 +29,7 @@ fun ErrorBanner(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings().general
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.errorContainer,
@@ -47,7 +49,7 @@ fun ErrorBanner(
             )
             Spacer(modifier = Modifier.width(12.dp))
             TextButton(onClick = onDismiss) {
-                Text("Dismiss")
+                Text(strings.dismiss)
             }
         }
     }

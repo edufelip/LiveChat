@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.app.AppIcons
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -37,6 +38,7 @@ fun ComposerBar(
     onErrorClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val conversationStrings = liveChatStrings().conversation
     var text by rememberSaveable { mutableStateOf("") }
     val sendEnabled = text.isNotBlank() && !isSending
 
@@ -53,20 +55,31 @@ fun ComposerBar(
                 enabled = !isSending,
                 onClick = onPickImage,
             ) {
-                Icon(imageVector = AppIcons.gallery, contentDescription = "Pick image")
+                Icon(
+                    imageVector = AppIcons.gallery,
+                    contentDescription = conversationStrings.pickImage,
+                )
             }
             FilledIconButton(
                 enabled = !isSending,
                 onClick = onTakePhoto,
             ) {
-                Icon(imageVector = AppIcons.camera, contentDescription = "Take photo")
+                Icon(
+                    imageVector = AppIcons.camera,
+                    contentDescription = conversationStrings.takePhoto,
+                )
             }
             FilledIconButton(
                 enabled = !isSending && !isRecording,
                 onClick = onStartRecording,
             ) {
                 val icon = if (isRecording) AppIcons.stop else AppIcons.mic
-                val description = if (isRecording) "Stop recording" else "Record audio"
+                val description =
+                    if (isRecording) {
+                        conversationStrings.stopRecording
+                    } else {
+                        conversationStrings.recordAudio
+                    }
                 Icon(imageVector = icon, contentDescription = description)
             }
         }
@@ -79,7 +92,7 @@ fun ComposerBar(
                 modifier = Modifier.weight(1f),
                 value = text,
                 onValueChange = { text = it },
-                placeholder = { Text("Message…") },
+                placeholder = { Text(conversationStrings.messagePlaceholder) },
                 enabled = !isSending,
                 maxLines = 4,
                 shape = RoundedCornerShape(28.dp),
@@ -102,7 +115,7 @@ fun ComposerBar(
                 ) {
                     Icon(
                         imageVector = AppIcons.error,
-                        contentDescription = "Message failed",
+                        contentDescription = conversationStrings.messageFailed,
                         tint = androidx.compose.material3.MaterialTheme.colorScheme.error,
                     )
                 }
@@ -117,7 +130,10 @@ fun ComposerBar(
                     }
                 },
             ) {
-                Icon(imageVector = AppIcons.confirm, contentDescription = "Send message")
+                Icon(
+                    imageVector = AppIcons.confirm,
+                    contentDescription = conversationStrings.sendMessage,
+                )
             }
         }
     }
