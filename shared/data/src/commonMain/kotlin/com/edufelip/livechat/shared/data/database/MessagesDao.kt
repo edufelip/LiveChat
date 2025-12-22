@@ -53,6 +53,9 @@ interface MessagesDao {
         status: String,
     )
 
+    @Query("SELECT status FROM messages WHERE id = :messageId LIMIT 1")
+    suspend fun getStatus(messageId: String): String?
+
     @Query(
         """
         SELECT created_at FROM messages
@@ -62,6 +65,20 @@ interface MessagesDao {
         """,
     )
     suspend fun latestTimestamp(conversationId: String): Long?
+
+    @Query(
+        """
+        SELECT * FROM messages
+        WHERE conversation_id = :conversationId
+          AND sender_id != :currentUserId
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+    )
+    suspend fun latestIncomingMessage(
+        conversationId: String,
+        currentUserId: String,
+    ): MessageEntity?
 
     @Query("DELETE FROM messages WHERE conversation_id = :conversationId")
     suspend fun clearConversation(conversationId: String)

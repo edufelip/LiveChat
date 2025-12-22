@@ -12,9 +12,10 @@ import kotlinx.coroutines.Dispatchers
         ContactEntity::class,
         MessageEntity::class,
         ConversationStateEntity::class,
+        ProcessedInboxActionEntity::class,
         OnboardingStatusEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @ConstructedBy(LiveChatDatabaseConstructor::class)
@@ -24,6 +25,8 @@ abstract class LiveChatDatabase : RoomDatabase() {
     abstract fun messagesDao(): MessagesDao
 
     abstract fun conversationStateDao(): ConversationStateDao
+
+    abstract fun inboxActionsDao(): InboxActionsDao
 
     abstract fun onboardingStatusDao(): OnboardingStatusDao
 }
