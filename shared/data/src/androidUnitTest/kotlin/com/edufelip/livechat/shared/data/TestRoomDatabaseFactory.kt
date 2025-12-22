@@ -15,6 +15,6 @@ fun createTestDatabase(): LiveChatDatabase {
         name = dbFile.absolutePath,
     )
         .setQueryCoroutineContext(Dispatchers.Default)
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 }
