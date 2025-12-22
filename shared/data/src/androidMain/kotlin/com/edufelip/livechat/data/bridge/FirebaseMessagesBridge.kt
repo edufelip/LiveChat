@@ -81,9 +81,12 @@ class FirebaseMessagesBridge(
                 createdAtMillis =
                     getTimestamp(FIELD_CREATED_AT)?.toDate()?.time
                         ?: getLong(FIELD_CREATED_AT_MS),
+                payloadType = getString(FIELD_PAYLOAD_TYPE),
                 type = getString(FIELD_TYPE),
                 content = getString(FIELD_CONTENT),
                 status = getString(FIELD_STATUS),
+                actionType = getString(FIELD_ACTION_TYPE),
+                actionMessageId = getString(FIELD_ACTION_MESSAGE_ID),
             )
         }.getOrNull()
 
@@ -93,9 +96,12 @@ class FirebaseMessagesBridge(
             put(FIELD_RECEIVER_ID, receiverId)
             put(FIELD_CREATED_AT, FieldValue.serverTimestamp())
             put(FIELD_CREATED_AT_MS, createdAtMillis)
+            put(FIELD_PAYLOAD_TYPE, payloadType)
             put(FIELD_TYPE, type)
             put(FIELD_CONTENT, content)
             put(FIELD_STATUS, status)
+            put(FIELD_ACTION_TYPE, actionType)
+            put(FIELD_ACTION_MESSAGE_ID, actionMessageId)
         }
 
     private companion object {
@@ -103,8 +109,11 @@ class FirebaseMessagesBridge(
         const val FIELD_RECEIVER_ID = "receiver_id"
         const val FIELD_CREATED_AT = "created_at"
         const val FIELD_CREATED_AT_MS = "created_at_ms"
+        const val FIELD_PAYLOAD_TYPE = "payload_type"
         const val FIELD_TYPE = "type"
         const val FIELD_CONTENT = "content"
         const val FIELD_STATUS = "status"
+        const val FIELD_ACTION_TYPE = "action_type"
+        const val FIELD_ACTION_MESSAGE_ID = "action_message_id"
     }
 }

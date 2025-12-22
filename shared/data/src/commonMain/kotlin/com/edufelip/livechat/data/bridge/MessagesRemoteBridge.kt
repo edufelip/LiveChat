@@ -35,7 +35,10 @@ data class TransportMessagePayload(
     val senderId: String? = null,
     val receiverId: String? = null,
     val createdAtMillis: Long? = null,
+    val payloadType: String? = null,
     val type: String? = null,
     val content: String? = null,
     val status: String? = null,
+    val actionType: String? = null,
+    val actionMessageId: String? = null,
 )
