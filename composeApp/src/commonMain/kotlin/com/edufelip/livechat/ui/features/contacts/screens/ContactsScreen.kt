@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -31,6 +32,7 @@ import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
+import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
 import com.edufelip.livechat.ui.components.atoms.Badge
 import com.edufelip.livechat.ui.components.atoms.SectionHeader
 import com.edufelip.livechat.ui.components.molecules.ErrorBanner
@@ -182,81 +184,88 @@ private fun ContactsListContent(
     val inviteCandidates =
         remember(contacts) { contacts.filterNot { it.isRegistered } }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-        contentPadding = PaddingValues(bottom = MaterialTheme.spacing.xl),
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .testTag(ContactsTestTags.LIST),
     ) {
-        if (showSyncButton) {
-            item {
-                Button(
-                    onClick = onSync,
-                    enabled = !state.isSyncing,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp)
-                            .semantics {
-                                if (state.isSyncing) {
-                                    stateDescription = strings.contacts.syncingStateDescription
-                                }
-                            },
-                ) {
-                    Text(if (state.isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            contentPadding = PaddingValues(bottom = MaterialTheme.spacing.xl),
+        ) {
+            if (showSyncButton) {
+                item {
+                    Button(
+                        onClick = onSync,
+                        enabled = !state.isSyncing,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .semantics {
+                                    if (state.isSyncing) {
+                                        stateDescription = strings.contacts.syncingStateDescription
+                                    }
+                                },
+                    ) {
+                        Text(if (state.isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
+                    }
                 }
             }
-        }
 
-        if (registeredContacts.isNotEmpty()) {
-            item {
-                SectionHeader(title = strings.contacts.registeredSectionTitle)
+            if (registeredContacts.isNotEmpty()) {
+                item {
+                    SectionHeader(title = strings.contacts.registeredSectionTitle)
+                }
+                items(registeredContacts, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
+                    RowWithActions(
+                        title = contact.name,
+                        subtitle = contact.phoneNo,
+                        endContent = {
+                            Badge(
+                                text = strings.contacts.onLiveChatBadge,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        highlight = true,
+                        onClick = { onContactSelected(contact) },
+                        enabled = true,
+                    )
+                }
             }
-            items(registeredContacts, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
-                RowWithActions(
-                    title = contact.name,
-                    subtitle = contact.phoneNo,
-                    endContent = {
-                        Badge(
-                            text = strings.contacts.onLiveChatBadge,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    },
-                    highlight = true,
-                    onClick = { onContactSelected(contact) },
-                    enabled = true,
-                )
-            }
-        }
 
-        if (!state.isSyncing && inviteCandidates.isNotEmpty()) {
-            item {
-                SectionHeader(title = strings.contacts.inviteSectionTitle)
-            }
-            items(inviteCandidates, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
-                RowWithActions(
-                    title = contact.name,
-                    subtitle = contact.phoneNo,
-                    endContent = {
-                        TextButton(
-                            onClick = { onInvite(contact) },
-                            modifier = Modifier.heightIn(min = 48.dp),
-                        ) {
-                            Text(strings.contacts.inviteCta)
-                        }
-                    },
-                    highlight = false,
-                    onClick = {},
-                    enabled = false,
-                )
-            }
-        } else if (state.isSyncing && inviteCandidates.isNotEmpty()) {
-            item {
-                Text(
-                    text = strings.contacts.validatingSectionMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.sm),
-                )
+            if (!state.isSyncing && inviteCandidates.isNotEmpty()) {
+                item {
+                    SectionHeader(title = strings.contacts.inviteSectionTitle)
+                }
+                items(inviteCandidates, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
+                    RowWithActions(
+                        title = contact.name,
+                        subtitle = contact.phoneNo,
+                        endContent = {
+                            TextButton(
+                                onClick = { onInvite(contact) },
+                                modifier = Modifier.heightIn(min = 48.dp),
+                            ) {
+                                Text(strings.contacts.inviteCta)
+                            }
+                        },
+                        highlight = false,
+                        onClick = {},
+                        enabled = false,
+                    )
+                }
+            } else if (state.isSyncing && inviteCandidates.isNotEmpty()) {
+                item {
+                    Text(
+                        text = strings.contacts.validatingSectionMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.sm),
+                    )
+                }
             }
         }
     }

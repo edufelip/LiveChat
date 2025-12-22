@@ -10,12 +10,18 @@ final class LiveChatRootViewController: UIViewController {
         userId: String,
         idToken: String? = nil
     ) {
+        let isUiTest = isUiTestModeEnabled()
         composeViewController = MainViewControllerKt.MainViewController(
             config: config,
             bridgeBundle: LiveChatBridgeFactory.make(config: config),
             userId: userId,
             idToken: idToken,
-            phoneContactsProvider: { [] }
+            phoneContactsProvider: {
+                if isUiTest && isContactsFlowEnabled() {
+                    return UiTestContactsKt.uiTestContacts()
+                }
+                return []
+            }
         )
         super.init(nibName: nil, bundle: nil)
     }
@@ -30,10 +36,12 @@ final class LiveChatRootViewController: UIViewController {
         // Fill the whole window; we'll handle padding via Compose insets.
         view.insetsLayoutMarginsFromSafeArea = false
         view.backgroundColor = liveChatBackgroundColor()
+        view.accessibilityIdentifier = "live_chat_root"
 
         addChild(composeViewController)
         let childView = composeViewController.view!
         childView.backgroundColor = liveChatBackgroundColor()
+        childView.accessibilityIdentifier = "live_chat_compose_root"
         childView.translatesAutoresizingMaskIntoConstraints = false
         let backgroundView = UIView(frame: .zero)
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -55,6 +63,20 @@ final class LiveChatRootViewController: UIViewController {
         ])
         composeViewController.didMove(toParent: self)
     }
+}
+
+private func isUiTestModeEnabled() -> Bool {
+    let environment = ProcessInfo.processInfo.environment
+    let arguments = ProcessInfo.processInfo.arguments
+    let storedFlag = UserDefaults.standard.bool(forKey: "UITEST_MODE")
+    return storedFlag || environment["UITEST_MODE"] == "1" || environment["XCTestConfigurationFilePath"] != nil || arguments.contains("-ui-testing")
+}
+
+private func isContactsFlowEnabled() -> Bool {
+    let environment = ProcessInfo.processInfo.environment
+    let storedValue = UserDefaults.standard.string(forKey: "UITEST_CONTACTS_FLOW")
+    let envValue = environment["UITEST_CONTACTS_FLOW"]
+    return envValue == "1" || envValue == "true" || storedValue == "1" || storedValue == "true"
 }
 
 private func liveChatBackgroundColor() -> UIColor {

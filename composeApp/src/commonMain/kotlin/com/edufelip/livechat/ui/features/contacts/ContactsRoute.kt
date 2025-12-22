@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.contacts
 
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.testTag
 import com.edufelip.livechat.contacts.PermissionState
 import com.edufelip.livechat.contacts.rememberContactsPermissionManager
 import com.edufelip.livechat.domain.models.Contact
@@ -20,6 +22,7 @@ import com.edufelip.livechat.ui.features.contacts.screens.ContactsScreen
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberContactsPresenter
+import com.edufelip.livechat.ui.util.isUiTestMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,6 +48,7 @@ fun ContactsRoute(
         return
     }
 
+    val isUiTest = isUiTestMode()
     val presenter = rememberContactsPresenter()
     val state by presenter.collectState()
     val scope = rememberCoroutineScope()
@@ -52,15 +56,37 @@ fun ContactsRoute(
     val permissionError = remember { mutableStateOf<String?>(null) }
     val permissionStatus = remember { mutableStateOf(permissionManager.status()) }
     val hasRequestedPermission = remember { mutableStateOf(false) }
+    val uiTestContacts = remember { mutableStateOf<List<Contact>>(emptyList()) }
+    val uiTestSyncComplete = remember { mutableStateOf(false) }
 
+    val baseState =
+        if (isUiTest && uiTestContacts.value.isNotEmpty()) {
+            state.copy(
+                localContacts = uiTestContacts.value,
+                validatedContacts = uiTestContacts.value.filter { it.isRegistered },
+                isLoading = false,
+                isSyncing = false,
+            )
+        } else {
+            state
+        }
     val screenState =
         permissionError.value?.let { message ->
-            state.copy(errorMessage = message)
-        } ?: state
+            baseState.copy(errorMessage = message)
+        } ?: baseState
     val showSyncButton = permissionStatus.value != PermissionState.Granted
+    suspend fun loadContacts(): List<Contact> {
+        return if (isUiTest) {
+            phoneContactsProvider().ifEmpty { PreviewFixtures.contacts }
+        } else {
+            withContext(Dispatchers.Default) {
+                phoneContactsProvider()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
-        if (!hasRequestedPermission.value && permissionStatus.value != PermissionState.Granted) {
+        if (!isUiTest && !hasRequestedPermission.value && permissionStatus.value != PermissionState.Granted) {
             hasRequestedPermission.value = true
             val result = permissionManager.ensurePermission()
             permissionStatus.value = result
@@ -74,11 +100,11 @@ fun ContactsRoute(
         if (permissionStatus.value == PermissionState.Granted) {
             permissionError.value = null
             presenter.clearError()
-            val contacts =
-                withContext(Dispatchers.Default) {
-                    phoneContactsProvider()
-                }
-            if (presenter.shouldSyncContacts(contacts)) {
+            val contacts = loadContacts()
+            if (isUiTest) {
+                uiTestContacts.value = contacts
+                uiTestSyncComplete.value = true
+            } else if (presenter.shouldSyncContacts(contacts)) {
                 presenter.syncContacts(contacts)
             }
         }
@@ -101,35 +127,50 @@ fun ContactsRoute(
         }
     }
 
-    ContactsScreen(
-        modifier = modifier,
-        state = screenState,
-        showSyncButton = showSyncButton,
-        onInvite = { presenter.inviteContact(it) },
-        onContactSelected = { presenter.onContactSelected(it) },
-        onSync = {
-            scope.launch {
-                presenter.clearError()
-                permissionError.value = null
+    val screenModifier =
+        if (isUiTest && uiTestSyncComplete.value) {
+            modifier.testTag("contacts_sync_complete")
+        } else {
+            modifier
+        }
 
-                when (permissionManager.ensurePermission()) {
-                    PermissionState.Granted -> {
-                        val contacts = withContext(Dispatchers.Default) { phoneContactsProvider() }
-                        presenter.syncContacts(contacts, force = true)
-                        permissionStatus.value = PermissionState.Granted
-                    }
-                    PermissionState.Denied -> {
-                        permissionStatus.value = PermissionState.Denied
-                        permissionError.value = strings.contacts.permissionDeniedMessage
+    Box {
+        ContactsScreen(
+            modifier = screenModifier,
+            state = screenState,
+            showSyncButton = showSyncButton,
+            onInvite = { presenter.inviteContact(it) },
+            onContactSelected = { presenter.onContactSelected(it) },
+            onSync = {
+                scope.launch {
+                    presenter.clearError()
+                    permissionError.value = null
+
+                    when (permissionManager.ensurePermission()) {
+                        PermissionState.Granted -> {
+                            val contacts = loadContacts()
+                            if (isUiTest) {
+                                uiTestContacts.value = contacts
+                                uiTestSyncComplete.value = true
+                            } else {
+                                presenter.syncContacts(contacts, force = true)
+                            }
+                            permissionStatus.value = PermissionState.Granted
+                        }
+                        PermissionState.Denied -> {
+                            permissionStatus.value = PermissionState.Denied
+                            permissionError.value = strings.contacts.permissionDeniedMessage
+                        }
                     }
                 }
-            }
-        },
-        onDismissError = {
-            permissionError.value = null
-            presenter.clearError()
-        },
-    )
+            },
+            onDismissError = {
+                permissionError.value = null
+                presenter.clearError()
+            },
+        )
+
+    }
 }
 
 @DevicePreviews
