@@ -44,11 +44,11 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("com.google.firebase:firebase-auth:24.0.1")
-                implementation("com.google.firebase:firebase-common:22.0.1")
-                implementation("com.google.firebase:firebase-firestore:26.0.2")
-                implementation("com.google.firebase:firebase-functions:22.0.1")
-                implementation("com.google.firebase:firebase-storage:22.0.1")
+                implementation(libs.firebase.auth)
+                implementation(libs.firebase.common)
+                implementation(libs.firebase.firestore)
+                implementation(libs.firebase.functions)
+                implementation(libs.firebase.storage)
                 implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.androidx.room.sqlite.wrapper)
