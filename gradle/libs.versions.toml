@@ -12,6 +12,12 @@ sqlite = "2.6.1"
 ksp = "2.2.20-2.0.4"
 firebase= "34.4.0"
 firebase-kotlin = "1.13.0"
+firebase-auth-android = "24.0.1"
+firebase-common-android = "22.0.1"
+firebase-firestore-android = "26.0.2"
+firebase-functions-android = "22.0.1"
+firebase-storage-android = "22.0.1"
+firebase-analytics-android = "22.5.0"
 libphonenumber = "9.0.17"
 kotlinDateTime = "0.7.1"
 compose-multiplatform = "1.9.1"
@@ -60,7 +66,12 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinDateTime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-firebase-auth = { module = "com.google.firebase:firebase-auth" }
+firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebase-auth-android" }
+firebase-common = { module = "com.google.firebase:firebase-common", version.ref = "firebase-common-android" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebase-firestore-android" }
+firebase-functions = { module = "com.google.firebase:firebase-functions", version.ref = "firebase-functions-android" }
+firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebase-storage-android" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx", version.ref = "firebase-analytics-android" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-common-kt = { module = "dev.gitlive:firebase-common", version.ref = "firebase-kotlin" }
 firebase-app-kt = { module = "dev.gitlive:firebase-app", version.ref = "firebase-kotlin" }

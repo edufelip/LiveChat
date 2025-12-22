@@ -49,7 +49,7 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-                implementation("com.google.firebase:firebase-analytics-ktx:22.5.0")
+                implementation(libs.firebase.analytics)
             }
         }
         val iosX64Main by getting
@@ -117,7 +117,6 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.androidx.activity.compose)
     implementation(libs.google.android.material)

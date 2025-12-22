@@ -15,6 +15,7 @@ import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -32,6 +33,7 @@ class FirebaseMessagesRemoteData(
     private val sessionProvider: UserSessionProvider,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRemoteData {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeConversation(
         conversationId: String,
         sinceEpochMillis: Long?,
