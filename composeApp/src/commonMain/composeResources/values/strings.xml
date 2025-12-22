@@ -38,6 +38,50 @@
     <string name="conversation_muted_label">Muted conversation</string>
     <string name="conversation_muted_until_prefix">Muted until</string>
     <string name="conversation_loading_messages">Loading messages&#8230;</string>
+    <string name="conversation_search_placeholder">Search conversations</string>
+    <string name="conversation_loading_list">Loading conversations&#8230;</string>
+    <string name="conversation_empty_list">No conversations yet</string>
+    <string name="conversation_section_pinned">Pinned</string>
+    <string name="conversation_section_others">Others</string>
+    <string name="conversation_filter_all">All</string>
+    <string name="conversation_filter_unread">Unread</string>
+    <string name="conversation_filter_pinned">Pinned</string>
+    <string name="conversation_filter_archived">Archived</string>
+    <string name="conversation_audio_message_label">Audio message</string>
+    <string name="conversation_audio_short_label">Audio</string>
+    <string name="conversation_pin_action">Pin</string>
+    <string name="conversation_unpin_action">Unpin</string>
+    <string name="conversation_mute_action">Mute</string>
+    <string name="conversation_unmute_action">Unmute</string>
+    <string name="conversation_archive_action">Archive</string>
+    <string name="conversation_unarchive_action">Unarchive</string>
+    <string name="conversation_permission_title">Permission needed</string>
+    <string name="conversation_microphone_permission_hint">Microphone permission is required to record audio.</string>
+    <string name="conversation_microphone_permission_dialog">Microphone permission is blocked. Please enable it in Settings.</string>
+    <string name="conversation_photo_permission_hint">Allow photo/gallery access to attach images.</string>
+    <string name="conversation_photo_permission_dialog">Photo permissions are blocked. Please enable them in Settings.</string>
+    <string name="conversation_camera_permission_hint">Camera permission is required to take a photo.</string>
+    <string name="conversation_camera_permission_dialog">Camera permission is blocked. Please enable it in Settings.</string>
+    <string name="conversation_recording_start_error">Unable to start recording.</string>
+    <string name="conversation_image_attach_error">Unable to attach image.</string>
+    <string name="conversation_photo_capture_error">Unable to capture photo.</string>
+    <string name="conversation_recording_cancel_description">Cancel recording</string>
+    <string name="conversation_recording_send_description">Send recording</string>
+    <string name="conversation_recording_label">Recording %1$s</string>
+    <string name="conversation_play_audio_description">Play audio</string>
+    <string name="conversation_stop_audio_description">Stop audio</string>
+    <string name="conversation_playing_audio_label">Playing audio</string>
+    <string name="conversation_image_message_description">Image message</string>
+    <string name="conversation_image_label">Image</string>
+    <string name="conversation_image_fallback_template">Image: %1$s</string>
+    <string name="conversation_message_placeholder">Message&#8230;</string>
+    <string name="conversation_message_failed">Message failed</string>
+    <string name="conversation_send_message">Send message</string>
+    <string name="conversation_pick_image">Pick image</string>
+    <string name="conversation_take_photo">Take photo</string>
+    <string name="conversation_record_audio">Record audio</string>
+    <string name="conversation_stop_recording">Stop recording</string>
+    <string name="conversation_send_recording">Send recording</string>
 
     <!-- Onboarding -->
     <string name="onboarding_phone_title">Enter your phone number</string>
@@ -72,5 +116,8 @@
 
     <!-- General -->
     <string name="general_ok">OK</string>
+    <string name="general_cancel">Cancel</string>
+    <string name="general_open_settings">Open Settings</string>
+    <string name="general_dismiss">Dismiss</string>
     <string name="general_error_title">Something went wrong</string>
 </resources>

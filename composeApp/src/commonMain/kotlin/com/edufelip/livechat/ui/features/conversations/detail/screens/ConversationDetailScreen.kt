@@ -252,6 +252,7 @@ private fun RecordingControlsBar(
     onSend: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val conversationStrings = liveChatStrings().conversation
     AnimatedVisibility(
         visible = isRecording,
         enter = fadeIn() + slideInVertically { fullHeight -> -fullHeight / 2 },
@@ -272,17 +273,20 @@ private fun RecordingControlsBar(
                 IconButton(onClick = onCancel) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
-                        contentDescription = "Cancel recording",
+                        contentDescription = conversationStrings.recordingCancelDescription,
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = "Recording ${formatDurationMillis(durationMillis)}",
+                    text = conversationStrings.recordingLabel(formatDurationMillis(durationMillis)),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 FilledIconButton(onClick = onSend) {
-                    Icon(imageVector = AppIcons.confirm, contentDescription = "Send recording")
+                    Icon(
+                        imageVector = AppIcons.confirm,
+                        contentDescription = conversationStrings.recordingSendDescription,
+                    )
                 }
             }
         }

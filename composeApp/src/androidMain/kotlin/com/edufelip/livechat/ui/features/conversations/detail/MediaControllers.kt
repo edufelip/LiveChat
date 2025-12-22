@@ -177,7 +177,7 @@ private class AndroidConversationMediaController(
                             true
                         }.getOrDefault(false)
                     }
-                if (started) MediaResult.Success(Unit) else MediaResult.Error("Unable to start recording")
+                if (started) MediaResult.Success(Unit) else MediaResult.Error()
             }
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
             PermissionStatus.BLOCKED -> MediaResult.Permission(PermissionStatus.BLOCKED)

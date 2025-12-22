@@ -35,6 +35,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.features.conversations.detail.loadLocalImageBitmap
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.formatDurationMillis
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -53,6 +54,7 @@ fun MessageBubble(
     positionMillis: Long,
     modifier: Modifier = Modifier,
 ) {
+    val conversationStrings = liveChatStrings().conversation
     val alignment = if (isOwn) Alignment.End else Alignment.Start
     val bubbleColor =
         if (isOwn) {
@@ -86,7 +88,13 @@ fun MessageBubble(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     when (message.contentType) {
-                        MessageContentType.Image -> ImageBubbleContent(message)
+                        MessageContentType.Image ->
+                            ImageBubbleContent(
+                                message = message,
+                                description = conversationStrings.imageMessageDescription,
+                                label = conversationStrings.imageLabel,
+                                fallbackTemplate = conversationStrings.imageFallbackLabel,
+                            )
                         MessageContentType.Audio ->
                             AudioBubbleContent(
                                 message = message,
@@ -96,6 +104,10 @@ fun MessageBubble(
                                 progress = progress,
                                 durationMillis = durationMillis,
                                 positionMillis = positionMillis,
+                                playDescription = conversationStrings.playAudioDescription,
+                                stopDescription = conversationStrings.stopAudioDescription,
+                                playingLabel = conversationStrings.playingAudioLabel,
+                                idleLabel = conversationStrings.audioMessageLabel,
                             )
                         else ->
                             Text(
@@ -144,6 +156,10 @@ private fun AudioBubbleContent(
     progress: Float,
     durationMillis: Long,
     positionMillis: Long,
+    playDescription: String,
+    stopDescription: String,
+    playingLabel: String,
+    idleLabel: String,
     modifier: Modifier = Modifier,
 ) {
     val safeDuration = durationMillis.coerceAtLeast(0L)
@@ -159,13 +175,13 @@ private fun AudioBubbleContent(
         IconButton(onClick = { onAudioToggle(message.body) }) {
             Icon(
                 imageVector = icon,
-                contentDescription = if (isPlaying) "Stop audio" else "Play audio",
+                contentDescription = if (isPlaying) stopDescription else playDescription,
                 tint = textColor,
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (isPlaying) "Playing audio" else "Audio message",
+                text = if (isPlaying) playingLabel else idleLabel,
                 color = textColor,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
@@ -200,13 +216,18 @@ private fun AudioBubbleContent(
 }
 
 @Composable
-private fun ImageBubbleContent(message: Message) {
+private fun ImageBubbleContent(
+    message: Message,
+    description: String,
+    label: String,
+    fallbackTemplate: (String) -> String,
+) {
     val bitmap = remember(message.body) { loadLocalImageBitmap(message.body) }
     if (bitmap != null) {
         Image(
             modifier = Modifier.fillMaxWidth(),
             bitmap = bitmap,
-            contentDescription = "Image message",
+            contentDescription = description,
             contentScale = ContentScale.Crop,
         )
     } else {
@@ -215,9 +236,9 @@ private fun ImageBubbleContent(message: Message) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(imageVector = Icons.Rounded.Image, contentDescription = "Image")
+            Icon(imageVector = Icons.Rounded.Image, contentDescription = label)
             Text(
-                text = "Image: ${message.body.substringAfterLast('/')}",
+                text = fallbackTemplate(message.body.substringAfterLast('/')),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

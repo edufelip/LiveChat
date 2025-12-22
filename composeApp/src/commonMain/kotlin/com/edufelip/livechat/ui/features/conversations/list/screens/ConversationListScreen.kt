@@ -26,6 +26,7 @@ import com.edufelip.livechat.ui.components.atoms.SectionHeader
 import com.edufelip.livechat.ui.components.molecules.EmptyState
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.features.conversations.list.components.ConversationListRow
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -40,6 +41,7 @@ fun ConversationListScreen(
     onFilterSelected: (ConversationFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val conversationStrings = liveChatStrings().conversation
     val uniqueConversations =
         remember(state.conversations, state.searchQuery) {
             state.conversations.distinctBy { it.conversationId }
@@ -60,7 +62,7 @@ fun ConversationListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = state.searchQuery,
                 onValueChange = onSearch,
-                placeholder = { Text("Search conversations") },
+                placeholder = { Text(conversationStrings.searchPlaceholder) },
                 singleLine = true,
             )
         }
@@ -72,14 +74,23 @@ fun ConversationListScreen(
                 FilterChip(
                     selected = selectedFilter == filter,
                     onClick = { onFilterSelected(filter) },
-                    label = { Text(filter.displayName) },
+                    label = {
+                        val label =
+                            when (filter) {
+                                ConversationFilter.All -> conversationStrings.filterAll
+                                ConversationFilter.Unread -> conversationStrings.filterUnread
+                                ConversationFilter.Pinned -> conversationStrings.filterPinned
+                                ConversationFilter.Archived -> conversationStrings.filterArchived
+                            }
+                        Text(label)
+                    },
                 )
             }
         }
 
         when {
-            state.isLoading -> LoadingState(message = "Loading conversations…")
-            state.conversations.isEmpty() -> EmptyState(message = "No conversations yet")
+            state.isLoading -> LoadingState(message = conversationStrings.loadingList)
+            state.conversations.isEmpty() -> EmptyState(message = conversationStrings.emptyList)
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -91,7 +102,7 @@ fun ConversationListScreen(
                         selectedFilter != ConversationFilter.Pinned &&
                         selectedFilter != ConversationFilter.Archived
                     ) {
-                        item { SectionHeader(title = "Pinned") }
+                        item { SectionHeader(title = conversationStrings.pinnedSectionTitle) }
                         items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(
                                 summary = summary,
@@ -102,7 +113,7 @@ fun ConversationListScreen(
                             )
                         }
                         if (others.isNotEmpty()) {
-                            item { SectionHeader(title = "Others") }
+                            item { SectionHeader(title = conversationStrings.othersSectionTitle) }
                         }
                     }
                     items(others, key = { "conv-${it.conversationId}" }) { summary ->

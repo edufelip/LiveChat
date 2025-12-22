@@ -17,6 +17,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.features.conversations.detail.screens.ConversationDetailScreen
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberConversationPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
@@ -31,6 +32,8 @@ fun ConversationDetailRoute(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val strings = liveChatStrings()
+    val conversationStrings = strings.conversation
     if (LocalInspectionMode.current) {
         ConversationDetailScreen(
             modifier = modifier,
@@ -82,15 +85,15 @@ fun ConversationDetailRoute(
                         permissionViewModel.requestOpenSettings()
                     },
                 ) {
-                    Text("Open Settings")
+                    Text(strings.general.openSettings)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { permissionViewModel.clearDialog() }) {
-                    Text("Cancel")
+                    Text(strings.general.cancel)
                 }
             },
-            title = { Text("Permission needed") },
+            title = { Text(conversationStrings.permissionTitle) },
             text = { Text(message) },
         )
     }
@@ -125,8 +128,8 @@ fun ConversationDetailRoute(
                         isRecording = false
                         permissionViewModel.handlePermission(
                             status = result.status,
-                            hint = "Microphone permission is required to record audio.",
-                            dialog = "Microphone permission is blocked. Please enable it in Settings.",
+                            hint = conversationStrings.microphonePermissionHint,
+                            dialog = conversationStrings.microphonePermissionDialog,
                         )
                     }
                     MediaResult.Cancelled -> {
@@ -135,7 +138,7 @@ fun ConversationDetailRoute(
                     }
                     is MediaResult.Error -> {
                         isRecording = false
-                        permissionViewModel.onError(result.message ?: "Unable to start recording.")
+                        permissionViewModel.onError(result.message ?: conversationStrings.recordingStartError)
                     }
                 }
             }
@@ -167,13 +170,13 @@ fun ConversationDetailRoute(
                     is MediaResult.Permission -> {
                         permissionViewModel.handlePermission(
                             status = result.status,
-                            hint = "Allow photo/gallery access to attach images.",
-                            dialog = "Photo permissions are blocked. Please enable them in Settings.",
+                            hint = conversationStrings.photoPermissionHint,
+                            dialog = conversationStrings.photoPermissionDialog,
                         )
                     }
                     MediaResult.Cancelled -> permissionViewModel.clearAll()
                     is MediaResult.Error -> {
-                        permissionViewModel.onError(result.message ?: "Unable to attach image.")
+                        permissionViewModel.onError(result.message ?: conversationStrings.imageAttachError)
                     }
                 }
             }
@@ -188,13 +191,13 @@ fun ConversationDetailRoute(
                     is MediaResult.Permission -> {
                         permissionViewModel.handlePermission(
                             status = result.status,
-                            hint = "Camera permission is required to take a photo.",
-                            dialog = "Camera permission is blocked. Please enable it in Settings.",
+                            hint = conversationStrings.cameraPermissionHint,
+                            dialog = conversationStrings.cameraPermissionDialog,
                         )
                     }
                     MediaResult.Cancelled -> permissionViewModel.clearAll()
                     is MediaResult.Error -> {
-                        permissionViewModel.onError(result.message ?: "Unable to capture photo.")
+                        permissionViewModel.onError(result.message ?: conversationStrings.photoCaptureError)
                     }
                 }
             }
