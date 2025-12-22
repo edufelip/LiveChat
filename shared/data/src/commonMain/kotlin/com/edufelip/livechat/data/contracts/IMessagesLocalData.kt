@@ -27,7 +27,18 @@ interface IMessagesLocalData {
         status: MessageStatus,
     )
 
+    suspend fun getMessageStatus(messageId: String): MessageStatus?
+
+    suspend fun latestIncomingMessage(
+        conversationId: String,
+        currentUserId: String,
+    ): Message?
+
     suspend fun latestTimestamp(conversationId: String): Long?
+
+    suspend fun hasProcessedAction(actionId: String): Boolean
+
+    suspend fun markActionProcessed(actionId: String)
 
     suspend fun replaceConversation(
         conversationId: String,
