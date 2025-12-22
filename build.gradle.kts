@@ -31,3 +31,31 @@ spotless {
         endWithNewline()
     }
 }
+
+tasks.register("testSharedDataUnitTest") {
+    group = "verification"
+    description = "Runs unit tests for :shared:data"
+    dependsOn(":shared:data:testDebugUnitTest")
+}
+
+tasks.register("testSharedDomainUnitTest") {
+    group = "verification"
+    description = "Runs unit tests for :shared:domain"
+    dependsOn(":shared:domain:testDebugUnitTest")
+}
+
+tasks.register("testComposeAppUnitTest") {
+    group = "verification"
+    description = "Runs unit tests for :composeApp"
+    dependsOn(":composeApp:testDebugUnitTest")
+}
+
+tasks.register("testAllModuleUnitTests") {
+    group = "verification"
+    description = "Runs unit tests for shared data, shared domain, and compose app modules"
+    dependsOn(
+        "testSharedDataUnitTest",
+        "testSharedDomainUnitTest",
+        "testComposeAppUnitTest",
+    )
+}
