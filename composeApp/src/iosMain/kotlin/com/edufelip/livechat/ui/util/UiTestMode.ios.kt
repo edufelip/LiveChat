@@ -20,8 +20,11 @@ internal actual fun uiTestOverrides(): UiTestOverrides {
     val defaults = NSUserDefaults.standardUserDefaults
     val phone = defaults.stringForKey("UITEST_PHONE") ?: environment["UITEST_PHONE"]?.toString()
     val otp = defaults.stringForKey("UITEST_OTP") ?: environment["UITEST_OTP"]?.toString()
+    val resetFlag = defaults.stringForKey("UITEST_RESET_ONBOARDING") ?: environment["UITEST_RESET_ONBOARDING"]?.toString()
+    val resetOnboarding = resetFlag == "1" || resetFlag == "true"
     return UiTestOverrides(
         phone = phone,
         otp = otp,
+        resetOnboarding = resetOnboarding,
     )
 }
