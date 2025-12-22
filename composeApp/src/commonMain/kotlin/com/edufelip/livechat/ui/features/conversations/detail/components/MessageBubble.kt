@@ -220,7 +220,7 @@ private fun ImageBubbleContent(
     message: Message,
     description: String,
     label: String,
-    fallbackTemplate: (String) -> String,
+    fallbackTemplate: @Composable (String) -> String,
 ) {
     val bitmap = remember(message.body) { loadLocalImageBitmap(message.body) }
     if (bitmap != null) {
