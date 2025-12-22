@@ -29,6 +29,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let uiTestOtp = environment["UITEST_OTP"] {
             UserDefaults.standard.set(uiTestOtp, forKey: "UITEST_OTP")
         }
+        if let uiTestReset = environment["UITEST_RESET_ONBOARDING"] {
+            UserDefaults.standard.set(uiTestReset, forKey: "UITEST_RESET_ONBOARDING")
+        }
+        if let uiTestContactsFlow = environment["UITEST_CONTACTS_FLOW"] {
+            UserDefaults.standard.set(uiTestContactsFlow, forKey: "UITEST_CONTACTS_FLOW")
+        }
+        if let uiTestContactsDeny = environment["UITEST_CONTACTS_DENY"] {
+            UserDefaults.standard.set(uiTestContactsDeny, forKey: "UITEST_CONTACTS_DENY")
+        }
         return true
     }
 }

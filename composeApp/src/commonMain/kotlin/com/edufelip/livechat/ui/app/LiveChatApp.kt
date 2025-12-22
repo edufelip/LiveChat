@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -26,6 +27,8 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
+import com.edufelip.livechat.ui.util.isUiTestMode
+import com.edufelip.livechat.ui.util.uiTestOverrides
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -63,6 +66,14 @@ fun LiveChatApp(
 
             val presenter = rememberAppPresenter()
             val state by presenter.collectState()
+            val uiTestOverrides = uiTestOverrides()
+            val isUiTest = isUiTestMode()
+
+            LaunchedEffect(isUiTest, uiTestOverrides.resetOnboarding) {
+                if (isUiTest && uiTestOverrides.resetOnboarding) {
+                    presenter.resetOnboarding()
+                }
+            }
 
             when (state.destination) {
                 AppDestination.Onboarding ->

@@ -50,6 +50,13 @@ class AppPresenter(
         }
     }
 
+    fun resetOnboarding() {
+        mutableState.update { current -> current.copy(isOnboardingComplete = false) }
+        scope.launch {
+            setOnboardingComplete(false)
+        }
+    }
+
     fun selectTab(tab: HomeTab) {
         mutableState.update { current ->
             if (current.home.selectedTab == tab && current.home.activeConversationId == null) {
