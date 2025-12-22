@@ -3,6 +3,8 @@ package com.edufelip.livechat.shared.data
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
+import com.edufelip.livechat.data.models.InboxAction
+import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.Message
@@ -73,7 +75,7 @@ class KoinInitializationTest {
         override fun observeConversation(
             conversationId: String,
             sinceEpochMillis: Long?,
-        ): Flow<List<Message>> = flowOf(emptyList())
+        ): Flow<List<InboxItem>> = flowOf(emptyList())
 
         override suspend fun sendMessage(draft: MessageDraft): Message =
             Message(
@@ -89,6 +91,8 @@ class KoinInitializationTest {
             conversationId: String,
             sinceEpochMillis: Long?,
         ): List<Message> = emptyList()
+
+        override suspend fun sendAction(action: InboxAction) = Unit
 
         override suspend fun ensureConversation(
             conversationId: String,
