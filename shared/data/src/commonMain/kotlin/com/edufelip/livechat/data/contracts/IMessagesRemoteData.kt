@@ -1,5 +1,7 @@
 package com.edufelip.livechat.data.contracts
 
+import com.edufelip.livechat.data.models.InboxAction
+import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
@@ -9,7 +11,7 @@ interface IMessagesRemoteData {
     fun observeConversation(
         conversationId: String,
         sinceEpochMillis: Long?,
-    ): Flow<List<Message>>
+    ): Flow<List<InboxItem>>
 
     suspend fun sendMessage(draft: MessageDraft): Message
 
@@ -17,6 +19,8 @@ interface IMessagesRemoteData {
         conversationId: String,
         sinceEpochMillis: Long?,
     ): List<Message>
+
+    suspend fun sendAction(action: InboxAction)
 
     suspend fun ensureConversation(
         conversationId: String,

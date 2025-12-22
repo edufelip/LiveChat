@@ -3,6 +3,9 @@ package com.edufelip.livechat.data.repositories
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.mappers.toPendingMessage
+import com.edufelip.livechat.data.models.InboxAction
+import com.edufelip.livechat.data.models.InboxActionType
+import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
@@ -11,6 +14,7 @@ import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
+import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -55,10 +59,15 @@ class MessagesRepository(
                             println("$logTag: repo remote observe $kind conv=$conversationId error=${throwable.message}")
                             throw throwable
                         }
-                        .collect { remoteMessages ->
-                            if (remoteMessages.isNotEmpty()) {
-                                println("$logTag: repo observeConversation remote conv=$conversationId upserting=${remoteMessages.size}")
-                                localData.upsertMessages(remoteMessages)
+                        .collect { remoteItems ->
+                            val (messages, actions) = splitInboxItems(remoteItems)
+                            if (messages.isNotEmpty()) {
+                                println("$logTag: repo observeConversation remote conv=$conversationId upserting=${messages.size}")
+                                localData.upsertMessages(messages)
+                            }
+                            if (actions.isNotEmpty()) {
+                                println("$logTag: repo observeConversation remote conv=$conversationId actions=${actions.size}")
+                                applyActions(actions)
                             }
                         }
                 }
@@ -83,11 +92,16 @@ class MessagesRepository(
                         .catch { throwable ->
                             println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
                         }
-                        .collect { messages ->
+                        .collect { remoteItems ->
+                            val (messages, actions) = splitInboxItems(remoteItems)
                             if (messages.isNotEmpty()) {
                                 println("$logTag: repo observeAllIncomingMessages upserting=${messages.size}")
                                 localData.upsertMessages(messages)
                                 send(messages)
+                            }
+                            if (actions.isNotEmpty()) {
+                                println("$logTag: repo observeAllIncomingMessages actions=${actions.size}")
+                                applyActions(actions)
                             }
                         }
                 }
@@ -159,6 +173,18 @@ class MessagesRepository(
         withContext(dispatcher) {
             println("$logTag: repo markRead conv=$conversationId lastReadAt=$lastReadAt lastReadSeq=$lastReadSeq")
             participantsRepository.recordReadState(conversationId, lastReadAt, lastReadSeq)
+            val readerId = sessionProvider.currentUserId() ?: return@withContext
+            val latestIncoming = localData.latestIncomingMessage(conversationId, readerId) ?: return@withContext
+            val action =
+                InboxAction(
+                    id = buildActionId(latestIncoming.id, InboxActionType.READ, readerId),
+                    messageId = latestIncoming.id,
+                    senderId = readerId,
+                    receiverId = latestIncoming.senderId,
+                    actionType = InboxActionType.READ,
+                    actionAtMillis = lastReadAt.takeIf { it > 0 } ?: currentEpochMillis(),
+                )
+            remoteData.sendAction(action)
         }
     }
 
@@ -184,4 +210,44 @@ class MessagesRepository(
         println("$logTag: repo ensureConversation conv=$conversationId peer=$peer")
         remoteData.ensureConversation(conversationId, userId, userPhone, peer)
     }
+
+    private suspend fun applyActions(actions: List<InboxAction>) {
+        actions.forEach { action ->
+            if (localData.hasProcessedAction(action.id)) {
+                return@forEach
+            }
+            val status = action.actionType.toMessageStatus()
+            val current = localData.getMessageStatus(action.messageId)
+            if (current == MessageStatus.READ && status == MessageStatus.DELIVERED) {
+                localData.markActionProcessed(action.id)
+                return@forEach
+            }
+            localData.updateMessageStatus(action.messageId, status)
+            localData.markActionProcessed(action.id)
+        }
+    }
+
+    private fun splitInboxItems(items: List<InboxItem>): Pair<List<Message>, List<InboxAction>> {
+        val messages = mutableListOf<Message>()
+        val actions = mutableListOf<InboxAction>()
+        items.forEach { item ->
+            when (item) {
+                is InboxItem.MessageItem -> messages += item.message
+                is InboxItem.ActionItem -> actions += item.action
+            }
+        }
+        return messages to actions
+    }
+
+    private fun InboxActionType.toMessageStatus(): MessageStatus =
+        when (this) {
+            InboxActionType.DELIVERED -> MessageStatus.DELIVERED
+            InboxActionType.READ -> MessageStatus.READ
+        }
+
+    private fun buildActionId(
+        messageId: String,
+        actionType: InboxActionType,
+        actorId: String,
+    ): String = "${messageId}_${actionType.name.lowercase()}_$actorId"
 }
