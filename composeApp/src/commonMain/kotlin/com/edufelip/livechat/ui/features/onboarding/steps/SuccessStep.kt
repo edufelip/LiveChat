@@ -9,7 +9,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -21,7 +20,6 @@ import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -30,7 +28,6 @@ internal fun SuccessStep(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
-    val scope = rememberCoroutineScope()
     Column(
         modifier =
             modifier
@@ -52,9 +49,7 @@ internal fun SuccessStep(
             textAlign = TextAlign.Center,
         )
         Button(
-            onClick = {
-                scope.launch { onFinished() }
-            },
+            onClick = onFinished,
             modifier =
                 Modifier
                     .heightIn(min = 48.dp)

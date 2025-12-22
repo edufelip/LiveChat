@@ -177,7 +177,7 @@ internal fun OnboardingFlowScreen(
 }
 
 @Composable
-private fun UiTestOnboardingFlow(
+internal fun UiTestOnboardingFlow(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
