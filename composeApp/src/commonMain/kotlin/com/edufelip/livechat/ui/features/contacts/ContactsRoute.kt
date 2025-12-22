@@ -1,7 +1,7 @@
 package com.edufelip.livechat.ui.features.contacts
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,6 +75,7 @@ fun ContactsRoute(
             baseState.copy(errorMessage = message)
         } ?: baseState
     val showSyncButton = permissionStatus.value != PermissionState.Granted
+
     suspend fun loadContacts(): List<Contact> {
         return if (isUiTest) {
             phoneContactsProvider().ifEmpty { PreviewFixtures.contacts }
@@ -169,7 +170,6 @@ fun ContactsRoute(
                 presenter.clearError()
             },
         )
-
     }
 }
 
