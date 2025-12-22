@@ -13,8 +13,10 @@ import com.edufelip.livechat.domain.utils.currentEpochMillis
 import com.edufelip.livechat.shared.data.database.ConversationStateDao
 import com.edufelip.livechat.shared.data.database.ConversationStateEntity
 import com.edufelip.livechat.shared.data.database.ConversationSummaryRow
+import com.edufelip.livechat.shared.data.database.InboxActionsDao
 import com.edufelip.livechat.shared.data.database.LiveChatDatabase
 import com.edufelip.livechat.shared.data.database.MessagesDao
+import com.edufelip.livechat.shared.data.database.ProcessedInboxActionEntity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +33,7 @@ class MessagesLocalDataSource(
     private val logTag = "COMMCHECK"
     private val messagesDao: MessagesDao = database.messagesDao()
     private val conversationStateDao: ConversationStateDao = database.conversationStateDao()
+    private val inboxActionsDao: InboxActionsDao = database.inboxActionsDao()
 
     override fun observeMessages(
         conversationId: String,
@@ -93,12 +96,41 @@ class MessagesLocalDataSource(
         }
     }
 
+    override suspend fun getMessageStatus(messageId: String): MessageStatus? =
+        withContext(dispatcher) {
+            messagesDao.getStatus(messageId)?.let { runCatching { MessageStatus.valueOf(it) }.getOrNull() }
+        }
+
+    override suspend fun latestIncomingMessage(
+        conversationId: String,
+        currentUserId: String,
+    ): Message? =
+        withContext(dispatcher) {
+            messagesDao.latestIncomingMessage(conversationId, currentUserId)?.toDomain()
+        }
+
     override suspend fun latestTimestamp(conversationId: String): Long? =
         withContext(dispatcher) {
             val ts = messagesDao.latestTimestamp(conversationId)
             println("$logTag: local latestTimestamp conversation=$conversationId ts=$ts")
             ts
         }
+
+    override suspend fun hasProcessedAction(actionId: String): Boolean =
+        withContext(dispatcher) {
+            inboxActionsDao.hasAction(actionId)
+        }
+
+    override suspend fun markActionProcessed(actionId: String) {
+        withContext(dispatcher) {
+            inboxActionsDao.insert(
+                ProcessedInboxActionEntity(
+                    actionId = actionId,
+                    processedAt = currentEpochMillis(),
+                ),
+            )
+        }
+    }
 
     override suspend fun replaceConversation(
         conversationId: String,
