@@ -68,8 +68,9 @@ final class LiveChatRootViewController: UIViewController {
 private func isUiTestModeEnabled() -> Bool {
     let environment = ProcessInfo.processInfo.environment
     let arguments = ProcessInfo.processInfo.arguments
-    let storedFlag = UserDefaults.standard.bool(forKey: "UITEST_MODE")
-    return storedFlag || environment["UITEST_MODE"] == "1" || environment["XCTestConfigurationFilePath"] != nil || arguments.contains("-ui-testing")
+    return environment["UITEST_MODE"] == "1" ||
+        environment["XCTestConfigurationFilePath"] != nil ||
+        arguments.contains("-ui-testing")
 }
 
 private func isContactsFlowEnabled() -> Bool {

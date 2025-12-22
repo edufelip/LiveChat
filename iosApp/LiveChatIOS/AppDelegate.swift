@@ -22,7 +22,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             environment["UITEST_MODE"] == "1" ||
             environment["XCTestConfigurationFilePath"] != nil ||
             arguments.contains("-ui-testing")
-        UserDefaults.standard.set(isUiTest, forKey: "UITEST_MODE")
+        if isUiTest {
+            UserDefaults.standard.set(true, forKey: "UITEST_MODE")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "UITEST_MODE")
+            UserDefaults.standard.removeObject(forKey: "UITEST_PHONE")
+            UserDefaults.standard.removeObject(forKey: "UITEST_OTP")
+            UserDefaults.standard.removeObject(forKey: "UITEST_RESET_ONBOARDING")
+            UserDefaults.standard.removeObject(forKey: "UITEST_CONTACTS_FLOW")
+            UserDefaults.standard.removeObject(forKey: "UITEST_CONTACTS_DENY")
+        }
         if let uiTestPhone = environment["UITEST_PHONE"] {
             UserDefaults.standard.set(uiTestPhone, forKey: "UITEST_PHONE")
         }
