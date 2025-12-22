@@ -19,9 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -32,12 +32,12 @@ import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
-import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
 import com.edufelip.livechat.ui.components.atoms.Badge
 import com.edufelip.livechat.ui.components.atoms.SectionHeader
 import com.edufelip.livechat.ui.components.molecules.ErrorBanner
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.components.molecules.RowWithActions
+import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
