@@ -68,6 +68,9 @@ final class LiveChatRootViewController: UIViewController {
 private func isUiTestModeEnabled() -> Bool {
     let environment = ProcessInfo.processInfo.environment
     let arguments = ProcessInfo.processInfo.arguments
+    if environment["E2E_MODE"] == "1" || environment["E2E_MODE"] == "true" || arguments.contains("-e2e-testing") {
+        return false
+    }
     return environment["UITEST_MODE"] == "1" ||
         environment["XCTestConfigurationFilePath"] != nil ||
         arguments.contains("-ui-testing")
