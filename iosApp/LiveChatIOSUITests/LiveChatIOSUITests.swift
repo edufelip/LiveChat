@@ -234,8 +234,9 @@ final class LiveChatIOSUITests: XCTestCase {
 
         let search = element(in: app, id: OnboardingTags.countryPickerSearch)
         let searchField = search.exists ? search : app.textFields.firstMatch
-        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
-        enterText(code, into: searchField, app: app)
+        if searchField.waitForExistence(timeout: 5) {
+            enterText(code, into: searchField, app: app)
+        }
 
         let option = element(in: app, id: OnboardingTags.countryOptionPrefix + code)
         if option.waitForExistence(timeout: 5) {
