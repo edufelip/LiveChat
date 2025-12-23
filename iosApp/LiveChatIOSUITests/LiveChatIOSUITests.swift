@@ -143,7 +143,7 @@ final class LiveChatIOSUITests: XCTestCase {
     }
 
     func testE2EOnboardingWithFirebase() {
-        let phone = ProcessInfo.processInfo.environment["E2E_PHONE"] ?? "6505553434"
+        let phone = normalizedE2EPhone()
         let otp = ProcessInfo.processInfo.environment["E2E_OTP"] ?? "123123"
         let app = launchE2EApp(resetOnboarding: true)
 
@@ -160,7 +160,7 @@ final class LiveChatIOSUITests: XCTestCase {
         tapElement(continueButton)
 
         let otpStep = element(in: app, id: OnboardingTags.otpStep)
-        XCTAssertTrue(otpStep.waitForExistence(timeout: 15))
+        XCTAssertTrue(otpStep.waitForExistence(timeout: 30))
 
         let otpInput = element(in: app, id: OnboardingTags.otpInput)
         XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
@@ -204,6 +204,15 @@ final class LiveChatIOSUITests: XCTestCase {
         app.launchArguments.append("-e2e-testing")
         app.launch()
         return app
+    }
+
+    private func normalizedE2EPhone() -> String {
+        let raw = ProcessInfo.processInfo.environment["E2E_PHONE"] ?? "6505553434"
+        let digits = raw.filter { $0.isNumber }
+        if digits.count == 11 && digits.hasPrefix("1") {
+            return String(digits.dropFirst())
+        }
+        return digits
     }
 
     private func element(in app: XCUIApplication, id: String) -> XCUIElement {
