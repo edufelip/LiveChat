@@ -3,6 +3,9 @@ import LiveChatCompose
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -51,6 +54,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let uiTestContactsDeny = environment["UITEST_CONTACTS_DENY"] {
             UserDefaults.standard.set(uiTestContactsDeny, forKey: "UITEST_CONTACTS_DENY")
         }
+        #if canImport(FirebaseAuth)
+        if isE2e {
+            Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+        }
+        #endif
         return true
     }
 }
