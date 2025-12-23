@@ -507,7 +507,7 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
+				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.main;
 				PRODUCT_NAME = LiveChatIOS;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
@@ -537,7 +537,7 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
+				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.main;
 				PRODUCT_NAME = LiveChatIOS;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
