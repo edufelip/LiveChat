@@ -22,6 +22,14 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
         return nil
     }
 
+    private func configureTestingIfNeeded() {
+        let environment = ProcessInfo.processInfo.environment
+        let isE2e = environment["E2E_MODE"] == "1" || environment["E2E_MODE"] == "true"
+        if isE2e {
+            Auth.auth().settings?.isAppVerificationDisabledForTesting = true
+        }
+    }
+
     func sendCode(
         phoneE164: String,
         completionHandler: @escaping (PhoneAuthBridgeResult?, Error?) -> Void
@@ -30,6 +38,7 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
             completionHandler(PhoneAuthBridgeResult(verificationId: nil, error: error), nil)
             return
         }
+        configureTestingIfNeeded()
         let provider = PhoneAuthProvider.provider()
         provider.verifyPhoneNumber(phoneE164, uiDelegate: nil) { verificationId, error in
             if let error = error {
@@ -50,6 +59,7 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
             completionHandler(error, nil)
             return
         }
+        configureTestingIfNeeded()
         let provider = PhoneAuthProvider.provider()
         let credential = provider.credential(withVerificationID: verificationId, verificationCode: code)
         let auth = Auth.auth()
