@@ -25,7 +25,7 @@ import platform.UIKit.UIWindow
 fun MainViewController(
     config: FirebaseRestConfig = defaultFirebaseConfig(),
     bridgeBundle: IosBridgeBundle,
-    userId: String = "demo-user",
+    userId: String = "",
     idToken: String? = null,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
 ): UIViewController {
@@ -72,6 +72,10 @@ private object LiveChatIosInitializer {
         idToken: String?,
     ) {
         val provider = IosKoinBridge.sessionProvider()
+        if (userId.isBlank()) {
+            provider.setSession(null)
+            return
+        }
         provider.setSession(
             UserSession(
                 userId = userId,

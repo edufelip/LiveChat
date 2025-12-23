@@ -20,7 +20,7 @@ kotlin {
         binaries {
             executable {
                 baseName = appName
-                entryPoint = "com.edufelip.livechat.main"
+                entryPoint = "com.edufelip.livechat"
                 linkerOpts(
                     "-framework", "UIKit",
                     "-framework", "Metal",
