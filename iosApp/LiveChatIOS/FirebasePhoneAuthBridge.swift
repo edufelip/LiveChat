@@ -4,17 +4,28 @@ import FirebaseCore
 import LiveChatCompose
 
 final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
-    private func ensureFirebaseConfigured() {
+    private func ensureFirebaseConfigured() -> PhoneAuthBridgeError? {
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
+        if FirebaseApp.app() == nil {
+            return PhoneAuthBridgeError(
+                domain: "FirebaseAuth",
+                code: KotlinLong(value: -1),
+                message: "FirebaseApp.configure() did not initialize a default app."
+            )
+        }
+        return nil
     }
 
     func sendCode(
         phoneE164: String,
         completionHandler: @escaping (PhoneAuthBridgeResult?, Error?) -> Void
     ) {
-        ensureFirebaseConfigured()
+        if let error = ensureFirebaseConfigured() {
+            completionHandler(PhoneAuthBridgeResult(verificationId: nil, error: error), nil)
+            return
+        }
         let provider = PhoneAuthProvider.provider()
         provider.verifyPhoneNumber(phoneE164, uiDelegate: nil) { verificationId, error in
             if let error = error {
@@ -31,7 +42,10 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
         code: String,
         completionHandler: @escaping (PhoneAuthBridgeError?, Error?) -> Void
     ) {
-        ensureFirebaseConfigured()
+        if let error = ensureFirebaseConfigured() {
+            completionHandler(error, nil)
+            return
+        }
         let provider = PhoneAuthProvider.provider()
         let credential = provider.credential(withVerificationID: verificationId, verificationCode: code)
         let auth = Auth.auth()
