@@ -262,9 +262,12 @@
 			files = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/../composeApp/build.gradle.kts",
+				"$(SRCROOT)/../composeApp/src/iosMain/kotlin",
+				"$(SRCROOT)/../composeApp/src/commonMain/kotlin",
 			);
 			outputPaths = (
-				"$(SRCROOT)/../composeApp/build/XCFrameworks/debug/LiveChatCompose.xcframework/Info.plist",
+				"$(DERIVED_FILE_DIR)/compose_xcframework_built.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
