@@ -40,6 +40,11 @@ enum LiveChatBridgeFactory {
     private static func shouldUseTestBundle() -> Bool {
         let environment = ProcessInfo.processInfo.environment
         let arguments = ProcessInfo.processInfo.arguments
+        let e2eFlag = environment["E2E_MODE"] == "1" || environment["E2E_MODE"] == "true"
+        let hasE2eArg = arguments.contains("-e2e-testing")
+        if e2eFlag || hasE2eArg {
+            return false
+        }
         let hasUiTestArg = arguments.contains("-ui-testing")
         let isUiTest =
             environment["UITEST_MODE"] == "1" ||

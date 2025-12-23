@@ -18,13 +18,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #endif
         let environment = ProcessInfo.processInfo.environment
         let arguments = ProcessInfo.processInfo.arguments
+        let isE2e =
+            environment["E2E_MODE"] == "1" ||
+            environment["E2E_MODE"] == "true" ||
+            arguments.contains("-e2e-testing")
         let isUiTest =
             environment["UITEST_MODE"] == "1" ||
             environment["XCTestConfigurationFilePath"] != nil ||
             arguments.contains("-ui-testing")
         if isUiTest {
             UserDefaults.standard.set(true, forKey: "UITEST_MODE")
-        } else {
+        } else if !isE2e {
             UserDefaults.standard.removeObject(forKey: "UITEST_MODE")
             UserDefaults.standard.removeObject(forKey: "UITEST_PHONE")
             UserDefaults.standard.removeObject(forKey: "UITEST_OTP")
