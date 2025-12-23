@@ -27,6 +27,7 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
+import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -68,9 +69,10 @@ fun LiveChatApp(
             val state by presenter.collectState()
             val uiTestOverrides = uiTestOverrides()
             val isUiTest = isUiTestMode()
+            val isE2e = isE2eMode()
 
-            LaunchedEffect(isUiTest, uiTestOverrides.resetOnboarding) {
-                if (isUiTest && uiTestOverrides.resetOnboarding) {
+            LaunchedEffect(isUiTest, isE2e, uiTestOverrides.resetOnboarding) {
+                if ((isUiTest || isE2e) && uiTestOverrides.resetOnboarding) {
                     presenter.resetOnboarding()
                 }
             }

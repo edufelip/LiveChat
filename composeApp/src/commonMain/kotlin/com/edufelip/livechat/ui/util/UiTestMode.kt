@@ -8,4 +8,6 @@ internal data class UiTestOverrides(
 
 internal expect fun isUiTestMode(): Boolean
 
+internal expect fun isE2eMode(): Boolean
+
 internal expect fun uiTestOverrides(): UiTestOverrides
