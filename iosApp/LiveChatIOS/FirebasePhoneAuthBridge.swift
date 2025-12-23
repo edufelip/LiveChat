@@ -1,15 +1,21 @@
 import Foundation
 import FirebaseAuth
+import FirebaseCore
 import LiveChatCompose
 
 final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
-    private let auth = Auth.auth()
-    private let provider = PhoneAuthProvider.provider()
+    private func ensureFirebaseConfigured() {
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+    }
 
     func sendCode(
         phoneE164: String,
         completionHandler: @escaping (PhoneAuthBridgeResult?, Error?) -> Void
     ) {
+        ensureFirebaseConfigured()
+        let provider = PhoneAuthProvider.provider()
         provider.verifyPhoneNumber(phoneE164, uiDelegate: nil) { verificationId, error in
             if let error = error {
                 let bridgeError = error.toBridgeError()
@@ -25,7 +31,10 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
         code: String,
         completionHandler: @escaping (PhoneAuthBridgeError?, Error?) -> Void
     ) {
+        ensureFirebaseConfigured()
+        let provider = PhoneAuthProvider.provider()
         let credential = provider.credential(withVerificationID: verificationId, verificationCode: code)
+        let auth = Auth.auth()
         auth.signIn(with: credential) { _, error in
             if let error = error {
                 completionHandler(error.toBridgeError(), nil)
