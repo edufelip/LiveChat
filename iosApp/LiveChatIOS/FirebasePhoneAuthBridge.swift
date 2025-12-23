@@ -39,8 +39,19 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
             return
         }
         configureTestingIfNeeded()
+        #if DEBUG
+        let disabled = Auth.auth().settings?.isAppVerificationDisabledForTesting ?? false
+        NSLog("FirebasePhoneAuthBridge.sendCode phone=%@ disabled=%@", phoneE164, String(disabled))
+        #endif
         let provider = PhoneAuthProvider.provider()
         provider.verifyPhoneNumber(phoneE164, uiDelegate: nil) { verificationId, error in
+            #if DEBUG
+            if let error = error {
+                NSLog("FirebasePhoneAuthBridge.sendCode error=%@", error.localizedDescription)
+            } else {
+                NSLog("FirebasePhoneAuthBridge.sendCode success verificationId=%@", verificationId ?? "nil")
+            }
+            #endif
             if let error = error {
                 let bridgeError = error.toBridgeError()
                 completionHandler(PhoneAuthBridgeResult(verificationId: nil, error: bridgeError), nil)
