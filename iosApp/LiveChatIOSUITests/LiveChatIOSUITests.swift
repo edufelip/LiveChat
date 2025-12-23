@@ -160,7 +160,15 @@ final class LiveChatIOSUITests: XCTestCase {
         tapElement(continueButton)
 
         let otpStep = element(in: app, id: OnboardingTags.otpStep)
-        XCTAssertTrue(otpStep.waitForExistence(timeout: 30))
+        if !otpStep.waitForExistence(timeout: 30) {
+            let phoneError = element(in: app, id: OnboardingTags.phoneError)
+            if phoneError.waitForExistence(timeout: 2) {
+                XCTFail("Phone verification failed: \(phoneError.label)")
+            } else {
+                XCTFail("OTP step did not appear.")
+            }
+            return
+        }
 
         let otpInput = element(in: app, id: OnboardingTags.otpInput)
         XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
