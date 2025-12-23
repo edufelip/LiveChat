@@ -24,7 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let root = LiveChatRootViewController(
             config: config,
-            userId: "demo-user",
+            userId: "",
             idToken: nil
         )
         root.modalPresentationStyle = .fullScreen
