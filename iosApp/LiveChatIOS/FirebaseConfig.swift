@@ -28,7 +28,7 @@ enum FirebaseConfig {
         if missing.isEmpty {
             return nil
         }
-        return "GoogleService-Info.plist missing keys: \(missing.joined(separator: \", \")). Download the full file from Firebase."
+        return "GoogleService-Info.plist missing keys: \(missing.joined(separator: ", ")). Download the full file from Firebase."
     }
 
     private static func loadOptions() -> FirebaseOptions? {
