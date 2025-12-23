@@ -4,6 +4,9 @@ final class LiveChatIOSUITests: XCTestCase {
     private enum OnboardingTags {
         static let phoneStep = "phone_step"
         static let phoneInput = "phone_input"
+        static let phoneCountrySelector = "phone_country_selector"
+        static let countryPickerSearch = "country_picker_search"
+        static let countryOptionPrefix = "country_option_"
         static let phoneContinue = "phone_continue_button"
         static let phoneError = "phone_error"
         static let otpStep = "otp_step"
@@ -150,6 +153,7 @@ final class LiveChatIOSUITests: XCTestCase {
         let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
         XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
 
+        selectCountry(code: "US", in: app)
         let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
         XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
         enterText(phone, into: phoneInput, app: app)
@@ -221,6 +225,20 @@ final class LiveChatIOSUITests: XCTestCase {
             return String(digits.dropFirst())
         }
         return digits
+    }
+
+    private func selectCountry(code: String, in app: XCUIApplication) {
+        let selector = element(in: app, id: OnboardingTags.phoneCountrySelector)
+        XCTAssertTrue(selector.waitForExistence(timeout: 5))
+        tapElement(selector)
+
+        let search = element(in: app, id: OnboardingTags.countryPickerSearch)
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        enterText(code, into: search, app: app)
+
+        let option = element(in: app, id: OnboardingTags.countryOptionPrefix + code)
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        tapElement(option)
     }
 
     private func element(in app: XCUIApplication, id: String) -> XCUIElement {

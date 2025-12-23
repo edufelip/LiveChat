@@ -7,6 +7,8 @@ internal object OnboardingTestTags {
     const val PHONE_CONTINUE_BUTTON = "phone_continue_button"
     const val PHONE_LOADING_INDICATOR = "phone_loading_indicator"
     const val PHONE_ERROR = "phone_error"
+    const val COUNTRY_PICKER_SEARCH = "country_picker_search"
+    const val COUNTRY_OPTION_PREFIX = "country_option_"
 
     const val OTP_STEP = "otp_step"
     const val OTP_INPUT = "otp_input"
