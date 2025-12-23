@@ -1,22 +1,21 @@
 import Foundation
 import FirebaseAuth
-import FirebaseCore
 import LiveChatCompose
 
 final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
     private func ensureFirebaseConfigured() -> PhoneAuthBridgeError? {
-        if FirebaseApp.app() == nil {
-            if let options = FirebasePhoneAuthBridge.loadOptions() {
-                FirebaseApp.configure(options: options)
-            } else {
-                FirebaseApp.configure()
-            }
-        }
-        if FirebaseApp.app() == nil {
+        if FirebaseConfig.configureIfNeeded() == false {
             return PhoneAuthBridgeError(
                 domain: "FirebaseAuth",
                 code: KotlinLong(value: -1),
                 message: "FirebaseApp.configure() did not initialize a default app. GoogleService-Info.plist missing or bundle id mismatch."
+            )
+        }
+        if let missing = FirebaseConfig.missingRequiredOptions() {
+            return PhoneAuthBridgeError(
+                domain: "FirebaseAuth",
+                code: KotlinLong(value: -2),
+                message: missing
             )
         }
         return nil
@@ -85,12 +84,6 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
 }
 
 private extension FirebasePhoneAuthBridge {
-    static func loadOptions() -> FirebaseOptions? {
-        guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") else {
-            return nil
-        }
-        return FirebaseOptions(contentsOfFile: path)
-    }
 }
 
 private extension Error {

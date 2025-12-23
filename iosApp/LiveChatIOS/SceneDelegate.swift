@@ -13,9 +13,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         options connectionOptions: UIScene.ConnectionOptions
     ) {
         #if canImport(FirebaseCore)
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-        }
+        _ = FirebaseConfig.configureIfNeeded()
         #endif
         guard let windowScene = scene as? UIWindowScene else { return }
 

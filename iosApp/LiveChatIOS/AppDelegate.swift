@@ -15,9 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         #if canImport(FirebaseCore)
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-        }
+        _ = FirebaseConfig.configureIfNeeded()
         #endif
         let environment = ProcessInfo.processInfo.environment
         let arguments = ProcessInfo.processInfo.arguments
