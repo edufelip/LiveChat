@@ -23,10 +23,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.onboarding.CountryOption
+import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -65,7 +67,10 @@ internal fun CountryPickerDialog(
                 TextField(
                     value = query,
                     onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag(OnboardingTestTags.COUNTRY_PICKER_SEARCH),
                     singleLine = true,
                     placeholder = { Text(strings.countryPickerSearchPlaceholder) },
                 )
@@ -92,6 +97,7 @@ internal fun CountryPickerDialog(
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()
+                                        .testTag(OnboardingTestTags.COUNTRY_OPTION_PREFIX + option.isoCode)
                                         .clickable { onSelect(option) },
                                 tonalElevation = if (option == currentSelection) 4.dp else 0.dp,
                                 shape = RoundedCornerShape(12.dp),
