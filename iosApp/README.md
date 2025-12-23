@@ -42,3 +42,14 @@ The Xcode target currently uses an iOS 17.2 deployment target to stay compatible
 - Copy your environment-specific `GoogleService-Info.plist` into `iosApp/LiveChatIOS/`. The file is git-ignored by default so secrets stay out of source control.
 - If you omit the file, the app still launches (Compose bootstraps with dummy config), but Firebase services will be unavailable.
 - Additional Firebase SDKs can be linked via Swift Package Manager if needed; re-run `FirebaseApp.configure()` only happens when `FirebaseCore` is present.
+
+### iOS E2E UI tests (Firebase)
+
+The E2E UI test uses real Firebase Auth by passing `E2E_MODE=1` to the app. Configure test phone
+numbers and verification codes in the Firebase Console, then set the following environment
+variables when running the UI test:
+
+- `E2E_PHONE` (e.g. 6505553434)
+- `E2E_OTP` (e.g. 123123)
+
+The test also supports `UITEST_RESET_ONBOARDING=1` to force onboarding on each run.
