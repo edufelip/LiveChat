@@ -1,8 +1,16 @@
 import Foundation
 import LiveChatCompose
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 
 enum LiveChatBridgeFactory {
     static func make(config: FirebaseRestConfig) -> IosBridgeBundle {
+        #if canImport(FirebaseCore)
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        #endif
         if shouldUseTestBundle() {
             return makeTestBundle()
         }
