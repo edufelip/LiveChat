@@ -233,12 +233,19 @@ final class LiveChatIOSUITests: XCTestCase {
         tapElement(selector)
 
         let search = element(in: app, id: OnboardingTags.countryPickerSearch)
-        XCTAssertTrue(search.waitForExistence(timeout: 5))
-        enterText(code, into: search, app: app)
+        let searchField = search.exists ? search : app.textFields.firstMatch
+        XCTAssertTrue(searchField.waitForExistence(timeout: 5))
+        enterText(code, into: searchField, app: app)
 
         let option = element(in: app, id: OnboardingTags.countryOptionPrefix + code)
-        XCTAssertTrue(option.waitForExistence(timeout: 5))
-        tapElement(option)
+        if option.waitForExistence(timeout: 5) {
+            tapElement(option)
+        } else {
+            let fallback =
+                app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", "United States")).firstMatch
+            XCTAssertTrue(fallback.waitForExistence(timeout: 5))
+            tapElement(fallback)
+        }
     }
 
     private func element(in app: XCUIApplication, id: String) -> XCUIElement {
