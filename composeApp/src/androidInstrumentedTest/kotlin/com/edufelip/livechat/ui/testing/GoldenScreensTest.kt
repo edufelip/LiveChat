@@ -1,12 +1,19 @@
 package com.edufelip.livechat.ui.testing
 
+import android.os.SystemClock
+import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.test.platform.app.InstrumentationRegistry
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.features.contacts.screens.ContactsScreen
 import com.edufelip.livechat.ui.features.conversations.detail.screens.ConversationDetailScreen
 import com.edufelip.livechat.ui.features.conversations.list.screens.ConversationListScreen
 import com.edufelip.livechat.ui.features.onboarding.CountryOption
+import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
 import com.edufelip.livechat.ui.theme.LiveChatTheme
@@ -33,6 +40,37 @@ class GoldenScreensTest {
             }
         }
         GoldenAssertions.assertGolden(composeRule, "phone_step")
+    }
+
+    @Test
+    fun goldenPhoneStepWithKeyboard() {
+        composeRule.setContent {
+            LiveChatTheme {
+                PhoneStep(
+                    selectedCountry = CountryOption.fromIsoCode("US"),
+                    phoneNumber = "6505553434",
+                    phoneError = null,
+                    isLoading = false,
+                    onPickCountry = {},
+                    onPhoneChanged = {},
+                    onContinue = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(OnboardingTestTags.PHONE_INPUT).performClick()
+        composeRule.runOnIdle {
+            val activity = composeRule.activity
+            val inputMethodManager = activity.getSystemService(InputMethodManager::class.java)
+            val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
+            val composeView = contentView.getChildAt(0) ?: contentView
+            composeView.requestFocus()
+            inputMethodManager?.showSoftInput(composeView, InputMethodManager.SHOW_IMPLICIT)
+        }
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        SystemClock.sleep(750)
+
+        DeviceGoldenAssertions.assertDeviceGolden("phone_step_keyboard")
     }
 
     @Test
