@@ -28,6 +28,7 @@ import com.edufelip.livechat.ui.features.onboarding.dialogs.CountryPickerDialog
 import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
 import com.edufelip.livechat.ui.features.onboarding.steps.SuccessStep
+import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.OnboardingStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -91,7 +92,13 @@ internal fun OnboardingFlowScreen(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding()
+                .let { baseModifier ->
+                    if (isAndroid()) {
+                        baseModifier.imePadding()
+                    } else {
+                        baseModifier
+                    }
+                }
         when (currentStep) {
             OnboardingStep.PhoneEntry ->
                 PhoneStep(
@@ -206,7 +213,13 @@ internal fun UiTestOnboardingFlow(
             Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding()
+                .let { baseModifier ->
+                    if (isAndroid()) {
+                        baseModifier.imePadding()
+                    } else {
+                        baseModifier
+                    }
+                }
         when (step) {
             OnboardingStep.PhoneEntry ->
                 PhoneStep(
