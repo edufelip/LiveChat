@@ -20,7 +20,7 @@ final class LiveChatRootViewController: UIViewController {
                 if isUiTest && isContactsFlowEnabled() {
                     return UiTestContactsKt.uiTestContacts()
                 }
-                return []
+                return IosContactsProvider.fetchContacts()
             }
         )
         super.init(nibName: nil, bundle: nil)
