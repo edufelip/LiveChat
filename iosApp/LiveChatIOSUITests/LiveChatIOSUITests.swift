@@ -1,7 +1,7 @@
 import XCTest
 
-final class LiveChatIOSUITests: XCTestCase {
-    private enum OnboardingTags {
+class BaseUiTestCase: XCTestCase {
+    enum OnboardingTags {
         static let phoneStep = "phone_step"
         static let phoneInput = "phone_input"
         static let phoneCountrySelector = "phone_country_selector"
@@ -20,171 +20,6 @@ final class LiveChatIOSUITests: XCTestCase {
 
     override func setUp() {
         continueAfterFailure = false
-    }
-
-    func testAppLaunches() {
-        let app = launchApp()
-        XCTAssertTrue(app.exists)
-    }
-
-    func testOnboardingHappyPath() {
-        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123")
-        let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
-        XCTAssertTrue(uiTestMode.waitForExistence(timeout: 5))
-        let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
-        XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
-
-        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
-        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
-        enterText("6505553434", into: phoneInput, app: app)
-
-        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
-        tapElement(continueButton)
-
-        let otpStep = element(in: app, id: OnboardingTags.otpStep)
-        XCTAssertTrue(otpStep.waitForExistence(timeout: 8))
-
-        let otpInput = element(in: app, id: OnboardingTags.otpInput)
-        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
-        enterText("123123", into: otpInput, app: app)
-
-        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
-        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
-        tapElement(verifyButton)
-
-        let successStep = element(in: app, id: OnboardingTags.successStep)
-        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
-    }
-
-    func testOtpErrorThenSuccessNavigatesHome() {
-        let app = launchApp(phoneOverride: "6505553434")
-        reachOtpStep(in: app, phone: "6505553434")
-
-        var otpInput = element(in: app, id: OnboardingTags.otpInput)
-        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
-        enterText("000000", into: otpInput, app: app)
-
-        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
-        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
-        tapElement(verifyButton)
-
-        let otpError = element(in: app, id: OnboardingTags.otpError)
-        XCTAssertTrue(otpError.waitForExistence(timeout: 5))
-
-        otpInput = element(in: app, id: OnboardingTags.otpInput)
-        enterText("123123", into: otpInput, app: app)
-        tapElement(verifyButton)
-
-        let successStep = element(in: app, id: OnboardingTags.successStep)
-        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
-
-        let successButton = element(in: app, id: OnboardingTags.successButton)
-        XCTAssertTrue(successButton.waitForExistence(timeout: 5))
-        tapElement(successButton)
-
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
-    }
-
-    func testContactsPermissionFlow() {
-        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true)
-        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
-        let successButton = element(in: app, id: OnboardingTags.successButton)
-        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
-        tapElement(successButton)
-
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
-        tapElement(contactsTab)
-
-        let syncButton = app.buttons["Sync Contacts"]
-        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
-        tapElement(syncButton)
-
-        let syncComplete = element(in: app, id: "contacts_sync_complete")
-        XCTAssertTrue(syncComplete.waitForExistence(timeout: 8))
-    }
-
-    func testContactsPermissionDeniedShowsBanner() {
-        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true, contactsDeny: true)
-        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
-        let successButton = element(in: app, id: OnboardingTags.successButton)
-        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
-        tapElement(successButton)
-
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
-        tapElement(contactsTab)
-
-        let syncButton = app.buttons["Sync Contacts"]
-        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
-        tapElement(syncButton)
-
-        let deniedMessage = app.staticTexts["Enable contacts permission to sync your phonebook."]
-        XCTAssertTrue(deniedMessage.waitForExistence(timeout: 8))
-    }
-
-    func testPhoneValidationError() {
-        let app = launchApp()
-        let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
-        XCTAssertTrue(uiTestMode.waitForExistence(timeout: 5))
-        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
-        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
-        enterText("123", into: phoneInput, app: app)
-
-        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
-        tapElement(continueButton)
-
-        let errorText = element(in: app, id: OnboardingTags.phoneError)
-        XCTAssertTrue(errorText.waitForExistence(timeout: 5))
-    }
-
-    func testE2EOnboardingWithFirebase() {
-        let phone = normalizedE2EPhone()
-        let otp = ProcessInfo.processInfo.environment["E2E_OTP"] ?? "123123"
-        let app = launchE2EApp(resetOnboarding: true)
-
-        let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
-        XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
-
-        selectCountry(code: "US", in: app)
-        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
-        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
-        enterText(phone, into: phoneInput, app: app)
-
-        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
-        tapElement(continueButton)
-
-        let otpStep = element(in: app, id: OnboardingTags.otpStep)
-        if !otpStep.waitForExistence(timeout: 30) {
-            let phoneError = element(in: app, id: OnboardingTags.phoneError)
-            if phoneError.waitForExistence(timeout: 2) {
-                XCTFail("Phone verification failed: \(phoneError.label)")
-            } else {
-                XCTFail("OTP step did not appear.")
-            }
-            return
-        }
-
-        let otpInput = element(in: app, id: OnboardingTags.otpInput)
-        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
-        enterText(otp, into: otpInput, app: app)
-
-        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
-        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
-        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
-        tapElement(verifyButton)
-
-        let successStep = element(in: app, id: OnboardingTags.successStep)
-        XCTAssertTrue(successStep.waitForExistence(timeout: 15))
     }
 
     private func launchApp(
@@ -346,4 +181,199 @@ final class LiveChatIOSUITests: XCTestCase {
         XCTAssertTrue(successStep.waitForExistence(timeout: 8))
     }
 
+}
+
+final class OnboardingUiTests: BaseUiTestCase {
+    func testAppLaunches() {
+        let app = launchApp()
+        XCTAssertTrue(app.exists)
+    }
+
+    func testPhoneValidationError() {
+        let app = launchApp()
+        let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
+        XCTAssertTrue(uiTestMode.waitForExistence(timeout: 5))
+        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
+        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
+        enterText("123", into: phoneInput, app: app)
+
+        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
+        tapElement(continueButton)
+
+        let errorText = element(in: app, id: OnboardingTags.phoneError)
+        XCTAssertTrue(errorText.waitForExistence(timeout: 5))
+    }
+
+    func testPhoneStepKeyboardDoesNotHideControls() {
+        let app = launchApp()
+        let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
+        XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
+
+        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
+        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
+        tapElement(phoneInput)
+
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 2))
+
+        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(phoneInput.isHittable)
+        XCTAssertTrue(continueButton.isHittable)
+
+        let appFrame = app.windows.firstMatch.frame
+        XCTAssertTrue(appFrame.contains(phoneInput.frame))
+        XCTAssertTrue(appFrame.contains(continueButton.frame))
+    }
+}
+
+final class OnboardingOtpUiTests: BaseUiTestCase {
+    func testOnboardingHappyPath() {
+        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123")
+        let uiTestMode = element(in: app, id: OnboardingTags.uiTestMode)
+        XCTAssertTrue(uiTestMode.waitForExistence(timeout: 5))
+        let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
+        XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
+
+        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
+        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
+        enterText("6505553434", into: phoneInput, app: app)
+
+        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
+        tapElement(continueButton)
+
+        let otpStep = element(in: app, id: OnboardingTags.otpStep)
+        XCTAssertTrue(otpStep.waitForExistence(timeout: 8))
+
+        let otpInput = element(in: app, id: OnboardingTags.otpInput)
+        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
+        enterText("123123", into: otpInput, app: app)
+
+        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
+        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
+        tapElement(verifyButton)
+
+        let successStep = element(in: app, id: OnboardingTags.successStep)
+        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
+    }
+
+    func testOtpErrorThenSuccessNavigatesHome() {
+        let app = launchApp(phoneOverride: "6505553434")
+        reachOtpStep(in: app, phone: "6505553434")
+
+        var otpInput = element(in: app, id: OnboardingTags.otpInput)
+        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
+        enterText("000000", into: otpInput, app: app)
+
+        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
+        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
+        tapElement(verifyButton)
+
+        let otpError = element(in: app, id: OnboardingTags.otpError)
+        XCTAssertTrue(otpError.waitForExistence(timeout: 5))
+
+        otpInput = element(in: app, id: OnboardingTags.otpInput)
+        enterText("123123", into: otpInput, app: app)
+        tapElement(verifyButton)
+
+        let successStep = element(in: app, id: OnboardingTags.successStep)
+        XCTAssertTrue(successStep.waitForExistence(timeout: 8))
+
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 5))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+    }
+}
+
+final class ContactsFlowUiTests: BaseUiTestCase {
+    func testContactsPermissionFlow() {
+        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true)
+        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+        tapElement(contactsTab)
+
+        let syncButton = app.buttons["Sync Contacts"]
+        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
+        tapElement(syncButton)
+
+        let syncComplete = element(in: app, id: "contacts_sync_complete")
+        XCTAssertTrue(syncComplete.waitForExistence(timeout: 8))
+    }
+
+    func testContactsPermissionDeniedShowsBanner() {
+        let app = launchApp(phoneOverride: "6505553434", otpOverride: "123123", contactsFlow: true, contactsDeny: true)
+        completeOnboarding(in: app, phone: "6505553434", otp: "123123")
+        let successButton = element(in: app, id: OnboardingTags.successButton)
+        XCTAssertTrue(successButton.waitForExistence(timeout: 8))
+        tapElement(successButton)
+
+        let contactsTab = app.buttons["Contacts"]
+        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+        tapElement(contactsTab)
+
+        let syncButton = app.buttons["Sync Contacts"]
+        XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
+        tapElement(syncButton)
+
+        let deniedMessage = app.staticTexts["Enable contacts permission to sync your phonebook."]
+        XCTAssertTrue(deniedMessage.waitForExistence(timeout: 8))
+    }
+}
+
+final class E2EOnboardingUiTests: BaseUiTestCase {
+    func testE2EOnboardingWithFirebase() {
+        let phone = normalizedE2EPhone()
+        let otp = ProcessInfo.processInfo.environment["E2E_OTP"] ?? "123123"
+        let app = launchE2EApp(resetOnboarding: true)
+
+        let phoneStep = element(in: app, id: OnboardingTags.phoneStep)
+        XCTAssertTrue(phoneStep.waitForExistence(timeout: 8))
+
+        selectCountry(code: "US", in: app)
+        let phoneInput = element(in: app, id: OnboardingTags.phoneInput)
+        XCTAssertTrue(phoneInput.waitForExistence(timeout: 5))
+        enterText(phone, into: phoneInput, app: app)
+
+        let continueButton = element(in: app, id: OnboardingTags.phoneContinue)
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(continueButton, timeout: 5))
+        tapElement(continueButton)
+
+        let otpStep = element(in: app, id: OnboardingTags.otpStep)
+        if !otpStep.waitForExistence(timeout: 30) {
+            let phoneError = element(in: app, id: OnboardingTags.phoneError)
+            if phoneError.waitForExistence(timeout: 2) {
+                XCTFail("Phone verification failed: \(phoneError.label)")
+            } else {
+                XCTFail("OTP step did not appear.")
+            }
+            return
+        }
+
+        let otpInput = element(in: app, id: OnboardingTags.otpInput)
+        XCTAssertTrue(otpInput.waitForExistence(timeout: 5))
+        enterText(otp, into: otpInput, app: app)
+
+        let verifyButton = element(in: app, id: OnboardingTags.otpVerify)
+        XCTAssertTrue(verifyButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForEnabled(verifyButton, timeout: 5))
+        tapElement(verifyButton)
+
+        let successStep = element(in: app, id: OnboardingTags.successStep)
+        XCTAssertTrue(successStep.waitForExistence(timeout: 15))
+    }
 }
