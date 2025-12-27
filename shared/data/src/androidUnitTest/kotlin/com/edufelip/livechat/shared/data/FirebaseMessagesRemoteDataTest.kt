@@ -62,7 +62,7 @@ class FirebaseMessagesRemoteDataTest {
             assertEquals("message", payload.payloadType)
             assertEquals("image", payload.type)
             assertEquals("https://example.com/file.jpg", payload.content)
-            assertEquals("sent", payload.status)
+            assertEquals("pending", payload.status)
             assertTrue(storage.uploadedPaths.single().contains("/user-a/1234"))
             assertEquals("local-1", sent.id)
         }
