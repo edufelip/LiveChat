@@ -2,15 +2,26 @@ import Foundation
 import FirebaseCore
 
 enum FirebaseConfig {
+    private static var didConfigure = false
+
     static func configureIfNeeded() -> Bool {
-        if FirebaseApp.app() == nil {
-            if let options = loadOptions() {
-                FirebaseApp.configure(options: options)
-            } else {
-                FirebaseApp.configure()
-            }
+        if didConfigure {
+            return true
         }
-        return FirebaseApp.app() != nil
+        if let options = loadOptions() {
+            NSLog("FirebaseConfig: configuring with GoogleService-Info.plist")
+            FirebaseApp.configure(options: options)
+        } else {
+            NSLog("FirebaseConfig: configuring with default options (plist missing or unreadable)")
+            FirebaseApp.configure()
+        }
+        didConfigure = true
+
+        if let missing = missingRequiredOptions() {
+            NSLog("FirebaseConfig: missing required options: %@", missing)
+        }
+
+        return true
     }
 
     static func missingRequiredOptions() -> String? {
@@ -36,5 +47,12 @@ enum FirebaseConfig {
             return nil
         }
         return FirebaseOptions(contentsOfFile: path)
+    }
+
+    static func ensureConfiguredForBridge(name: String) {
+        _ = configureIfNeeded()
+        if !didConfigure {
+            NSLog("FirebaseConfig: %@ created before FirebaseApp was configured", name)
+        }
     }
 }

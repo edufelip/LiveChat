@@ -3,6 +3,9 @@ import LiveChatCompose
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 enum LiveChatBridgeFactory {
     static func make(config: FirebaseRestConfig) -> IosBridgeBundle {
@@ -11,6 +14,7 @@ enum LiveChatBridgeFactory {
             FirebaseApp.configure()
         }
         #endif
+        syncSessionFromFirebaseAuth()
         if shouldUseTestBundle() {
             return makeTestBundle()
         }
@@ -54,5 +58,16 @@ enum LiveChatBridgeFactory {
             NSLog("LiveChatBridgeFactory: using UI test bridge bundle")
         }
         return isUiTest
+    }
+
+    private static func syncSessionFromFirebaseAuth() {
+        #if canImport(FirebaseAuth)
+        guard let user = Auth.auth().currentUser else {
+            return
+        }
+        user.getIDTokenForcingRefresh(false) { token, _ in
+            MainViewControllerKt.updateLiveChatSession(userId: user.uid, idToken: token)
+        }
+        #endif
     }
 }

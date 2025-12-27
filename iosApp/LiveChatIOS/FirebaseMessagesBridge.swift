@@ -1,6 +1,9 @@
 import Foundation
 import FirebaseFirestore
 import LiveChatCompose
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
     private let db: Firestore
@@ -8,6 +11,7 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
     private var listeners: [String: ListenerRegistration] = [:]
 
     init(config: FirebaseRestConfig) {
+        FirebaseConfig.ensureConfiguredForBridge(name: "FirebaseMessagesBridge")
         self.db = Firestore.firestore()
         self.config = config
         super.init()
@@ -52,9 +56,17 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         payload: TransportMessagePayload,
         completionHandler: @escaping (String?, Error?) -> Void
     ) {
+        if let error = validateAuth(for: payload) {
+            NSLog("FirebaseMessagesBridge: sendMessage blocked: %@", error.localizedDescription)
+            completionHandler(nil, error)
+            return
+        }
         let document = messagesCollection(recipientId: recipientId).document(documentId)
         document.setData(payload.toFirestorePayload(), merge: false) { error in
             if let error = error {
+                let sender = payload.senderId ?? "nil"
+                let status = payload.status ?? "nil"
+                NSLog("FirebaseMessagesBridge: sendMessage error sender=%@ status=%@ error=%@", sender, status, error.localizedDescription)
                 completionHandler(nil, error)
                 return
             }
@@ -119,6 +131,36 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
             actionType: actionType,
             actionMessageId: actionMessageId
         )
+    }
+
+    private func validateAuth(for payload: TransportMessagePayload) -> NSError? {
+        #if canImport(FirebaseAuth)
+        guard let senderId = payload.senderId, !senderId.isEmpty else {
+            return NSError(
+                domain: "FirebaseMessagesBridge",
+                code: -10,
+                userInfo: [NSLocalizedDescriptionKey: "Missing senderId for message."]
+            )
+        }
+        guard let user = Auth.auth().currentUser else {
+            return NSError(
+                domain: "FirebaseMessagesBridge",
+                code: -11,
+                userInfo: [NSLocalizedDescriptionKey: "FirebaseAuth user is not signed in."]
+            )
+        }
+        if user.uid != senderId {
+            return NSError(
+                domain: "FirebaseMessagesBridge",
+                code: -12,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "SenderId mismatch. payload senderId=\(senderId), auth uid=\(user.uid)"
+                ]
+            )
+        }
+        #endif
+        return nil
     }
 }
 
