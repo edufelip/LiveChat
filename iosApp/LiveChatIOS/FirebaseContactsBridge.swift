@@ -4,18 +4,20 @@ import FirebaseFunctions
 import LiveChatCompose
 
 final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
-    private let db: Firestore
-    private let functions: Functions
+    private lazy var db: Firestore = Firestore.firestore()
+    private lazy var functions: Functions = Functions.functions()
     private let config: FirebaseRestConfig
 
     init(config: FirebaseRestConfig) {
-        self.db = Firestore.firestore()
-        self.functions = Functions.functions()
         self.config = config
         super.init()
     }
 
     func phoneExists(phoneE164: String, completionHandler: @escaping (PhoneExistsSingleResult?, Error?) -> Void) {
+        if let error = ensureFirebaseConfigured() {
+            completionHandler(nil, error)
+            return
+        }
         functions
             .httpsCallable("phoneExists")
             .call(["phone": phoneE164]) { result, error in
@@ -32,6 +34,10 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
     }
 
     func phoneExistsMany(phones: [String], completionHandler: @escaping (PhoneExistsBatchResult?, Error?) -> Void) {
+        if let error = ensureFirebaseConfigured() {
+            completionHandler(nil, error)
+            return
+        }
         if phones.isEmpty {
             completionHandler(PhoneExistsBatchResult(registeredPhones: [], matches: []), nil)
             return
@@ -58,6 +64,10 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
     }
 
     func isUserRegistered(phoneE164: String, completionHandler: @escaping (KotlinBoolean?, Error?) -> Void) {
+        if let error = ensureFirebaseConfigured() {
+            completionHandler(nil, error)
+            return
+        }
         db.collection(config.usersCollection)
             .whereField("phone_num", isEqualTo: phoneE164)
             .limit(to: 1)
@@ -69,5 +79,26 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
                 let exists = (snapshot?.documents.isEmpty == false)
                 completionHandler(KotlinBoolean(value: exists), nil)
             }
+    }
+
+    private func ensureFirebaseConfigured() -> NSError? {
+        if FirebaseConfig.configureIfNeeded() == false {
+            return NSError(
+                domain: "FirebaseContactsBridge",
+                code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "Firebase is not configured. Ensure GoogleService-Info.plist is in the app bundle and the bundle ID matches.",
+                ]
+            )
+        }
+        if let missing = FirebaseConfig.missingRequiredOptions() {
+            return NSError(
+                domain: "FirebaseContactsBridge",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: missing]
+            )
+        }
+        return nil
     }
 }
