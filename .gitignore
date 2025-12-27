@@ -24,3 +24,4 @@ iosApp/LiveChatIOS/GoogleService-Info.plist
 **/google-services.json
 **/AGENTS.md
 functions/node_modules/
+functions/package-lock.json

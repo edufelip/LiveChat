@@ -41,11 +41,7 @@ class FirebaseRestContactsRemoteData(
 
             if (canonicalContacts.isEmpty()) return@flow
 
-            if (canonicalContacts.size >= BATCH_THRESHOLD) {
-                emitBatchResults(canonicalContacts)
-            } else {
-                emitSingleResults(canonicalContacts)
-            }
+            emitBatchResults(canonicalContacts)
         }.flowOn(dispatcher)
 
     override suspend fun inviteContact(contact: Contact): Boolean =
@@ -75,42 +71,30 @@ class FirebaseRestContactsRemoteData(
         }
 
     private suspend fun FlowCollector<Contact>.emitBatchResults(canonicalContacts: List<Pair<String, Contact>>) {
-        val canonicalPhones = canonicalContacts.map { it.first }
-        val result =
-            runCatching {
-                withTimeout(FUNCTION_TIMEOUT_MS) {
-                    contactsBridge.phoneExistsMany(canonicalPhones)
-                }
-            }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
-        val registeredPhones = result.registeredPhones.toSet()
-        val matchByPhone = result.matches.associateBy { it.phone }
+        val canonicalPhones = canonicalContacts.map { it.first }.distinct()
+        val registeredPhones = mutableSetOf<String>()
+        val matchByPhone = mutableMapOf<String, String>()
 
-        canonicalContacts.forEach { (canonical, contact) ->
-            val exists =
-                if (registeredPhones.contains(canonical)) {
-                    true
-                } else {
-                    runCatching { contactsBridge.isUserRegistered(canonical) }.getOrDefault(false)
+        canonicalPhones
+            .chunked(BATCH_CHUNK_SIZE)
+            .forEach { chunk ->
+                val result =
+                    runCatching {
+                        withTimeout(FUNCTION_TIMEOUT_MS) {
+                            contactsBridge.phoneExistsMany(chunk)
+                        }
+                    }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
+                registeredPhones.addAll(result.registeredPhones)
+                result.matches.forEach { match ->
+                    matchByPhone[match.phone] = match.uid
                 }
-            if (exists) {
-                val matchedUid = matchByPhone[canonical]?.uid
-                emit(contact.copy(isRegistered = true, firebaseUid = matchedUid ?: contact.firebaseUid))
             }
-        }
-    }
 
-    private suspend fun FlowCollector<Contact>.emitSingleResults(canonicalContacts: List<Pair<String, Contact>>) {
         canonicalContacts.forEach { (canonical, contact) ->
-            val result =
-                runCatching {
-                    withTimeout(FUNCTION_TIMEOUT_MS) {
-                        contactsBridge.phoneExists(canonical)
-                    }
-                }.getOrNull()
-            val exists =
-                result?.exists ?: runCatching { contactsBridge.isUserRegistered(canonical) }.getOrDefault(false)
+            val matchedUid = matchByPhone[canonical]
+            val exists = canonical in registeredPhones || matchedUid != null
             if (exists) {
-                emit(contact.copy(isRegistered = true, firebaseUid = result?.uid ?: contact.firebaseUid))
+                emit(contact.copy(isRegistered = true, firebaseUid = matchedUid ?: contact.firebaseUid))
             }
         }
     }
@@ -128,6 +112,6 @@ class FirebaseRestContactsRemoteData(
 
     private companion object {
         const val FUNCTION_TIMEOUT_MS = 5_000L
-        const val BATCH_THRESHOLD = 25
+        const val BATCH_CHUNK_SIZE = 100
     }
 }
