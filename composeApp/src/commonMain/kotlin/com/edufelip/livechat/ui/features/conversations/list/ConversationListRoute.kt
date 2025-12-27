@@ -74,7 +74,6 @@ fun ConversationListRoute(
         state = state,
         onSearch = { presenter.setSearchQuery(it) },
         onConversationSelected = { summary ->
-            presenter.markConversationAsRead(summary.conversationId)
             onConversationSelected(summary.conversationId, summary.contactName)
         },
         onTogglePin = { summary, pinned ->
