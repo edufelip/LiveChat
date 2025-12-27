@@ -140,7 +140,7 @@ class FirebaseMessagesRemoteData(
                     senderId = senderId,
                     timestamp = timestamp,
                     content = mediaUpload?.downloadUrl ?: draft.body,
-                    status = STATUS_SENT,
+                    status = STATUS_PENDING,
                     documentId = documentId,
                     payloadType = PAYLOAD_TYPE_MESSAGE,
                 )
@@ -481,7 +481,7 @@ class FirebaseMessagesRemoteData(
     }
 
     private companion object {
-        const val STATUS_SENT = "sent"
+        const val STATUS_PENDING = "pending"
         const val META_REMOTE_URL = "remoteUrl"
         const val META_LOCAL_PATH = "localPath"
         const val META_RECEIVER_ID = "receiverId"
