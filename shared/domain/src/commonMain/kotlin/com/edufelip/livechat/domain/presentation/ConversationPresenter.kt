@@ -76,6 +76,18 @@ class ConversationPresenter(
         markReadJob?.cancel()
         markReadJob = null
 
+        scope.launch {
+            runCatching { ensureConversationUseCase(conversationId) }
+                .onFailure { throwable ->
+                    _state.update { state ->
+                        state.copy(
+                            errorMessage = throwable.message ?: state.errorMessage,
+                            isLoading = false,
+                        )
+                    }
+                }
+        }
+
         contactJob?.cancel()
         contactJob =
             scope.launch {
@@ -96,15 +108,6 @@ class ConversationPresenter(
         observeJob?.cancel()
         observeJob =
             scope.launch {
-                runCatching { ensureConversationUseCase(conversationId) }
-                    .onFailure { throwable ->
-                        _state.update { state ->
-                            state.copy(
-                                errorMessage = throwable.message ?: state.errorMessage,
-                                isLoading = false,
-                            )
-                        }
-                    }
                 observeConversationUseCase(conversationId, pageSize)
                     .catch { throwable ->
                         _state.update { state ->
@@ -129,7 +132,6 @@ class ConversationPresenter(
         participantJob?.cancel()
         participantJob =
             scope.launch {
-                runCatching { ensureConversationUseCase(conversationId) }
                 observeParticipantUseCase(conversationId)
                     .catch { throwable ->
                         _state.update { state ->
@@ -174,21 +176,30 @@ class ConversationPresenter(
         if (messages.isEmpty()) return
         val conversationId = _state.value.conversationId
         if (conversationId.isBlank()) return
-        val latest = messages.maxByOrNull { it.createdAt } ?: return
-        val latestSeq = latest.messageSeq
-        val participant = _state.value.participant
-        val participantSeq = participant?.lastReadSeq
-        val participantReadAt = participant?.lastReadAt ?: 0L
+        val participant = _state.value.participant ?: return
+        val currentUserId = userSessionProvider.currentUserId() ?: return
+        val latestIncoming =
+            messages
+                .asSequence()
+                .filter { it.senderId != currentUserId }
+                .maxByOrNull { it.createdAt }
+                ?: return
+        val latestSeq = latestIncoming.messageSeq
+        val participantSeq = participant.lastReadSeq
+        val participantReadAt = participant.lastReadAt ?: 0L
         val knownSeq = listOfNotNull(participantSeq, lastMarkedReadSeq).maxOrNull()
+        val knownReadAt = maxOf(participantReadAt, lastMarkedReadAt)
 
-        val alreadyAcknowledgedBySeq =
-            latestSeq != null && knownSeq != null && latestSeq <= knownSeq
-        val alreadyAcknowledgedByTime =
-            latestSeq == null && latest.createdAt <= maxOf(participantReadAt, lastMarkedReadAt)
+        val alreadyAcknowledged =
+            if (latestSeq != null && knownSeq != null) {
+                latestSeq <= knownSeq
+            } else {
+                latestIncoming.createdAt <= knownReadAt
+            }
 
-        if (alreadyAcknowledgedBySeq || alreadyAcknowledgedByTime) return
+        if (alreadyAcknowledged) return
 
-        dispatchMarkConversationRead(conversationId, latest.createdAt, latestSeq)
+        dispatchMarkConversationRead(conversationId, latestIncoming.createdAt, latestSeq)
     }
 
     private fun dispatchMarkConversationRead(

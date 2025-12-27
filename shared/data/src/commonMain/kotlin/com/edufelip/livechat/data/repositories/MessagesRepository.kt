@@ -171,6 +171,19 @@ class MessagesRepository(
         lastReadSeq: Long?,
     ) {
         withContext(dispatcher) {
+            val participant = localData.getParticipant(conversationId)
+            val knownReadAt = participant?.lastReadAt ?: 0L
+            val knownReadSeq = participant?.lastReadSeq
+            val alreadyRead =
+                if (lastReadSeq != null && knownReadSeq != null) {
+                    lastReadSeq <= knownReadSeq
+                } else {
+                    lastReadAt <= knownReadAt
+                }
+            if (alreadyRead) {
+                println("$logTag: repo markRead skip conv=$conversationId lastReadAt=$lastReadAt lastReadSeq=$lastReadSeq")
+                return@withContext
+            }
             println("$logTag: repo markRead conv=$conversationId lastReadAt=$lastReadAt lastReadSeq=$lastReadSeq")
             participantsRepository.recordReadState(conversationId, lastReadAt, lastReadSeq)
             val readerId = sessionProvider.currentUserId() ?: return@withContext
