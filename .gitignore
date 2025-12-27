@@ -25,3 +25,4 @@ iosApp/LiveChatIOS/GoogleService-Info.plist
 **/AGENTS.md
 functions/node_modules/
 functions/package-lock.json
+**/xcuserdata/
