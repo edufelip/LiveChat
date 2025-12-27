@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,8 +40,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.Message
@@ -54,6 +58,7 @@ import com.edufelip.livechat.ui.features.conversations.detail.components.Compose
 import com.edufelip.livechat.ui.features.conversations.detail.components.MessageBubble
 import com.edufelip.livechat.ui.features.conversations.detail.components.rememberLazyListStateWithAutoscroll
 import com.edufelip.livechat.ui.features.conversations.detail.rememberAudioPlayerController
+import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.formatDurationMillis
@@ -76,6 +81,7 @@ fun ConversationDetailScreen(
     onTakePhoto: () -> Unit,
     onBack: () -> Unit,
     onDismissError: () -> Unit,
+    onMessageErrorClick: (Message) -> Unit,
     permissionHint: String?,
     modifier: Modifier = Modifier,
 ) {
@@ -94,6 +100,10 @@ fun ConversationDetailScreen(
     val duration by audioController.durationMillis.collectAsState()
     val position by audioController.positionMillis.collectAsState()
     val scope = rememberCoroutineScope()
+    val onBackState by rememberUpdatedState(onBack)
+    val density = LocalDensity.current
+    val edgeWidthPx = remember(density) { with(density) { 24.dp.toPx() } }
+    val swipeThresholdPx = remember(density) { with(density) { 72.dp.toPx() } }
     val onAudioToggle: (String) -> Unit =
         remember(playingPath, isPlaying) {
             { path ->
@@ -106,9 +116,49 @@ fun ConversationDetailScreen(
                 }
             }
         }
+    val swipeBackModifier =
+        if (isAndroid()) {
+            Modifier
+        } else {
+            Modifier.pointerInput(edgeWidthPx, swipeThresholdPx, onBackState) {
+                var fromEdge = false
+                var dragDistance = 0f
+                var triggered = false
+                detectHorizontalDragGestures(
+                    onDragStart = { offset ->
+                        fromEdge = offset.x <= edgeWidthPx
+                        dragDistance = 0f
+                        triggered = false
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        if (!fromEdge || triggered) return@detectHorizontalDragGestures
+                        if (dragAmount > 0f) {
+                            dragDistance += dragAmount
+                        } else {
+                            dragDistance = (dragDistance + dragAmount).coerceAtLeast(0f)
+                        }
+                        change.consume()
+                        if (dragDistance >= swipeThresholdPx) {
+                            triggered = true
+                            onBackState()
+                        }
+                    },
+                    onDragEnd = {
+                        fromEdge = false
+                        dragDistance = 0f
+                        triggered = false
+                    },
+                    onDragCancel = {
+                        fromEdge = false
+                        dragDistance = 0f
+                        triggered = false
+                    },
+                )
+            }
+        }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().then(swipeBackModifier),
         contentWindowInsets = WindowInsets(0),
         topBar = {
             TopAppBar(
@@ -177,6 +227,7 @@ fun ConversationDetailScreen(
                         duration = duration,
                         position = position,
                         onAudioToggle = onAudioToggle,
+                        onMessageErrorClick = onMessageErrorClick,
                     )
                 }
             }
@@ -219,6 +270,7 @@ private fun ConversationMessagesList(
     duration: Long,
     position: Long,
     onAudioToggle: (String) -> Unit,
+    onMessageErrorClick: (Message) -> Unit,
 ) {
     val listState = rememberLazyListStateWithAutoscroll(messages)
     LazyColumn(
@@ -231,14 +283,18 @@ private fun ConversationMessagesList(
             items = messages,
             key = { message -> "${message.id}:${message.localTempId ?: message.createdAt}" },
         ) { message ->
+            val isOwnMessage =
+                message.senderId == currentUserId ||
+                    (currentUserId.isBlank() && message.localTempId != null)
             MessageBubble(
                 message = message,
-                isOwn = message.senderId == currentUserId,
+                isOwn = isOwnMessage,
                 isPlaying = message.body == playingPath && isPlaying,
                 onAudioToggle = onAudioToggle,
                 progress = if (playingPath == message.body) progress else 0f,
                 durationMillis = if (playingPath == message.body) duration else 0L,
                 positionMillis = if (playingPath == message.body) position else 0L,
+                onErrorClick = { onMessageErrorClick(message) },
             )
         }
     }
@@ -322,6 +378,7 @@ private fun ConversationDetailScreenPreview() {
             onTakePhoto = {},
             onBack = {},
             onDismissError = {},
+            onMessageErrorClick = {},
             permissionHint = null,
         )
     }
@@ -341,6 +398,7 @@ private fun ConversationMessagesListPreview() {
             duration = 0L,
             position = 0L,
             onAudioToggle = {},
+            onMessageErrorClick = {},
         )
     }
 }

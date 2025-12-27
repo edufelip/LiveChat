@@ -4,6 +4,7 @@ import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
+import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
@@ -250,6 +251,53 @@ class ConversationPresenter(
 
     fun sendAudio(localPath: String) {
         sendMessage(body = localPath, contentType = MessageContentType.Audio)
+    }
+
+    fun retryMessage(message: Message) {
+        if (message.status != MessageStatus.ERROR) return
+        if (_state.value.isSending) return
+
+        scope.launch {
+            val senderId = userSessionProvider.currentUserId()
+            if (senderId.isNullOrBlank()) {
+                _state.update {
+                    it.copy(errorMessage = "User not authenticated")
+                }
+                return@launch
+            }
+
+            val localId = message.localTempId ?: message.id
+            val timestamp = message.createdAt.takeIf { it > 0 } ?: currentEpochMillis()
+
+            _state.update { it.copy(isSending = true, errorMessage = null) }
+            runCatching {
+                sendMessageUseCase(
+                    MessageDraft(
+                        conversationId = message.conversationId,
+                        senderId = senderId,
+                        body = message.body,
+                        localId = localId,
+                        createdAt = timestamp,
+                        contentType = message.contentType,
+                        ciphertext = message.ciphertext,
+                        attachments = message.attachments,
+                        replyToMessageId = message.replyToMessageId,
+                        threadRootId = message.threadRootId,
+                        metadata = message.metadata,
+                    ),
+                )
+            }.onFailure { throwable ->
+                _state.update {
+                    it.copy(
+                        isSending = false,
+                        errorMessage = throwable.message ?: "Failed to send message",
+                    )
+                }
+                return@launch
+            }
+
+            _state.update { it.copy(isSending = false) }
+        }
     }
 
     private fun sendMessage(

@@ -1,11 +1,13 @@
 package com.edufelip.livechat.ui.features.conversations.detail.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
@@ -26,11 +29,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
+import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -53,6 +60,7 @@ fun MessageBubble(
     durationMillis: Long,
     positionMillis: Long,
     modifier: Modifier = Modifier,
+    onErrorClick: (() -> Unit)? = null,
 ) {
     val conversationStrings = liveChatStrings().conversation
     val alignment = if (isOwn) Alignment.End else Alignment.Start
@@ -71,57 +79,84 @@ fun MessageBubble(
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val maxBubbleWidth = maxWidth * 0.8f
+        val showError = isOwn && message.status == MessageStatus.ERROR && onErrorClick != null
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = alignment,
         ) {
-            Surface(
-                color = bubbleColor,
-                shape = RoundedCornerShape(16.dp),
-                modifier =
-                    Modifier
-                        .wrapContentWidth()
-                        .widthIn(max = maxBubbleWidth),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.spacedBy(
+                        6.dp,
+                        if (isOwn) Alignment.End else Alignment.Start,
+                    ),
+                verticalAlignment = Alignment.Bottom,
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                if (showError) {
+                    Icon(
+                        imageVector = Icons.Rounded.ErrorOutline,
+                        contentDescription = conversationStrings.messageFailed,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier =
+                            Modifier
+                                .size(18.dp)
+                                .clickable(onClick = onErrorClick)
+                                .semantics { role = Role.Button },
+                    )
+                }
+                Surface(
+                    color = bubbleColor,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier =
+                        Modifier
+                            .wrapContentWidth()
+                            .widthIn(max = maxBubbleWidth),
                 ) {
-                    when (message.contentType) {
-                        MessageContentType.Image ->
-                            ImageBubbleContent(
-                                message = message,
-                                description = conversationStrings.imageMessageDescription,
-                                label = conversationStrings.imageLabel,
-                                fallbackTemplate = conversationStrings.imageFallbackLabel,
-                            )
-                        MessageContentType.Audio ->
-                            AudioBubbleContent(
-                                message = message,
-                                textColor = textColor,
-                                isPlaying = isPlaying,
-                                onAudioToggle = onAudioToggle,
-                                progress = progress,
-                                durationMillis = durationMillis,
-                                positionMillis = positionMillis,
-                                playDescription = conversationStrings.playAudioDescription,
-                                stopDescription = conversationStrings.stopAudioDescription,
-                                playingLabel = conversationStrings.playingAudioLabel,
-                                idleLabel = conversationStrings.audioMessageLabel,
-                            )
-                        else ->
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        when (message.contentType) {
+                            MessageContentType.Image ->
+                                ImageBubbleContent(
+                                    message = message,
+                                    description = conversationStrings.imageMessageDescription,
+                                    label = conversationStrings.imageLabel,
+                                    fallbackTemplate = conversationStrings.imageFallbackLabel,
+                                )
+                            MessageContentType.Audio ->
+                                AudioBubbleContent(
+                                    message = message,
+                                    textColor = textColor,
+                                    isPlaying = isPlaying,
+                                    onAudioToggle = onAudioToggle,
+                                    progress = progress,
+                                    durationMillis = durationMillis,
+                                    positionMillis = positionMillis,
+                                    playDescription = conversationStrings.playAudioDescription,
+                                    stopDescription = conversationStrings.stopAudioDescription,
+                                    playingLabel = conversationStrings.playingAudioLabel,
+                                    idleLabel = conversationStrings.audioMessageLabel,
+                                )
+                            else ->
+                                Text(
+                                    text = message.body,
+                                    color = textColor,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Text(
-                                text = message.body,
-                                color = textColor,
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = message.createdAt.formatAsTime(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = textColor.copy(alpha = 0.8f),
                             )
-                    }
-                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = message.createdAt.formatAsTime(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = textColor.copy(alpha = 0.8f),
-                        )
+                        }
                     }
                 }
             }
