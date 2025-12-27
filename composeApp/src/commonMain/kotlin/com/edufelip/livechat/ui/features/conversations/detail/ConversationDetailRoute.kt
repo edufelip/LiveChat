@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -50,6 +51,7 @@ fun ConversationDetailRoute(
             onTakePhoto = {},
             onBack = {},
             onDismissError = {},
+            onMessageErrorClick = {},
             permissionHint = null,
         )
         return
@@ -66,6 +68,7 @@ fun ConversationDetailRoute(
     val permissionUiState by permissionViewModel.uiState.collectAsState()
     var isRecording by androidx.compose.runtime.remember { mutableStateOf(false) }
     var recordingDurationMillis by androidx.compose.runtime.remember { mutableStateOf(0L) }
+    var retryCandidate by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
 
     LaunchedEffect(permissionViewModel) {
         permissionViewModel.events.collect { event ->
@@ -95,6 +98,29 @@ fun ConversationDetailRoute(
             },
             title = { Text(conversationStrings.permissionTitle) },
             text = { Text(message) },
+        )
+    }
+
+    retryCandidate?.let { message ->
+        AlertDialog(
+            onDismissRequest = { retryCandidate = null },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        retryCandidate = null
+                        presenter.retryMessage(message)
+                    },
+                ) {
+                    Text(conversationStrings.retryMessageCta)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { retryCandidate = null }) {
+                    Text(strings.general.cancel)
+                }
+            },
+            title = { Text(conversationStrings.retryMessageTitle) },
+            text = { Text(conversationStrings.retryMessageBody) },
         )
     }
 
@@ -204,6 +230,14 @@ fun ConversationDetailRoute(
         },
         onBack = onBack,
         onDismissError = { presenter.clearError() },
+        onMessageErrorClick = { message ->
+            val isOwnMessage =
+                message.senderId == currentUserId ||
+                    (currentUserId.isBlank() && message.localTempId != null)
+            if (isOwnMessage) {
+                retryCandidate = message
+            }
+        },
         permissionHint = permissionUiState.hintMessage,
     )
 }
