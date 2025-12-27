@@ -8,7 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "deploy": "firebase deploy --only functions:phoneExists",
+    "deploy": "firebase deploy --only functions:phoneExists,functions:phoneExistsMany",
     "lint": "eslint ."
   },
   "dependencies": {

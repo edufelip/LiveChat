@@ -13,9 +13,13 @@ exports.phoneExistsMany = onCall(async (req) => {
     throw new HttpsError('invalid-argument', 'phones must be a non-empty array of strings');
   }
 
-  const normalized = phones
-    .filter((phone) => typeof phone === 'string' && phone.trim().length > 0)
-    .map((phone) => phone.trim());
+  const normalized = [
+    ...new Set(
+      phones
+        .filter((phone) => typeof phone === 'string' && phone.trim().length > 0)
+        .map((phone) => phone.trim()),
+    ),
+  ];
 
   if (normalized.length === 0) {
     return { registered: [] };
@@ -24,28 +28,33 @@ exports.phoneExistsMany = onCall(async (req) => {
   const registered = [];
   const result = [];
   const errors = [];
+  const chunkSize = 100;
+  let successfulChunks = 0;
 
-  await Promise.all(
-    normalized.map(async (phone) => {
-      try {
-        const userRecord = await admin.auth().getUserByPhoneNumber(phone);
-        if (userRecord) {
-          registered.push(phone);
-          result.push({
-            phone,
-            uid: userRecord.uid,
-          });
-        }
-      } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-          return;
-        }
-        errors.push({ phone, code: error.code, message: error.message });
-      }
-    }),
-  );
+  for (let index = 0; index < normalized.length; index += chunkSize) {
+    const chunk = normalized.slice(index, index + chunkSize);
+    try {
+      const response = await admin.auth().getUsers(
+        chunk.map((phone) => ({
+          phoneNumber: phone,
+        })),
+      );
+      successfulChunks += 1;
+      response.users.forEach((userRecord) => {
+        const phoneNumber = userRecord.phoneNumber;
+        if (!phoneNumber) return;
+        registered.push(phoneNumber);
+        result.push({
+          phone: phoneNumber,
+          uid: userRecord.uid,
+        });
+      });
+    } catch (error) {
+      errors.push({ phones: chunk, code: error.code, message: error.message });
+    }
+  }
 
-  if (errors.length === normalized.length) {
+  if (successfulChunks === 0) {
     throw new HttpsError('internal', 'Failed to verify phone numbers', { errors });
   }
 
