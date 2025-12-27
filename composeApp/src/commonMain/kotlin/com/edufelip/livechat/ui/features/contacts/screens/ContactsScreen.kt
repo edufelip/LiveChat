@@ -192,7 +192,7 @@ private fun ContactsListContent(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm / 2),
             contentPadding = PaddingValues(bottom = MaterialTheme.spacing.xl),
         ) {
             if (showSyncButton) {
