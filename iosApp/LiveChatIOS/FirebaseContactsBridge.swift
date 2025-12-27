@@ -9,6 +9,7 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
     private let config: FirebaseRestConfig
 
     init(config: FirebaseRestConfig) {
+        FirebaseConfig.ensureConfiguredForBridge(name: "FirebaseContactsBridge")
         self.config = config
         super.init()
     }

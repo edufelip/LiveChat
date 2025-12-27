@@ -77,6 +77,7 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
             if let error = error {
                 completionHandler(error.toBridgeError(), nil)
             } else {
+                self.updateSessionFromFirebaseAuth()
                 completionHandler(nil, nil)
             }
         }
@@ -84,6 +85,12 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
 }
 
 private extension FirebasePhoneAuthBridge {
+    func updateSessionFromFirebaseAuth() {
+        guard let user = Auth.auth().currentUser else { return }
+        user.getIDTokenForcingRefresh(false) { token, _ in
+            MainViewControllerKt.updateLiveChatSession(userId: user.uid, idToken: token)
+        }
+    }
 }
 
 private extension Error {
