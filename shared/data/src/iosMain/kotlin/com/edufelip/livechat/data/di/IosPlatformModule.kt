@@ -2,6 +2,7 @@ package com.edufelip.livechat.data.di
 
 import com.edufelip.livechat.data.auth.phone.IosPhoneAuthRepository
 import com.edufelip.livechat.data.bridge.IosBridgeBundle
+import com.edufelip.livechat.data.files.MediaFileStore
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
@@ -18,9 +19,14 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
+import platform.Foundation.NSUserDomainMask
 
 fun iosPlatformModule(
     config: FirebaseRestConfig,
@@ -28,6 +34,7 @@ fun iosPlatformModule(
     httpClient: HttpClient = defaultHttpClient(),
 ): Module =
     module {
+        MediaFileStore.configure(iosMediaDirectory())
         single { config }
         single { httpClient }
         single { bridgeBundle.messagesBridge }
@@ -56,3 +63,19 @@ fun defaultHttpClient(): HttpClient =
         }
         install(WebSockets) { }
     }
+
+private fun iosMediaDirectory(): String = "${iosDocumentsDirectory()}/media"
+
+@OptIn(ExperimentalForeignApi::class)
+private fun iosDocumentsDirectory(): String {
+    val manager = NSFileManager.defaultManager
+    val url: NSURL? =
+        manager.URLForDirectory(
+            directory = NSDocumentDirectory,
+            inDomain = NSUserDomainMask,
+            appropriateForURL = null,
+            create = true,
+            error = null,
+        )
+    return requireNotNull(url?.path) { "Unable to resolve iOS documents directory" }
+}

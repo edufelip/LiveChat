@@ -4,6 +4,7 @@ import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +20,13 @@ interface IMessagesRemoteData {
         conversationId: String,
         sinceEpochMillis: Long?,
     ): List<Message>
+
+    suspend fun downloadMediaToLocal(
+        remoteUrl: String,
+        contentType: MessageContentType,
+    ): String
+
+    suspend fun deleteMedia(remoteUrl: String)
 
     suspend fun sendAction(action: InboxAction)
 

@@ -2,6 +2,7 @@ package com.edufelip.livechat.data.repositories
 
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
+import com.edufelip.livechat.data.files.MediaFileStore
 import com.edufelip.livechat.data.mappers.toPendingMessage
 import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxActionType
@@ -9,6 +10,7 @@ import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.providers.UserSessionProvider
@@ -32,6 +34,7 @@ class MessagesRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRepository {
     private val logTag = "COMMCHECK"
+    private val mediaCleanupTracker = mutableMapOf<String, Long>()
 
     override fun observeConversation(
         conversationId: String,
@@ -44,6 +47,7 @@ class MessagesRepository(
                     localData.observeMessages(conversationId, pageSize).collect { messages ->
                         println("$logTag: repo observeConversation local conv=$conversationId count=${messages.size}")
                         send(messages)
+                        launch { maybeRunMediaCleanup(conversationId) }
                     }
                 }
             val remoteJob =
@@ -98,6 +102,9 @@ class MessagesRepository(
                                 println("$logTag: repo observeAllIncomingMessages upserting=${messages.size}")
                                 localData.upsertMessages(messages)
                                 send(messages)
+                                messages.map { it.conversationId }.distinct().forEach { conversationId ->
+                                    launch { maybeRunMediaCleanup(conversationId) }
+                                }
                             }
                             if (actions.isNotEmpty()) {
                                 println("$logTag: repo observeAllIncomingMessages actions=${actions.size}")
@@ -172,6 +179,7 @@ class MessagesRepository(
                 println("$logTag: repo syncConversation upsert conv=$conversationId count=${remoteMessages.size}")
                 localData.upsertMessages(remoteMessages)
             }
+            maybeRunMediaCleanup(conversationId, force = true)
             remoteMessages
         }
     }
@@ -213,6 +221,10 @@ class MessagesRepository(
                     actionAtMillis = lastReadAt.takeIf { it > 0 } ?: currentEpochMillis(),
                 )
             remoteData.sendAction(action)
+            runCatching {
+                deleteMediaForMessageIfNeeded(latestIncoming, currentEpochMillis())
+                maybeRunMediaCleanup(conversationId, force = true)
+            }
         }
     }
 
@@ -237,6 +249,62 @@ class MessagesRepository(
         val userPhone = sessionProvider.currentUserPhone()
         println("$logTag: repo ensureConversation conv=$conversationId peer=$peer")
         remoteData.ensureConversation(conversationId, userId, userPhone, peer)
+    }
+
+    private suspend fun maybeRunMediaCleanup(
+        conversationId: String,
+        force: Boolean = false,
+    ) {
+        val now = currentEpochMillis()
+        val lastRun = mediaCleanupTracker[conversationId] ?: 0L
+        if (!force && now - lastRun < MEDIA_CLEANUP_INTERVAL_MS) return
+        mediaCleanupTracker[conversationId] = now
+
+        val currentUserId = sessionProvider.currentUserId() ?: return
+        val participant = localData.getParticipant(conversationId)
+        val lastReadAt = participant?.lastReadAt ?: 0L
+        val messages = localData.getMessages(conversationId)
+        messages.asSequence()
+            .filter { it.senderId != currentUserId }
+            .filter { it.contentType.isMedia() }
+            .filter { it.remoteUrl() != null }
+            .filter { !it.isMediaDeleted() }
+            .filter { it.createdAt <= lastReadAt }
+            .forEach { deleteMediaForMessageIfNeeded(it, now) }
+    }
+
+    private suspend fun deleteMediaForMessageIfNeeded(
+        message: Message,
+        now: Long,
+    ) {
+        if (!message.contentType.isMedia()) return
+        if (message.isMediaDeleted()) return
+        val remoteUrl = message.remoteUrl() ?: return
+        val updatedMessage = ensureLocalMedia(message, remoteUrl) ?: return
+        runCatching { remoteData.deleteMedia(remoteUrl) }
+            .onSuccess {
+                val updatedMetadata = updatedMessage.metadata.toMutableMap()
+                updatedMetadata[META_MEDIA_DELETED_AT] = now.toString()
+                localData.updateMessageMetadata(updatedMessage.id, updatedMetadata)
+            }
+    }
+
+    private suspend fun ensureLocalMedia(
+        message: Message,
+        remoteUrl: String,
+    ): Message? {
+        val localPath = message.localPath()
+        if (!localPath.isNullOrBlank() && MediaFileStore.exists(localPath)) {
+            return message
+        }
+        val downloaded =
+            runCatching { remoteData.downloadMediaToLocal(remoteUrl, message.contentType) }
+                .getOrNull()
+                ?: return null
+        val updatedMetadata = message.metadata.toMutableMap()
+        updatedMetadata[META_LOCAL_PATH] = downloaded
+        localData.updateMessageBodyAndMetadata(message.id, downloaded, updatedMetadata)
+        return message.copy(body = downloaded, metadata = updatedMetadata)
     }
 
     private suspend fun applyActions(actions: List<InboxAction>) {
@@ -278,4 +346,19 @@ class MessagesRepository(
         actionType: InboxActionType,
         actorId: String,
     ): String = "${messageId}_${actionType.name.lowercase()}_$actorId"
+
+    private fun Message.remoteUrl(): String? = metadata[META_REMOTE_URL]?.takeIf { it.isNotBlank() }
+
+    private fun Message.localPath(): String? = metadata[META_LOCAL_PATH]?.takeIf { it.isNotBlank() } ?: body.takeIf { it.isNotBlank() }
+
+    private fun Message.isMediaDeleted(): Boolean = metadata[META_MEDIA_DELETED_AT]?.toLongOrNull()?.let { it > 0 } == true
+
+    private fun MessageContentType.isMedia(): Boolean = this == MessageContentType.Image || this == MessageContentType.Audio
+
+    private companion object {
+        const val META_REMOTE_URL = "remoteUrl"
+        const val META_LOCAL_PATH = "localPath"
+        const val META_MEDIA_DELETED_AT = "mediaDeletedAt"
+        const val MEDIA_CLEANUP_INTERVAL_MS = 6L * 60 * 60 * 1000
+    }
 }
