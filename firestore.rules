@@ -10,7 +10,7 @@ service cloud.firestore {
         && data.receiver_id == conversationId
         && data.type in ['text', 'image', 'audio']
         && data.content is string
-        && data.status in ['pending', 'delivered']
+        && data.status in ['pending', 'sent', 'delivered']
         && data.created_at is timestamp
         && (!('created_at_ms' in data) || data.created_at_ms is int);
     }
