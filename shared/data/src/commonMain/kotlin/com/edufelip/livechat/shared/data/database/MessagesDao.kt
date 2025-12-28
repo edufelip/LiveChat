@@ -26,6 +26,15 @@ interface MessagesDao {
     )
     suspend fun getMessages(conversationId: String): List<MessageEntity>
 
+    @Query(
+        """
+        DELETE FROM messages
+        WHERE id = :messageId
+           OR local_temp_id = :messageId
+        """,
+    )
+    suspend fun deleteMessage(messageId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(message: MessageEntity)
 

@@ -150,6 +150,13 @@ class MessagesRepository(
         }
     }
 
+    override suspend fun deleteMessageLocal(messageId: String) {
+        withContext(dispatcher) {
+            println("$logTag: repo deleteMessage local id=$messageId")
+            localData.deleteMessage(messageId)
+        }
+    }
+
     override suspend fun syncConversation(
         conversationId: String,
         sinceEpochMillis: Long?,
