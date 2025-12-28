@@ -2,7 +2,6 @@ package com.edufelip.livechat.contacts
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.Contacts.CNAuthorizationStatusAuthorized
 import platform.Contacts.CNAuthorizationStatusDenied
@@ -12,6 +11,7 @@ import platform.Contacts.CNContactStore
 import platform.Contacts.CNEntityType
 import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSUserDefaults
+import kotlin.coroutines.resume
 
 private class IosContactsPermissionManager : ContactsPermissionManager {
     private val store = CNContactStore()

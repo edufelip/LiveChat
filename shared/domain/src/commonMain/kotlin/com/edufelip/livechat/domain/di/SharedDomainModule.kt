@@ -11,8 +11,8 @@ import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
-import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase

@@ -13,8 +13,8 @@ import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
-import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
+import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase

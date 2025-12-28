@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
@@ -137,71 +136,73 @@ internal fun PhoneStep(
                 )
             }
 
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-        ) {
-            Surface(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .testTag(OnboardingTestTags.PHONE_COUNTRY_SELECTOR)
-                        .clickable(onClick = onPickCountry),
-                shape = RoundedCornerShape(16.dp),
-                tonalElevation = 2.dp,
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
             ) {
-                Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
+                Surface(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag(OnboardingTestTags.PHONE_COUNTRY_SELECTOR)
+                            .clickable(onClick = onPickCountry),
+                    shape = RoundedCornerShape(16.dp),
+                    tonalElevation = 2.dp,
+                ) {
+                    Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
+                        Text(
+                            text = selectedCountry.flag + " " + selectedCountry.name,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            text = selectedCountry.dialCode,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                OutlinedTextField(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .testTag(OnboardingTestTags.PHONE_INPUT)
+                            .bringIntoViewRequester(bringIntoViewRequester)
+                            .onGloballyPositioned { coordinates ->
+                                inputBounds.value = coordinates.boundsInRoot()
+                            }
+                            .onFocusChanged { state ->
+                                if (state.isFocused) {
+                                    scope.launch {
+                                        bringIntoViewRequester.bringIntoView()
+                                    }
+                                }
+                            },
+                    value = phoneNumber,
+                    onValueChange = onPhoneChanged,
+                    label = { Text(strings.phoneFieldLabel) },
+                    placeholder = { Text(strings.phoneFieldPlaceholder) },
+                    singleLine = true,
+                    isError = phoneError != null,
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Phone,
+                            imeAction = ImeAction.Done,
+                        ),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = { focusManager.clearFocus() },
+                        ),
+                )
+                if (phoneError != null) {
                     Text(
-                        text = selectedCountry.flag + " " + selectedCountry.name,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        text = selectedCountry.dialCode,
+                        text = phoneError,
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.testTag(OnboardingTestTags.PHONE_ERROR),
                     )
                 }
             }
-
-            OutlinedTextField(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .testTag(OnboardingTestTags.PHONE_INPUT)
-                        .bringIntoViewRequester(bringIntoViewRequester)
-                        .onGloballyPositioned { coordinates ->
-                            inputBounds.value = coordinates.boundsInRoot()
-                        }
-                        .onFocusChanged { state ->
-                            if (state.isFocused) {
-                                scope.launch {
-                                    bringIntoViewRequester.bringIntoView()
-                                }
-                            }
-                        },
-                value = phoneNumber,
-                onValueChange = onPhoneChanged,
-                label = { Text(strings.phoneFieldLabel) },
-                placeholder = { Text(strings.phoneFieldPlaceholder) },
-                singleLine = true,
-                isError = phoneError != null,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { focusManager.clearFocus() },
-                ),
-            )
-            if (phoneError != null) {
-                Text(
-                    text = phoneError,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.testTag(OnboardingTestTags.PHONE_ERROR),
-                )
-            }
-        }
 
             Spacer(modifier = Modifier.heightIn(min = MaterialTheme.spacing.xl))
 

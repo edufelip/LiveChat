@@ -8,4 +8,3 @@ actual val STORAGE_BUCKET_URL: String
             NSBundle.mainBundle.infoDictionary?.get("STORAGE_BUCKET_URL") as? String
         return fromInfoPlist?.takeIf { it.isNotBlank() } ?: "gs://livechat-3ad1d.firebasestorage.app"
     }
-
