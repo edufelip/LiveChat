@@ -18,11 +18,23 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
     }
 
     func startListening(recipientId: String, listener: MessagesRemoteListener) -> String {
+        #if canImport(FirebaseAuth)
+        let authUid = Auth.auth().currentUser?.uid ?? "nil"
+        NSLog("FirebaseMessagesBridge: startListening recipient=%@ authUid=%@", recipientId, authUid)
+        #else
+        NSLog("FirebaseMessagesBridge: startListening recipient=%@ authUid=unavailable", recipientId)
+        #endif
         let token = UUID().uuidString
         let registration =
             messagesCollection(recipientId: recipientId)
                 .addSnapshotListener { snapshot, error in
                     if let error = error {
+                        #if canImport(FirebaseAuth)
+                        let authUid = Auth.auth().currentUser?.uid ?? "nil"
+                        NSLog("FirebaseMessagesBridge: listen error recipient=%@ authUid=%@ error=%@", recipientId, authUid, error.localizedDescription)
+                        #else
+                        NSLog("FirebaseMessagesBridge: listen error recipient=%@ authUid=unavailable error=%@", recipientId, error.localizedDescription)
+                        #endif
                         listener.onError(message: error.localizedDescription)
                         return
                     }
