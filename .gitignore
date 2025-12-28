@@ -18,6 +18,7 @@
 local.properties
 /.idea
 docs/*
+!docs/FirebaseScenarioMatrix.md
 .kotlin/
 .project_context
 iosApp/LiveChatIOS/GoogleService-Info.plist
