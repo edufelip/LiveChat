@@ -72,6 +72,13 @@ if [[ ! -d "$XCFRAMEWORK_PATH" ]]; then
   exit 1
 fi
 
+if [[ "$CONFIG_LOWER" == "debug" ]]; then
+  (
+    cd iosApp
+    agvtool new-version -all "$(date +%s)" >/dev/null
+  )
+fi
+
 # Final Xcode build to produce the app with the fresh framework embedded
 xcodebuild -project "$PROJECT_PATH" \
            -scheme "$SCHEME" \
