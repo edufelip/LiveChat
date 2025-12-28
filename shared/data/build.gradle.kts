@@ -40,6 +40,7 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(libs.koin.test)
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.client.mock)
             }
         }
         val androidMain by getting {
@@ -85,6 +86,14 @@ kotlin {
                 implementation(libs.robolectric)
             }
         }
+
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+            }
+        }
     }
 
     listOf(iosX64, iosArm64, iosSimulatorArm64).forEach { target ->
@@ -108,6 +117,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         val localPropsFile = rootProject.file("local.properties")
         if (localPropsFile.exists()) {
