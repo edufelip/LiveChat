@@ -44,6 +44,7 @@ class FirebaseMessagesRemoteData(
     ): Flow<List<InboxItem>> {
         if (!config.isConfigured) return flowOf(emptyList())
         val currentUserId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
+        log("observeConversation start inbox=$conversationId authUser=$currentUserId")
 
         return callbackFlow {
             val listener =

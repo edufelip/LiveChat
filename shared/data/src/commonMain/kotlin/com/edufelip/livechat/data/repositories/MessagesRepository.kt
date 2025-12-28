@@ -41,6 +41,8 @@ class MessagesRepository(
         pageSize: Int,
     ): Flow<List<Message>> =
         channelFlow {
+            val currentUserId = sessionProvider.currentUserId().orEmpty()
+            println("$logTag: repo observeConversation start conv=$conversationId authUser=$currentUserId")
             val sinceEpoch = localData.latestTimestamp(conversationId)
             val localJob =
                 launch {
