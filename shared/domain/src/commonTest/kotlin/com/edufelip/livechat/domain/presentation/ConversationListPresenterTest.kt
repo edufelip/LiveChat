@@ -171,6 +171,8 @@ class ConversationListPresenterTest {
 
         override suspend fun sendMessage(draft: MessageDraft) = error("Not used in test")
 
+        override suspend fun deleteMessageLocal(messageId: String) = Unit
+
         override suspend fun syncConversation(
             conversationId: String,
             sinceEpochMillis: Long?,

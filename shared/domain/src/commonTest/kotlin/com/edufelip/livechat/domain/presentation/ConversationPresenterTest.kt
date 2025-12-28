@@ -14,6 +14,7 @@ import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
+import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
@@ -46,6 +47,7 @@ class ConversationPresenterTest {
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
                     sendMessageUseCase = SendMessageUseCase(repository),
+                    deleteMessageLocalUseCase = DeleteMessageLocalUseCase(repository),
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
@@ -92,6 +94,7 @@ class ConversationPresenterTest {
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
                     sendMessageUseCase = SendMessageUseCase(repository),
+                    deleteMessageLocalUseCase = DeleteMessageLocalUseCase(repository),
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
@@ -144,6 +147,7 @@ class ConversationPresenterTest {
                 ConversationPresenter(
                     observeConversationUseCase = ObserveConversationUseCase(repository),
                     sendMessageUseCase = SendMessageUseCase(repository),
+                    deleteMessageLocalUseCase = DeleteMessageLocalUseCase(repository),
                     syncConversationUseCase = SyncConversationUseCase(repository),
                     observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
                     markConversationReadUseCase = MarkConversationReadUseCase(repository),
@@ -187,9 +191,49 @@ class ConversationPresenterTest {
             }
         }
 
+    @Test
+    fun deleteMessageLocal_usesLocalTempIdWhenAvailable() =
+        runTest {
+            val repository = FakeMessagesRepository()
+            val participantsRepository = FakeParticipantsRepository()
+            val sessionProvider = FakeSessionProvider(userId = "tester")
+            val presenterScope = TestScope(testScheduler)
+            val contactsRepository = FakeContactsRepository()
+            val presenter =
+                ConversationPresenter(
+                    observeConversationUseCase = ObserveConversationUseCase(repository),
+                    sendMessageUseCase = SendMessageUseCase(repository),
+                    deleteMessageLocalUseCase = DeleteMessageLocalUseCase(repository),
+                    syncConversationUseCase = SyncConversationUseCase(repository),
+                    observeParticipantUseCase = ObserveParticipantUseCase(participantsRepository),
+                    markConversationReadUseCase = MarkConversationReadUseCase(repository),
+                    observeContactByPhoneUseCase = ObserveContactByPhoneUseCase(contactsRepository),
+                    ensureConversationUseCase = EnsureConversationUseCase(repository),
+                    userSessionProvider = sessionProvider,
+                    scope = presenterScope,
+                )
+            try {
+                presenter.deleteMessageLocal(
+                    message(
+                        id = "server-1",
+                        conversationId = "conversation",
+                        body = "Hello",
+                        createdAt = 1_000L,
+                        localTempId = "local-1",
+                    ),
+                )
+                presenterScope.advanceUntilIdle()
+
+                assertEquals(listOf("local-1"), repository.deleteMessageRequests)
+            } finally {
+                presenter.close()
+            }
+        }
+
     private class FakeMessagesRepository : IMessagesRepository {
         private val messagesState = MutableStateFlow<List<Message>>(emptyList())
         val markReadRequests = mutableListOf<Triple<String, Long, Long?>>()
+        val deleteMessageRequests = mutableListOf<String>()
         var failSendMessage: Boolean = false
         val ensured = mutableListOf<String>()
 
@@ -213,6 +257,10 @@ class ConversationPresenterTest {
                 )
             messagesState.value = messagesState.value + message
             return message
+        }
+
+        override suspend fun deleteMessageLocal(messageId: String) {
+            deleteMessageRequests += messageId
         }
 
         fun emitMessages(vararg messages: Message) {
@@ -349,6 +397,7 @@ private fun message(
     body: String,
     createdAt: Long,
     messageSeq: Long? = null,
+    localTempId: String? = null,
 ): Message =
     Message(
         id = id,
@@ -358,4 +407,5 @@ private fun message(
         createdAt = createdAt,
         status = MessageStatus.SENT,
         messageSeq = messageSeq,
+        localTempId = localTempId,
     )

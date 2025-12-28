@@ -178,6 +178,8 @@ class ContactsPresenterTest {
         override suspend fun sendMessage(draft: MessageDraft): Message =
             error("sendMessage should not be called in ContactsPresenter tests")
 
+        override suspend fun deleteMessageLocal(messageId: String) = Unit
+
         override suspend fun syncConversation(
             conversationId: String,
             sinceEpochMillis: Long?,
