@@ -45,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +68,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -114,6 +116,7 @@ fun ConversationDetailScreen(
     snackbarHostState: SnackbarHostState,
     selectedMessage: Message?,
     selectedMessageBounds: Rect?,
+    scrollToBottomSignal: Int,
     onMessageLongPress: (Message, Rect) -> Unit,
     onDismissMessageActions: () -> Unit,
     onCopyMessage: (Message) -> Unit,
@@ -199,13 +202,17 @@ fun ConversationDetailScreen(
     val selectionActive = activeMessage != null && activeBounds != null
     val contentBlurModifier = if (selectionActive && isAndroid()) Modifier.blur(8.dp) else Modifier
     var rootSize by remember { mutableStateOf(IntSize.Zero) }
+    var rootOffset by remember { mutableStateOf(Offset.Zero) }
 
     Box(
         modifier =
             modifier
                 .fillMaxSize()
                 .then(swipeBackModifier)
-                .onGloballyPositioned { rootSize = it.size },
+                .onGloballyPositioned {
+                    rootSize = it.size
+                    rootOffset = it.positionInWindow()
+                },
     ) {
         Scaffold(
             modifier = Modifier.fillMaxSize().then(contentBlurModifier),
@@ -281,6 +288,8 @@ fun ConversationDetailScreen(
                             onAudioToggle = onAudioToggle,
                             onMessageLongPress = onMessageLongPress,
                             onMessageErrorClick = onMessageErrorClick,
+                            rootOffset = rootOffset,
+                            scrollToBottomSignal = scrollToBottomSignal,
                         )
                     }
                 }
@@ -355,8 +364,15 @@ private fun ConversationMessagesList(
     onAudioToggle: (String) -> Unit,
     onMessageLongPress: (Message, Rect) -> Unit,
     onMessageErrorClick: (Message) -> Unit,
+    rootOffset: Offset,
+    scrollToBottomSignal: Int,
 ) {
     val listState = rememberLazyListStateWithAutoscroll(messages)
+    LaunchedEffect(scrollToBottomSignal) {
+        if (scrollToBottomSignal > 0 && messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         state = listState,
@@ -383,7 +399,7 @@ private fun ConversationMessagesList(
                 positionMillis = if (playingPath == message.body) position else 0L,
                 onErrorClick = { onMessageErrorClick(message) },
                 onLongPress = { bubbleBounds?.let { bounds -> onMessageLongPress(message, bounds) } },
-                onBubblePositioned = { bounds -> bubbleBounds = bounds },
+                onBubblePositioned = { bounds -> bubbleBounds = bounds.toRootBounds(rootOffset) },
                 highlighted = isHighlighted,
             )
         }
@@ -540,6 +556,14 @@ private fun clampBounds(
     return Rect(left, top, right, bottom)
 }
 
+private fun Rect.toRootBounds(rootOffset: Offset): Rect =
+    Rect(
+        left = left - rootOffset.x,
+        top = top - rootOffset.y,
+        right = right - rootOffset.x,
+        bottom = bottom - rootOffset.y,
+    )
+
 private fun calculateActionOffset(
     messageBounds: Rect,
     actionBoxSize: IntSize,
@@ -657,6 +681,7 @@ private fun ConversationDetailScreenPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             selectedMessage = null,
             selectedMessageBounds = null,
+            scrollToBottomSignal = 0,
             onMessageLongPress = { _, _ -> },
             onDismissMessageActions = {},
             onCopyMessage = {},
@@ -684,6 +709,8 @@ private fun ConversationMessagesListPreview() {
             onAudioToggle = {},
             onMessageLongPress = { _, _ -> },
             onMessageErrorClick = {},
+            rootOffset = Offset.Zero,
+            scrollToBottomSignal = 0,
         )
     }
 }

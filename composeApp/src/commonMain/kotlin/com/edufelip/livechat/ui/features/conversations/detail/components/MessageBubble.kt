@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,9 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -86,6 +88,7 @@ fun MessageBubble(
         }
 
     val bubbleShape = RoundedCornerShape(16.dp)
+    val maxImageSize = 256.dp
     val highlightBorderColor =
         if (isOwn) {
             MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
@@ -138,7 +141,7 @@ fun MessageBubble(
                         .then(
                             if (onBubblePositioned != null) {
                                 Modifier.onGloballyPositioned { coordinates ->
-                                    onBubblePositioned(coordinates.boundsInRoot())
+                                    onBubblePositioned(coordinates.boundsInWindow())
                                 }
                             } else {
                                 Modifier
@@ -168,6 +171,8 @@ fun MessageBubble(
                                     description = conversationStrings.imageMessageDescription,
                                     label = conversationStrings.imageLabel,
                                     fallbackTemplate = conversationStrings.imageFallbackLabel,
+                                    maxSize = maxImageSize,
+                                    shape = bubbleShape,
                                 )
                             MessageContentType.Audio ->
                                 AudioBubbleContent(
@@ -300,11 +305,16 @@ private fun ImageBubbleContent(
     description: String,
     label: String,
     fallbackTemplate: @Composable (String) -> String,
+    maxSize: androidx.compose.ui.unit.Dp,
+    shape: RoundedCornerShape,
 ) {
     val bitmap = remember(message.body) { loadLocalImageBitmap(message.body) }
     if (bitmap != null) {
         Image(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier
+                    .sizeIn(maxWidth = maxSize, maxHeight = maxSize)
+                    .clip(shape),
             bitmap = bitmap,
             contentDescription = description,
             contentScale = ContentScale.Crop,
