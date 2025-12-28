@@ -6,6 +6,7 @@ import com.edufelip.livechat.data.bridge.MessagesRemoteListener
 import com.edufelip.livechat.data.bridge.TransportMessagePayload
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.files.MediaFileStore
+import com.edufelip.livechat.data.media.ImageCompressor
 import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxActionType
 import com.edufelip.livechat.data.models.InboxItem
@@ -364,6 +365,16 @@ class FirebaseMessagesRemoteData(
         if (!draft.contentType.isMedia()) return null
         val localPath = draft.body
         val bytes = MediaFileStore.readBytes(localPath) ?: error("Missing media at $localPath")
+        val uploadBytes =
+            if (draft.contentType == MessageContentType.Image) {
+                ImageCompressor.compressJpeg(
+                    bytes = bytes,
+                    maxDimensionPx = IMAGE_MAX_DIMENSION_PX,
+                    qualityPercent = IMAGE_JPEG_QUALITY,
+                ) ?: bytes
+            } else {
+                bytes
+            }
         val extension =
             when (draft.contentType) {
                 MessageContentType.Image -> "jpg"
@@ -371,7 +382,7 @@ class FirebaseMessagesRemoteData(
                 else -> "bin"
             }
         val objectPath = "messages/${draft.conversationId}/$senderId/$timestamp.$extension"
-        val downloadUrl = storageBridge.uploadBytes(objectPath, bytes)
+        val downloadUrl = storageBridge.uploadBytes(objectPath, uploadBytes)
         return MediaUpload(downloadUrl = downloadUrl, objectPath = objectPath)
     }
 
@@ -500,6 +511,8 @@ class FirebaseMessagesRemoteData(
         const val META_LOCAL_PATH = "localPath"
         const val META_RECEIVER_ID = "receiverId"
         const val MAX_DOWNLOAD_BYTES = 20L * 1024L * 1024L
+        const val IMAGE_MAX_DIMENSION_PX = 1280
+        const val IMAGE_JPEG_QUALITY = 80
         const val PAYLOAD_TYPE_MESSAGE = "message"
         const val PAYLOAD_TYPE_ACTION = "action"
     }
