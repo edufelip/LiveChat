@@ -3,8 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-PROJECT_PATH="$PROJECT_ROOT/iosApp/iosApp.xcodeproj"
-SCHEME="iosApp"
+PROJECT_PATH="$PROJECT_ROOT/iosApp/LiveChatIOS.xcodeproj"
+SCHEME="LiveChatIOS"
 CONFIGURATION="Debug"
 DERIVED_DATA="$PROJECT_ROOT/build/derived"
 
