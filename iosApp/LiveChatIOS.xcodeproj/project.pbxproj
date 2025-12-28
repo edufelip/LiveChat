@@ -164,6 +164,7 @@
 			buildConfigurationList = 4F0F1C2C2C61B7F8008F12B7 /* Build configuration list for PBXNativeTarget "LiveChatIOS" */;
 			buildPhases = (
 				7F0AD4C42D45E5B600C6A1E1 /* ShellScript */,
+				A1B2C3D4E5F60718293A4C10 /* SyncLiveChatComposeFramework */,
 				4F0F1C2C2C61B7F8008F12A1 /* Sources */,
 				4F0F1C2C2C61B7F8008F12AB /* Frameworks */,
 				4F0F1C2C2C61B7F8008F12AC /* Resources */,
@@ -280,7 +281,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "set -e\nif command -v /usr/libexec/java_home >/dev/null 2>&1; then\n  JAVA_HOME_RESOLVED=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home)\"\n  export JAVA_HOME=\"$JAVA_HOME_RESOLVED\"\nelse\n  export JAVA_HOME=\"${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}\"\nfi\nchmod +x \"$SRCROOT/../gradlew\"\n\"$SRCROOT/../gradlew\" :composeApp:assembleLiveChatComposeDebugXCFramework\n";
+			shellScript = "set -e\nif command -v /usr/libexec/java_home >/dev/null 2>&1; then\n  JAVA_HOME_RESOLVED=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home)\"\n  export JAVA_HOME=\"$JAVA_HOME_RESOLVED\"\nelse\n  export JAVA_HOME=\"${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}\"\nfi\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nif [ \"$CONFIG_LOWER\" = \"debug\" ]; then\n  XCFRAMEWORK_TASK=\":composeApp:assembleLiveChatComposeDebugXCFramework\"\nelse\n  XCFRAMEWORK_TASK=\":composeApp:assembleLiveChatComposeReleaseXCFramework\"\nfi\nchmod +x \"$SRCROOT/../gradlew\"\n\"$SRCROOT/../gradlew\" \"$XCFRAMEWORK_TASK\"\n";
+		};
+		A1B2C3D4E5F60718293A4C10 /* SyncLiveChatComposeFramework */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nFRAMEWORK_NAME=LiveChatCompose.xcframework\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nSOURCE_FW=\"$SRCROOT/../composeApp/build/XCFrameworks/${CONFIG_LOWER}/${FRAMEWORK_NAME}\"\nDEST_FW=\"$BUILT_PRODUCTS_DIR/${FRAMEWORK_NAME}\"\nrm -rf \"$DEST_FW\"\nif [ -d \"$SOURCE_FW\" ]; then\n  cp -R \"$SOURCE_FW\" \"$DEST_FW\"\nelse\n  echo \"Missing ${SOURCE_FW}; run ./gradlew :composeApp:assembleLiveChatCompose${CONFIGURATION}XCFramework\" >&2\n  exit 1\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
