@@ -8,6 +8,7 @@ import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
+import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
@@ -30,6 +31,7 @@ import kotlin.random.Random
 class ConversationPresenter(
     private val observeConversationUseCase: ObserveConversationUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
+    private val deleteMessageLocalUseCase: DeleteMessageLocalUseCase,
     private val syncConversationUseCase: SyncConversationUseCase,
     private val observeParticipantUseCase: ObserveParticipantUseCase,
     private val markConversationReadUseCase: MarkConversationReadUseCase,
@@ -251,6 +253,20 @@ class ConversationPresenter(
 
     fun sendAudio(localPath: String) {
         sendMessage(body = localPath, contentType = MessageContentType.Audio)
+    }
+
+    fun deleteMessageLocal(message: Message) {
+        val messageId = message.localTempId ?: message.id
+        if (messageId.isBlank()) return
+        scope.launch {
+            runCatching {
+                deleteMessageLocalUseCase(messageId)
+            }.onFailure { throwable ->
+                _state.update { state ->
+                    state.copy(errorMessage = state.errorMessage ?: throwable.message)
+                }
+            }
+        }
     }
 
     fun retryMessage(message: Message) {

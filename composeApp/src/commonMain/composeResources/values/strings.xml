@@ -76,6 +76,9 @@
     <string name="conversation_image_fallback_template">Image: %1$s</string>
     <string name="conversation_message_placeholder">Message&#8230;</string>
     <string name="conversation_message_failed">Message failed</string>
+    <string name="conversation_message_copy_action">Copy</string>
+    <string name="conversation_message_delete_action">Delete</string>
+    <string name="conversation_message_copied">Copied to clipboard</string>
     <string name="conversation_message_retry_title">Message failed</string>
     <string name="conversation_message_retry_body">Couldn't send this message. Retry?</string>
     <string name="conversation_message_retry_cta">Retry</string>

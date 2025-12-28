@@ -29,6 +29,8 @@ interface IMessagesLocalData {
 
     suspend fun getMessageStatus(messageId: String): MessageStatus?
 
+    suspend fun deleteMessage(messageId: String)
+
     suspend fun latestIncomingMessage(
         conversationId: String,
         currentUserId: String,

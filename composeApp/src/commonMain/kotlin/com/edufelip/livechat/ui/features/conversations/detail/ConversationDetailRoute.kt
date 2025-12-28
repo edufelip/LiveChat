@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.conversations.detail
 
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -8,10 +9,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.AnnotatedString
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import com.edufelip.livechat.preview.DevicePreviews
@@ -52,6 +57,14 @@ fun ConversationDetailRoute(
             onBack = {},
             onDismissError = {},
             onMessageErrorClick = {},
+            snackbarHostState = remember { SnackbarHostState() },
+            selectedMessage = null,
+            selectedMessageBounds = null,
+            onMessageLongPress = { _, _ -> },
+            onDismissMessageActions = {},
+            onCopyMessage = {},
+            onDeleteMessage = {},
+            onRetryMessage = {},
             permissionHint = null,
         )
         return
@@ -66,9 +79,18 @@ fun ConversationDetailRoute(
     val scope = rememberCoroutineScope()
     val permissionViewModel = rememberPermissionViewModel()
     val permissionUiState by permissionViewModel.uiState.collectAsState()
+    val clipboardManager = LocalClipboardManager.current
+    val snackbarHostState = remember { SnackbarHostState() }
     var isRecording by androidx.compose.runtime.remember { mutableStateOf(false) }
     var recordingDurationMillis by androidx.compose.runtime.remember { mutableStateOf(0L) }
     var retryCandidate by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
+    var selectedMessage by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
+    var selectedMessageBounds by androidx.compose.runtime.remember { mutableStateOf<Rect?>(null) }
+
+    val clearSelection: () -> Unit = {
+        selectedMessage = null
+        selectedMessageBounds = null
+    }
 
     LaunchedEffect(permissionViewModel) {
         permissionViewModel.events.collect { event ->
@@ -122,6 +144,17 @@ fun ConversationDetailRoute(
             title = { Text(conversationStrings.retryMessageTitle) },
             text = { Text(conversationStrings.retryMessageBody) },
         )
+    }
+
+    LaunchedEffect(state.messages, selectedMessage) {
+        val selectedId = selectedMessage?.localTempId ?: selectedMessage?.id
+        if (selectedId == null) return@LaunchedEffect
+        val updatedMessage = state.messages.firstOrNull { it.id == selectedId || it.localTempId == selectedId }
+        if (updatedMessage == null) {
+            clearSelection()
+        } else if (updatedMessage != selectedMessage) {
+            selectedMessage = updatedMessage
+        }
     }
 
     LaunchedEffect(isRecording) {
@@ -228,7 +261,13 @@ fun ConversationDetailRoute(
                 }
             }
         },
-        onBack = onBack,
+        onBack = {
+            if (selectedMessage != null) {
+                clearSelection()
+            } else {
+                onBack()
+            }
+        },
         onDismissError = { presenter.clearError() },
         onMessageErrorClick = { message ->
             val isOwnMessage =
@@ -237,6 +276,26 @@ fun ConversationDetailRoute(
             if (isOwnMessage) {
                 retryCandidate = message
             }
+        },
+        snackbarHostState = snackbarHostState,
+        selectedMessage = selectedMessage,
+        selectedMessageBounds = selectedMessageBounds,
+        onMessageLongPress = { message, bounds ->
+            selectedMessage = message
+            selectedMessageBounds = bounds
+        },
+        onDismissMessageActions = clearSelection,
+        onCopyMessage = { message ->
+            clipboardManager.setText(AnnotatedString(message.body))
+            scope.launch {
+                snackbarHostState.showSnackbar(conversationStrings.messageCopied)
+            }
+        },
+        onDeleteMessage = { message ->
+            presenter.deleteMessageLocal(message)
+        },
+        onRetryMessage = { message ->
+            retryCandidate = message
         },
         permissionHint = permissionUiState.hintMessage,
     )

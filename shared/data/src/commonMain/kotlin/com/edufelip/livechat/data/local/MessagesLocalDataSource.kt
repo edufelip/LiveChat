@@ -101,6 +101,13 @@ class MessagesLocalDataSource(
             messagesDao.getStatus(messageId)?.let { runCatching { MessageStatus.valueOf(it) }.getOrNull() }
         }
 
+    override suspend fun deleteMessage(messageId: String) {
+        withContext(dispatcher) {
+            println("$logTag: local deleteMessage id=$messageId")
+            messagesDao.deleteMessage(messageId)
+        }
+    }
+
     override suspend fun latestIncomingMessage(
         conversationId: String,
         currentUserId: String,

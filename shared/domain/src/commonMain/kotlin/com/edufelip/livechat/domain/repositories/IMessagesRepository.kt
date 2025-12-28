@@ -14,6 +14,8 @@ interface IMessagesRepository {
 
     suspend fun sendMessage(draft: MessageDraft): Message
 
+    suspend fun deleteMessageLocal(messageId: String)
+
     suspend fun syncConversation(
         conversationId: String,
         sinceEpochMillis: Long?,

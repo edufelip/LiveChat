@@ -2,6 +2,11 @@ package com.edufelip.livechat.ui.features.conversations.detail.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -61,6 +66,9 @@ fun MessageBubble(
     positionMillis: Long,
     modifier: Modifier = Modifier,
     onErrorClick: (() -> Unit)? = null,
+    onLongPress: (() -> Unit)? = null,
+    onBubblePositioned: ((Rect) -> Unit)? = null,
+    highlighted: Boolean = false,
 ) {
     val conversationStrings = liveChatStrings().conversation
     val alignment = if (isOwn) Alignment.End else Alignment.Start
@@ -75,6 +83,14 @@ fun MessageBubble(
             MaterialTheme.colorScheme.onPrimary
         } else {
             MaterialTheme.colorScheme.onSurface
+        }
+
+    val bubbleShape = RoundedCornerShape(16.dp)
+    val highlightBorderColor =
+        if (isOwn) {
+            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+        } else {
+            MaterialTheme.colorScheme.primary
         }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
@@ -105,13 +121,41 @@ fun MessageBubble(
                                 .semantics { role = Role.Button },
                     )
                 }
+                val bubbleModifier =
+                    Modifier
+                        .wrapContentWidth()
+                        .widthIn(max = maxBubbleWidth)
+                        .then(
+                            if (onLongPress != null) {
+                                Modifier.combinedClickable(
+                                    onClick = {},
+                                    onLongClick = onLongPress,
+                                )
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .then(
+                            if (onBubblePositioned != null) {
+                                Modifier.onGloballyPositioned { coordinates ->
+                                    onBubblePositioned(coordinates.boundsInRoot())
+                                }
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .then(
+                            if (highlighted) {
+                                Modifier.border(1.dp, highlightBorderColor, bubbleShape)
+                            } else {
+                                Modifier
+                            },
+                        )
+
                 Surface(
                     color = bubbleColor,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier =
-                        Modifier
-                            .wrapContentWidth()
-                            .widthIn(max = maxBubbleWidth),
+                    shape = bubbleShape,
+                    modifier = bubbleModifier,
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
