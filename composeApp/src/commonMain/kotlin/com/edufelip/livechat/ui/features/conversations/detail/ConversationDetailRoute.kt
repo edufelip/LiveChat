@@ -60,6 +60,7 @@ fun ConversationDetailRoute(
             snackbarHostState = remember { SnackbarHostState() },
             selectedMessage = null,
             selectedMessageBounds = null,
+            scrollToBottomSignal = 0,
             onMessageLongPress = { _, _ -> },
             onDismissMessageActions = {},
             onCopyMessage = {},
@@ -86,6 +87,8 @@ fun ConversationDetailRoute(
     var retryCandidate by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
     var selectedMessage by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
     var selectedMessageBounds by androidx.compose.runtime.remember { mutableStateOf<Rect?>(null) }
+    var awaitingRetryCompletion by androidx.compose.runtime.remember { mutableStateOf(false) }
+    var scrollToBottomSignal by androidx.compose.runtime.remember { mutableStateOf(0) }
 
     val clearSelection: () -> Unit = {
         selectedMessage = null
@@ -130,6 +133,7 @@ fun ConversationDetailRoute(
                 TextButton(
                     onClick = {
                         retryCandidate = null
+                        awaitingRetryCompletion = true
                         presenter.retryMessage(message)
                     },
                 ) {
@@ -155,6 +159,14 @@ fun ConversationDetailRoute(
         } else if (updatedMessage != selectedMessage) {
             selectedMessage = updatedMessage
         }
+    }
+
+    LaunchedEffect(state.isSending, state.errorMessage, awaitingRetryCompletion) {
+        if (!awaitingRetryCompletion || state.isSending) return@LaunchedEffect
+        if (state.errorMessage == null) {
+            scrollToBottomSignal += 1
+        }
+        awaitingRetryCompletion = false
     }
 
     LaunchedEffect(isRecording) {
@@ -280,6 +292,7 @@ fun ConversationDetailRoute(
         snackbarHostState = snackbarHostState,
         selectedMessage = selectedMessage,
         selectedMessageBounds = selectedMessageBounds,
+        scrollToBottomSignal = scrollToBottomSignal,
         onMessageLongPress = { message, bounds ->
             selectedMessage = message
             selectedMessageBounds = bounds
