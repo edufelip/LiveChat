@@ -267,7 +267,7 @@ class ConversationPresenter(
             }
 
             val localId = message.localTempId ?: message.id
-            val timestamp = message.createdAt.takeIf { it > 0 } ?: currentEpochMillis()
+            val timestamp = currentEpochMillis()
 
             _state.update { it.copy(isSending = true, errorMessage = null) }
             runCatching {

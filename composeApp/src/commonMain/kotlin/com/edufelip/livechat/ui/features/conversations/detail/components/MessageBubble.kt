@@ -91,7 +91,7 @@ fun MessageBubble(
                         6.dp,
                         if (isOwn) Alignment.End else Alignment.Start,
                     ),
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (showError) {
                     Icon(
