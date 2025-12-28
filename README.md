@@ -187,6 +187,7 @@ service cloud.firestore {
 - **Presenter bridge**: Shared presenters are exposed through expect/actual helpers in `composeApp/ui/state/PresenterHooks.kt`, now backed by Koin on both iOS and Android via `IosKoinBridge` and `AndroidKoinBridge`.
 - **Animated navigation**: Tab switches (Chats ↔ Contacts) run through `AnimatedContent`, providing directional fades/slides that align with the new theme.
 - **Firebase setup**: The Google Services Gradle plugin runs inside `:composeApp`. Drop `google-services.json` into `composeApp/src/<buildType>/` (or directly under `composeApp/src/`) before running Gradle so the plugin can merge Firebase credentials.
+- **Firebase Emulator Suite**: Set `FIREBASE_EMULATOR_ENABLED=1` to route Auth/Firestore/Storage/Functions to emulators. Defaults: `FIREBASE_EMULATOR_HOST=10.0.2.2` (Android emulator) or `127.0.0.1` (iOS simulator), ports `9099/8080/9199/5001`. Helpers: `scripts/firebase_emulators_start.sh` and `scripts/firebase_emulators_exec.sh <command>`.
 
 ## Layout Preview
 <br>
