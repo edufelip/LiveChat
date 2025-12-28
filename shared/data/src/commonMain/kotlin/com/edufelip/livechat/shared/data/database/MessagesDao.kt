@@ -44,6 +44,26 @@ interface MessagesDao {
     @Query(
         """
         UPDATE messages
+        SET body = :body,
+            metadata = :metadata
+        WHERE id = :messageId
+        """,
+    )
+    suspend fun updateBodyAndMetadata(
+        messageId: String,
+        body: String,
+        metadata: String?,
+    )
+
+    @Query("UPDATE messages SET metadata = :metadata WHERE id = :messageId")
+    suspend fun updateMetadata(
+        messageId: String,
+        metadata: String?,
+    )
+
+    @Query(
+        """
+        UPDATE messages
         SET id = :serverId,
             status = :status,
             local_temp_id = NULL

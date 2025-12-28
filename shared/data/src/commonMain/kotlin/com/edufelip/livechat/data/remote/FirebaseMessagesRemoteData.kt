@@ -83,7 +83,7 @@ class FirebaseMessagesRemoteData(
                 val remoteContent = payload.content.orEmpty()
                 val mediaPath =
                     if (contentType.isMedia()) {
-                        downloadMediaToLocal(remoteContent, contentType)
+                        downloadMediaToFile(remoteContent, contentType)
                     } else {
                         remoteContent
                     }
@@ -107,7 +107,7 @@ class FirebaseMessagesRemoteData(
                     recipientId = currentUserId,
                     documentId = payload.id,
                     payload = payload,
-                    deleteMedia = contentType.isMedia(),
+                    deleteMedia = false,
                 )
             }
             val filtered =
@@ -237,7 +237,7 @@ class FirebaseMessagesRemoteData(
                         val remoteContent = payload.content.orEmpty()
                         val mediaPath =
                             if (contentType.isMedia()) {
-                                downloadMediaToLocal(remoteContent, contentType)
+                                downloadMediaToFile(remoteContent, contentType)
                             } else {
                                 remoteContent
                             }
@@ -260,12 +260,26 @@ class FirebaseMessagesRemoteData(
                             recipientId = currentUserId,
                             documentId = payload.id,
                             payload = payload,
-                            deleteMedia = contentType.isMedia(),
+                            deleteMedia = false,
                         )
                         message
                     }.sortedBy { it.createdAt }
             sinceEpochMillis?.let { ts -> mapped.filter { it.createdAt > ts } } ?: mapped
         }
+
+    override suspend fun downloadMediaToLocal(
+        remoteUrl: String,
+        contentType: MessageContentType,
+    ): String =
+        withContext(dispatcher) {
+            downloadMediaToFile(remoteUrl, contentType)
+        }
+
+    override suspend fun deleteMedia(remoteUrl: String) {
+        withContext(dispatcher) {
+            storageBridge.deleteRemote(remoteUrl)
+        }
+    }
 
     private fun TransportMessagePayload.isAddressedTo(userId: String): Boolean = receiverId?.isNotBlank() == true && receiverId == userId
 
@@ -361,7 +375,7 @@ class FirebaseMessagesRemoteData(
         return MediaUpload(downloadUrl = downloadUrl, objectPath = objectPath)
     }
 
-    private suspend fun downloadMediaToLocal(
+    private suspend fun downloadMediaToFile(
         remoteUrl: String,
         contentType: MessageContentType,
     ): String {

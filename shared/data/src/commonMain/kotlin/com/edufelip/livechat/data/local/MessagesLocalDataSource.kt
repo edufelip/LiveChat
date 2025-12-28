@@ -1,6 +1,7 @@
 package com.edufelip.livechat.data.local
 
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
+import com.edufelip.livechat.data.mappers.MetadataAdapter
 import com.edufelip.livechat.data.mappers.toDomain
 import com.edufelip.livechat.data.mappers.toEntity
 import com.edufelip.livechat.domain.models.ConversationSummary
@@ -73,6 +74,11 @@ class MessagesLocalDataSource(
         }
     }
 
+    override suspend fun getMessages(conversationId: String): List<Message> =
+        withContext(dispatcher) {
+            messagesDao.getMessages(conversationId).map { it.toDomain() }
+        }
+
     override suspend fun updateMessageStatusByLocalId(
         localId: String,
         serverId: String,
@@ -100,6 +106,27 @@ class MessagesLocalDataSource(
         withContext(dispatcher) {
             messagesDao.getStatus(messageId)?.let { runCatching { MessageStatus.valueOf(it) }.getOrNull() }
         }
+
+    override suspend fun updateMessageBodyAndMetadata(
+        messageId: String,
+        body: String,
+        metadata: Map<String, String>,
+    ) {
+        withContext(dispatcher) {
+            val encoded = metadata.takeIf { it.isNotEmpty() }?.let { MetadataAdapter.encode(it) }
+            messagesDao.updateBodyAndMetadata(messageId, body, encoded)
+        }
+    }
+
+    override suspend fun updateMessageMetadata(
+        messageId: String,
+        metadata: Map<String, String>,
+    ) {
+        withContext(dispatcher) {
+            val encoded = metadata.takeIf { it.isNotEmpty() }?.let { MetadataAdapter.encode(it) }
+            messagesDao.updateMetadata(messageId, encoded)
+        }
+    }
 
     override suspend fun deleteMessage(messageId: String) {
         withContext(dispatcher) {

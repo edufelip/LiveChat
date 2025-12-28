@@ -16,6 +16,8 @@ interface IMessagesLocalData {
 
     suspend fun insertOutgoingMessage(message: Message)
 
+    suspend fun getMessages(conversationId: String): List<Message>
+
     suspend fun updateMessageStatusByLocalId(
         localId: String,
         serverId: String,
@@ -28,6 +30,17 @@ interface IMessagesLocalData {
     )
 
     suspend fun getMessageStatus(messageId: String): MessageStatus?
+
+    suspend fun updateMessageBodyAndMetadata(
+        messageId: String,
+        body: String,
+        metadata: Map<String, String>,
+    )
+
+    suspend fun updateMessageMetadata(
+        messageId: String,
+        metadata: Map<String, String>,
+    )
 
     suspend fun deleteMessage(messageId: String)
 
