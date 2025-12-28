@@ -92,6 +92,13 @@ class KoinInitializationTest {
             sinceEpochMillis: Long?,
         ): List<Message> = emptyList()
 
+        override suspend fun downloadMediaToLocal(
+            remoteUrl: String,
+            contentType: com.edufelip.livechat.domain.models.MessageContentType,
+        ): String = ""
+
+        override suspend fun deleteMedia(remoteUrl: String) = Unit
+
         override suspend fun sendAction(action: InboxAction) = Unit
 
         override suspend fun ensureConversation(
