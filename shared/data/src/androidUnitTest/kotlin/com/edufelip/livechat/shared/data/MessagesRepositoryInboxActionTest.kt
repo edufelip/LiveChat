@@ -9,6 +9,7 @@ import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
+import com.edufelip.livechat.domain.models.MessageContentType
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.models.Participant
@@ -25,6 +26,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -195,6 +197,47 @@ class MessagesRepositoryInboxActionTest {
         }
 
     @Test
+    fun markConversationAsReadDeletesRemoteMediaAfterRead() =
+        runTest(dispatcher) {
+            val localData = FakeLocalMessagesData()
+            val temp = File.createTempFile("media", ".jpg").apply { writeText("data") }
+            localData.upsertMessages(
+                listOf(
+                    Message(
+                        id = "incoming-media",
+                        conversationId = "peer-4",
+                        senderId = "peer-4",
+                        body = temp.absolutePath,
+                        createdAt = 4000L,
+                        status = MessageStatus.SENT,
+                        contentType = MessageContentType.Image,
+                        metadata =
+                            mapOf(
+                                "remoteUrl" to "https://example.com/media.jpg",
+                                "localPath" to temp.absolutePath,
+                            ),
+                    ),
+                ),
+            )
+            val remoteData = FakeMessagesRemoteData()
+            val repository =
+                MessagesRepository(
+                    remoteData = remoteData,
+                    localData = localData,
+                    sessionProvider = FakeSessionProvider("me"),
+                    participantsRepository = FakeParticipantsRepository(),
+                    dispatcher = dispatcher,
+                )
+
+            repository.markConversationAsRead("peer-4", lastReadAt = 5000L, lastReadSeq = null)
+
+            advanceUntilIdle()
+
+            assertEquals(listOf("https://example.com/media.jpg"), remoteData.deletedMediaUrls)
+            assertTrue(localData.messages["incoming-media"]?.metadata?.containsKey("mediaDeletedAt") == true)
+        }
+
+    @Test
     fun actionForMissingMessageIsMarkedProcessed() =
         runTest(dispatcher) {
             val localData = FakeLocalMessagesData()
@@ -265,6 +308,7 @@ class MessagesRepositoryInboxActionTest {
     private class FakeMessagesRemoteData : IMessagesRemoteData {
         private val inboxFlow = MutableSharedFlow<List<InboxItem>>(replay = 1, extraBufferCapacity = 4)
         val sentActions = mutableListOf<InboxAction>()
+        val deletedMediaUrls = mutableListOf<String>()
         var shouldFailSend: Boolean = false
 
         override fun observeConversation(
@@ -294,6 +338,15 @@ class MessagesRepositoryInboxActionTest {
             conversationId: String,
             sinceEpochMillis: Long?,
         ): List<Message> = emptyList()
+
+        override suspend fun downloadMediaToLocal(
+            remoteUrl: String,
+            contentType: MessageContentType,
+        ): String = "/tmp/downloaded-${remoteUrl.hashCode()}"
+
+        override suspend fun deleteMedia(remoteUrl: String) {
+            deletedMediaUrls += remoteUrl
+        }
 
         override suspend fun sendAction(action: InboxAction) {
             sentActions += action
@@ -327,6 +380,9 @@ class MessagesRepositoryInboxActionTest {
             messages[message.id] = message
         }
 
+        override suspend fun getMessages(conversationId: String): List<Message> =
+            messages.values.filter { it.conversationId == conversationId }
+
         override suspend fun updateMessageStatusByLocalId(
             localId: String,
             serverId: String,
@@ -348,6 +404,29 @@ class MessagesRepositoryInboxActionTest {
         }
 
         override suspend fun getMessageStatus(messageId: String): MessageStatus? = messages[messageId]?.status
+
+        override suspend fun updateMessageBodyAndMetadata(
+            messageId: String,
+            body: String,
+            metadata: Map<String, String>,
+        ) {
+            val existing = messages[messageId] ?: return
+            messages[messageId] = existing.copy(body = body, metadata = metadata)
+        }
+
+        override suspend fun updateMessageMetadata(
+            messageId: String,
+            metadata: Map<String, String>,
+        ) {
+            val existing = messages[messageId] ?: return
+            messages[messageId] = existing.copy(metadata = metadata)
+        }
+
+        override suspend fun deleteMessage(messageId: String) {
+            messages.entries.removeIf { (key, value) ->
+                key == messageId || value.localTempId == messageId
+            }
+        }
 
         override suspend fun latestIncomingMessage(
             conversationId: String,
