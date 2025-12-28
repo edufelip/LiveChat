@@ -210,6 +210,47 @@ class FirebaseMessagesRemoteDataTest {
             assertTrue(storage.uploaded)
         }
 
+    @Test
+    fun downloadMediaToLocalCallsStorageBridgeAndWritesFile() =
+        runTest(dispatcher) {
+            val bridge = RecordingMessagesBridge()
+            val storage = RecordingStorageBridge(downloadUrl = "").apply { downloadedBytes = byteArrayOf(1, 2, 3) }
+            val session = FakeSessionProvider(userId = "user-a")
+            val remote =
+                FirebaseMessagesRemoteData(
+                    messagesBridge = bridge,
+                    storageBridge = storage,
+                    config = FirebaseRestConfig(projectId = "demo", apiKey = "key"),
+                    sessionProvider = session,
+                    dispatcher = dispatcher,
+                )
+
+            val path = remote.downloadMediaToLocal("https://example.com/file.jpg", MessageContentType.Image)
+
+            assertTrue(storage.downloadedUrls.contains("https://example.com/file.jpg"))
+            assertTrue(File(path).exists())
+        }
+
+    @Test
+    fun deleteMediaCallsStorageBridge() =
+        runTest(dispatcher) {
+            val bridge = RecordingMessagesBridge()
+            val storage = RecordingStorageBridge(downloadUrl = "")
+            val session = FakeSessionProvider(userId = "user-a")
+            val remote =
+                FirebaseMessagesRemoteData(
+                    messagesBridge = bridge,
+                    storageBridge = storage,
+                    config = FirebaseRestConfig(projectId = "demo", apiKey = "key"),
+                    sessionProvider = session,
+                    dispatcher = dispatcher,
+                )
+
+            remote.deleteMedia("https://example.com/file.jpg")
+
+            assertTrue(storage.deletedUrls.contains("https://example.com/file.jpg"))
+        }
+
     private class RecordingMessagesBridge : MessagesRemoteBridge {
         var lastRecipient: String? = null
         var lastPayload: TransportMessagePayload? = null
@@ -291,6 +332,9 @@ class FirebaseMessagesRemoteDataTest {
         private val downloadUrl: String,
     ) : MediaStorageBridge {
         val uploadedPaths = mutableListOf<String>()
+        val downloadedUrls = mutableListOf<String>()
+        val deletedUrls = mutableListOf<String>()
+        var downloadedBytes: ByteArray = ByteArray(0)
 
         override suspend fun uploadBytes(
             objectPath: String,
@@ -303,9 +347,13 @@ class FirebaseMessagesRemoteDataTest {
         override suspend fun downloadBytes(
             remoteUrl: String,
             maxBytes: Long,
-        ): ByteArray = ByteArray(0)
+        ): ByteArray {
+            downloadedUrls += remoteUrl
+            return downloadedBytes
+        }
 
         override suspend fun deleteRemote(remoteUrl: String) {
+            deletedUrls += remoteUrl
         }
     }
 
