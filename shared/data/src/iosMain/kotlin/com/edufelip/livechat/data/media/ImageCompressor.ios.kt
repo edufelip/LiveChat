@@ -5,6 +5,7 @@ package com.edufelip.livechat.data.media
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
+import kotlinx.cinterop.useContents
 import kotlinx.cinterop.usePinned
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSData
@@ -39,19 +40,20 @@ actual object ImageCompressor {
         maxDimensionPx: Int,
     ): UIImage {
         if (maxDimensionPx <= 0) return image
-        val size = image.size
-        val width = size.width
-        val height = size.height
+        val (width, height) =
+            image.size.useContents {
+                width to height
+            }
         val maxDimension = maxOf(width, height)
         if (maxDimension <= maxDimensionPx) return image
 
-        val scale = maxDimensionPx / maxDimension
+        val scale = maxDimensionPx.toDouble() / maxDimension
         val targetWidth = (width * scale).roundToInt().coerceAtLeast(1)
         val targetHeight = (height * scale).roundToInt().coerceAtLeast(1)
         val targetSize = platform.CoreGraphics.CGSizeMake(targetWidth.toDouble(), targetHeight.toDouble())
 
         UIGraphicsBeginImageContextWithOptions(targetSize, true, 1.0)
-        image.drawInRect(CGRectMake(0.0, 0.0, targetSize.width, targetSize.height))
+        image.drawInRect(CGRectMake(0.0, 0.0, targetWidth.toDouble(), targetHeight.toDouble()))
         val scaled = UIGraphicsGetImageFromCurrentImageContext() ?: image
         UIGraphicsEndImageContext()
         return scaled
