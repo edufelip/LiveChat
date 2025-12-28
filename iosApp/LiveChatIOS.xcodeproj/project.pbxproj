@@ -280,7 +280,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "set -e\nexport JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home\"\n\"$SRCROOT/../gradlew\" :composeApp:assembleLiveChatComposeDebugXCFramework\n";
+			shellScript = "set -e\nif command -v /usr/libexec/java_home >/dev/null 2>&1; then\n  JAVA_HOME_RESOLVED=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home)\"\n  export JAVA_HOME=\"$JAVA_HOME_RESOLVED\"\nelse\n  export JAVA_HOME=\"${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}\"\nfi\nchmod +x \"$SRCROOT/../gradlew\"\n\"$SRCROOT/../gradlew\" :composeApp:assembleLiveChatComposeDebugXCFramework\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
