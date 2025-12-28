@@ -121,7 +121,15 @@ class MessagesRepository(
                     draft.copy(senderId = userId)
                 }
             val pending = resolvedDraft.toPendingMessage(status = MessageStatus.SENDING)
-            localData.insertOutgoingMessage(pending)
+            val existingStatus = localData.getMessageStatus(resolvedDraft.localId)
+            if (existingStatus == MessageStatus.ERROR) {
+                localData.updateMessageStatus(
+                    messageId = resolvedDraft.localId,
+                    status = MessageStatus.SENDING,
+                )
+            } else {
+                localData.insertOutgoingMessage(pending)
+            }
             try {
                 val remoteMessage = remoteData.sendMessage(resolvedDraft)
                 println("$logTag: repo sendMessage delivered id=${remoteMessage.id} conv=${remoteMessage.conversationId}")
