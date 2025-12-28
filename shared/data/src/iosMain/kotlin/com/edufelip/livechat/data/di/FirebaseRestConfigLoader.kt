@@ -4,6 +4,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import platform.Foundation.NSBundle
 import platform.Foundation.NSDictionary
 import platform.Foundation.NSNumber
+import platform.Foundation.NSProcessInfo
 import platform.Foundation.dictionaryWithContentsOfFile
 
 private const val DEFAULT_USERS_COLLECTION = "users"
@@ -70,10 +71,13 @@ fun loadFirebaseRestConfigFromPlist(
         (dictionary[INVITES_COLLECTION_KEY] as? String)
             ?: DEFAULT_INVITES_COLLECTION
     val defaultRegionIso = dictionary[DEFAULT_REGION_ISO_KEY] as? String
+    val emulator = iosEmulatorConfig()
 
     return FirebaseRestConfig(
         projectId = projectId,
         apiKey = apiKey,
+        emulatorHost = emulator?.host,
+        emulatorPort = emulator?.firestorePort,
         usersCollection = usersCollection,
         messagesCollection = messagesCollection,
         conversationsCollection = conversationsCollection,
@@ -82,4 +86,21 @@ fun loadFirebaseRestConfigFromPlist(
         pollingIntervalMs = pollingIntervalMs,
         defaultRegionIso = defaultRegionIso,
     )
+}
+
+private data class IosEmulatorConfig(
+    val host: String,
+    val firestorePort: Int,
+)
+
+private fun iosEmulatorConfig(): IosEmulatorConfig? {
+    val environment = NSProcessInfo.processInfo.environment
+    val enabled =
+        environment["FIREBASE_EMULATOR_ENABLED"]?.toString()?.lowercase() in listOf("1", "true", "yes")
+    if (!enabled) return null
+    val host = environment["FIREBASE_EMULATOR_HOST"]?.toString()?.ifBlank { null } ?: "127.0.0.1"
+    val port =
+        environment["FIREBASE_FIRESTORE_EMULATOR_PORT"]?.toString()?.toIntOrNull()
+            ?: 8080
+    return IosEmulatorConfig(host = host, firestorePort = port)
 }

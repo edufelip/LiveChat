@@ -86,17 +86,34 @@ private object LiveChatIosInitializer {
 }
 
 fun defaultFirebaseConfig() =
-    FirebaseRestConfig(
-        projectId = "YOUR_FIREBASE_PROJECT",
-        apiKey = "YOUR_FIREBASE_API_KEY",
-        usersCollection = "users",
-        messagesCollection = "messages",
-        conversationsCollection = "conversations",
-        invitesCollection = "invites",
-        websocketEndpoint = "",
-        pollingIntervalMs = 5_000,
-        defaultRegionIso = null,
-    )
+    run {
+        val emulator = iosEmulatorOverrides()
+        FirebaseRestConfig(
+            projectId = "YOUR_FIREBASE_PROJECT",
+            apiKey = "YOUR_FIREBASE_API_KEY",
+            emulatorHost = emulator?.first,
+            emulatorPort = emulator?.second,
+            usersCollection = "users",
+            messagesCollection = "messages",
+            conversationsCollection = "conversations",
+            invitesCollection = "invites",
+            websocketEndpoint = "",
+            pollingIntervalMs = 5_000,
+            defaultRegionIso = null,
+        )
+    }
+
+private fun iosEmulatorOverrides(): Pair<String, Int>? {
+    val environment = platform.Foundation.NSProcessInfo.processInfo.environment
+    val enabled =
+        environment["FIREBASE_EMULATOR_ENABLED"]?.toString()?.lowercase() in listOf("1", "true", "yes")
+    if (!enabled) return null
+    val host = environment["FIREBASE_EMULATOR_HOST"]?.toString()?.ifBlank { null } ?: "127.0.0.1"
+    val port =
+        environment["FIREBASE_FIRESTORE_EMULATOR_PORT"]?.toString()?.toIntOrNull()
+            ?: 8080
+    return host to port
+}
 
 private fun presentShareSheet(message: String) {
     val controller = topViewController() ?: return

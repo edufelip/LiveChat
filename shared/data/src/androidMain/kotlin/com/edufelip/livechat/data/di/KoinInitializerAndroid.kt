@@ -5,6 +5,7 @@ import android.telephony.TelephonyManager
 import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
 import com.edufelip.livechat.data.files.MediaFileStore
+import com.edufelip.livechat.data.remote.loadFirebaseEmulatorConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.FirebaseUserSessionProvider
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
@@ -57,12 +58,17 @@ fun androidPlatformModule(
     httpClient: HttpClient = defaultHttpClient(),
 ): Module =
     module {
+        val emulatorConfig = loadFirebaseEmulatorConfig()
         MediaFileStore.configure(File(context.filesDir, "media").absolutePath)
         single { context.applicationContext }
         single { firebaseApp }
         single { firebaseRestConfig(context.applicationContext, firebaseApp) }
         single { httpClient }
-        single { FirebaseAuth.getInstance(firebaseApp) }
+        single {
+            FirebaseAuth.getInstance(firebaseApp).apply {
+                emulatorConfig?.let { useEmulator(it.host, it.authPort) }
+            }
+        }
         single { InMemoryUserSessionProvider() }
         single { FirebaseUserSessionProvider(get()) }
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }
@@ -76,13 +82,18 @@ private fun firebaseRestConfig(
     context: Context,
     app: FirebaseApp,
 ): com.edufelip.livechat.data.remote.FirebaseRestConfig =
-    com.edufelip.livechat.data.remote.FirebaseRestConfig(
-        projectId =
-            app.options.projectId
-                ?: error("Firebase projectId is missing. Check google-services.json."),
-        apiKey = app.options.apiKey ?: "",
-        defaultRegionIso = context.defaultRegionIso(),
-    )
+    run {
+        val emulatorConfig = loadFirebaseEmulatorConfig()
+        com.edufelip.livechat.data.remote.FirebaseRestConfig(
+            projectId =
+                app.options.projectId
+                    ?: error("Firebase projectId is missing. Check google-services.json."),
+            apiKey = app.options.apiKey ?: "",
+            emulatorHost = emulatorConfig?.host,
+            emulatorPort = emulatorConfig?.firestorePort,
+            defaultRegionIso = context.defaultRegionIso(),
+        )
+    }
 
 private fun ensureFirebaseApp(context: Context): FirebaseApp {
     return FirebaseApp.getApps(context).firstOrNull()
