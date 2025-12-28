@@ -16,6 +16,7 @@ enum FirebaseConfig {
             FirebaseApp.configure()
         }
         didConfigure = true
+        FirebaseEmulatorSettings.applyIfNeeded()
 
         if let missing = missingRequiredOptions() {
             NSLog("FirebaseConfig: missing required options: %@", missing)
