@@ -1,8 +1,6 @@
 package com.edufelip.livechat.ui.features.settings.account
 
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -13,10 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
@@ -98,8 +100,11 @@ fun AccountSettingsRoute(
     }
 
     if (activeEdit != EditField.None) {
-        EditAccountFieldDialog(
+        AccountEditBottomSheet(
             title = activeEdit.title(strings),
+            description = activeEdit.description(strings),
+            label = activeEdit.label(strings),
+            placeholder = activeEdit.placeholder(strings),
             value = editValue,
             onValueChange = { editValue = it },
             onDismiss = { activeEdit = EditField.None },
@@ -114,6 +119,8 @@ fun AccountSettingsRoute(
             },
             confirmEnabled = activeEdit.canSave(editValue),
             isUpdating = state.isUpdating,
+            confirmLabel = strings.account.saveCta,
+            keyboardOptions = activeEdit.keyboardOptions(),
         )
     }
 
@@ -158,46 +165,6 @@ fun AccountSettingsRoute(
     )
 }
 
-@Composable
-private fun EditAccountFieldDialog(
-    title: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    confirmEnabled: Boolean,
-    isUpdating: Boolean,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = confirmEnabled && !isUpdating,
-            ) {
-                Text(text = liveChatStrings().account.saveCta)
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !isUpdating,
-            ) {
-                Text(text = liveChatStrings().general.cancel)
-            }
-        },
-        title = { Text(title) },
-        text = {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge,
-            )
-        },
-    )
-}
-
 private enum class EditField {
     DisplayName,
     StatusMessage,
@@ -211,6 +178,46 @@ private fun EditField.title(strings: LiveChatStrings): String =
         EditField.StatusMessage -> strings.account.editStatusTitle
         EditField.Email -> strings.account.editEmailTitle
         EditField.None -> ""
+    }
+
+private fun EditField.description(strings: LiveChatStrings): String =
+    when (this) {
+        EditField.DisplayName -> strings.account.editDisplayNameDescription
+        EditField.StatusMessage -> strings.account.editStatusDescription
+        EditField.Email -> strings.account.editEmailDescription
+        EditField.None -> ""
+    }
+
+private fun EditField.label(strings: LiveChatStrings): String =
+    when (this) {
+        EditField.DisplayName -> strings.account.displayNameLabel
+        EditField.StatusMessage -> strings.account.statusLabel
+        EditField.Email -> strings.account.emailLabel
+        EditField.None -> ""
+    }
+
+private fun EditField.placeholder(strings: LiveChatStrings): String =
+    when (this) {
+        EditField.DisplayName -> strings.account.displayNameMissing
+        EditField.StatusMessage -> strings.account.statusPlaceholder
+        EditField.Email -> strings.account.emailMissing
+        EditField.None -> ""
+    }
+
+private fun EditField.keyboardOptions(): KeyboardOptions =
+    when (this) {
+        EditField.Email ->
+            KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Done,
+            )
+        EditField.DisplayName,
+        EditField.StatusMessage,
+        EditField.None,
+        -> KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Done,
+        )
     }
 
 private fun EditField.canSave(value: String): Boolean =

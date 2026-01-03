@@ -58,8 +58,11 @@ data class AccountStrings(
     val deleteConfirmBody: String = "This will permanently remove your data. This action can't be undone.",
     val deleteConfirmCta: String = "Delete",
     val editDisplayNameTitle: String = "Edit display name",
+    val editDisplayNameDescription: String = "This is how your name appears to contacts.",
     val editStatusTitle: String = "Edit status message",
+    val editStatusDescription: String = "Share a short status with your contacts.",
     val editEmailTitle: String = "Edit email address",
+    val editEmailDescription: String = "Use an email for account recovery.",
     val saveCta: String = "Save",
 )
 
@@ -239,8 +242,11 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             deleteConfirmBody = stringResource(Res.string.account_delete_confirm_body),
             deleteConfirmCta = stringResource(Res.string.account_delete_confirm_cta),
             editDisplayNameTitle = stringResource(Res.string.account_edit_display_name_title),
+            editDisplayNameDescription = stringResource(Res.string.account_edit_display_name_description),
             editStatusTitle = stringResource(Res.string.account_edit_status_title),
+            editStatusDescription = stringResource(Res.string.account_edit_status_description),
             editEmailTitle = stringResource(Res.string.account_edit_email_title),
+            editEmailDescription = stringResource(Res.string.account_edit_email_description),
             saveCta = stringResource(Res.string.account_save_cta),
         )
 
