@@ -15,11 +15,13 @@ import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationUiState
+import com.edufelip.livechat.domain.models.NotificationSettingsUiState
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
+import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -99,6 +101,22 @@ internal fun rememberAccountPresenter(): AccountPresenter {
 internal fun AccountPresenter.collectState(): State<AccountUiState> = this.state.collectAsComposeState()
 
 @Composable
+internal fun rememberNotificationSettingsPresenter(): NotificationSettingsPresenter {
+    val presenter =
+        remember {
+            provideNotificationSettingsPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun NotificationSettingsPresenter.collectState(): State<NotificationSettingsUiState> =
+    this.state.collectAsComposeState()
+
+@Composable
 internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
     return remember {
         provideSessionProvider()
@@ -138,6 +156,8 @@ internal expect fun provideConversationPresenter(): ConversationPresenter
 internal expect fun provideContactsPresenter(): ContactsPresenter
 
 internal expect fun provideAccountPresenter(): AccountPresenter
+
+internal expect fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter
 
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
 

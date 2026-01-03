@@ -66,6 +66,34 @@ data class AccountStrings(
     val saveCta: String = "Save",
 )
 
+data class NotificationsStrings(
+    val screenTitle: String = "Notifications",
+    val generalSection: String = "General",
+    val quietHoursSection: String = "Quiet Hours",
+    val advancedSection: String = "Advanced",
+    val pushTitle: String = "Push Notifications",
+    val pushSubtitle: String = "Receive messages when away",
+    val permissionDisabledHint: String = "Notifications disabled in system settings.",
+    val soundTitle: String = "Sound",
+    val soundSheetTitle: String = "Notification sound",
+    val soundSheetDescription: String = "Choose a tone for incoming messages.",
+    val soundOptionPopcorn: String = "Popcorn",
+    val soundOptionChime: String = "Chime",
+    val soundOptionRipple: String = "Ripple",
+    val soundOptionSilent: String = "Silent",
+    val quietHoursTitle: String = "Scheduled Quiet Mode",
+    val quietHoursSubtitle: String = "Mute notifications during set times",
+    val quietHoursFromLabel: String = "From",
+    val quietHoursToLabel: String = "To",
+    val quietHoursSheetTitle: String = "Edit quiet hours",
+    val quietHoursSheetDescription: String = "Use 24h format (HH:MM).",
+    val vibrationTitle: String = "In-App Vibration",
+    val previewTitle: String = "Show Message Preview",
+    val previewSubtitle: String = "Display text in banners",
+    val resetTitle: String = "Reset Notifications",
+    val saveCta: String = "Save",
+)
+
 data class HomeStrings(
     val conversationTitle: String = "Conversation",
     val chatsTab: String = "Chats",
@@ -177,6 +205,7 @@ data class LiveChatStrings(
     val contacts: ContactsStrings = ContactsStrings(),
     val settings: SettingsStrings = SettingsStrings(),
     val account: AccountStrings = AccountStrings(),
+    val notifications: NotificationsStrings = NotificationsStrings(),
     val home: HomeStrings = HomeStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
@@ -248,6 +277,35 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             editEmailTitle = stringResource(Res.string.account_edit_email_title),
             editEmailDescription = stringResource(Res.string.account_edit_email_description),
             saveCta = stringResource(Res.string.account_save_cta),
+        )
+
+    val notifications =
+        NotificationsStrings(
+            screenTitle = stringResource(Res.string.notifications_screen_title),
+            generalSection = stringResource(Res.string.notifications_general_section),
+            quietHoursSection = stringResource(Res.string.notifications_quiet_hours_section),
+            advancedSection = stringResource(Res.string.notifications_advanced_section),
+            pushTitle = stringResource(Res.string.notifications_push_title),
+            pushSubtitle = stringResource(Res.string.notifications_push_subtitle),
+            permissionDisabledHint = stringResource(Res.string.notifications_permission_disabled_hint),
+            soundTitle = stringResource(Res.string.notifications_sound_title),
+            soundSheetTitle = stringResource(Res.string.notifications_sound_sheet_title),
+            soundSheetDescription = stringResource(Res.string.notifications_sound_sheet_description),
+            soundOptionPopcorn = stringResource(Res.string.notifications_sound_option_popcorn),
+            soundOptionChime = stringResource(Res.string.notifications_sound_option_chime),
+            soundOptionRipple = stringResource(Res.string.notifications_sound_option_ripple),
+            soundOptionSilent = stringResource(Res.string.notifications_sound_option_silent),
+            quietHoursTitle = stringResource(Res.string.notifications_quiet_hours_title),
+            quietHoursSubtitle = stringResource(Res.string.notifications_quiet_hours_subtitle),
+            quietHoursFromLabel = stringResource(Res.string.notifications_quiet_hours_from_label),
+            quietHoursToLabel = stringResource(Res.string.notifications_quiet_hours_to_label),
+            quietHoursSheetTitle = stringResource(Res.string.notifications_quiet_hours_sheet_title),
+            quietHoursSheetDescription = stringResource(Res.string.notifications_quiet_hours_sheet_description),
+            vibrationTitle = stringResource(Res.string.notifications_vibration_title),
+            previewTitle = stringResource(Res.string.notifications_preview_title),
+            previewSubtitle = stringResource(Res.string.notifications_preview_subtitle),
+            resetTitle = stringResource(Res.string.notifications_reset_title),
+            saveCta = stringResource(Res.string.notifications_save_cta),
         )
 
     val home =
