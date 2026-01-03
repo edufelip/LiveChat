@@ -36,8 +36,10 @@ class UpdateAccountEmailUseCase(
 
 class DeleteAccountUseCase(
     private val repository: IAccountRepository,
+    private val setOnboardingComplete: SetOnboardingCompleteUseCase,
 ) {
     suspend operator fun invoke() {
         repository.deleteAccount()
+        setOnboardingComplete(false)
     }
 }

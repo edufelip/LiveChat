@@ -76,7 +76,7 @@ val sharedDomainModule: Module =
         factory { UpdateAccountDisplayNameUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
-        factory { DeleteAccountUseCase(get<IAccountRepository>()) }
+        factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
