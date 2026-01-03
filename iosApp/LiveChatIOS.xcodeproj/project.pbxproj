@@ -519,7 +519,6 @@
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
 				);
 				INFOPLIST_FILE = LiveChatIOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LiveChat;
@@ -549,7 +548,6 @@
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/../composeApp/build/XCFrameworks/**",
 				);
 				INFOPLIST_FILE = LiveChatIOS/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LiveChat;
