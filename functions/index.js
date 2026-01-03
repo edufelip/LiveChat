@@ -40,7 +40,9 @@ exports.phoneExistsMany = onCall(async (req) => {
         })),
       );
       successfulChunks += 1;
+      const deleted = await fetchDeletedUserIds(response.users.map((user) => user.uid));
       response.users.forEach((userRecord) => {
+        if (deleted.has(userRecord.uid)) return;
         const phoneNumber = userRecord.phoneNumber;
         if (!phoneNumber) return;
         registered.push(phoneNumber);
@@ -73,6 +75,10 @@ exports.phoneExists = onCall(async (req) => {
 
   try {
     const userRecord = await admin.auth().getUserByPhoneNumber(phone.trim());
+    const deleted = await fetchDeletedUserIds([userRecord.uid]);
+    if (deleted.has(userRecord.uid)) {
+      return { exists: false, uid: null };
+    }
     return { exists: Boolean(userRecord), uid: userRecord?.uid ?? null };
   } catch (error) {
     if (error.code === 'auth/user-not-found') {
@@ -84,3 +90,23 @@ exports.phoneExists = onCall(async (req) => {
     });
   }
 });
+
+async function fetchDeletedUserIds(uids) {
+  if (!Array.isArray(uids) || uids.length === 0) return new Set();
+  const chunks = [];
+  const chunkSize = 10;
+  for (let index = 0; index < uids.length; index += chunkSize) {
+    chunks.push(uids.slice(index, index + chunkSize));
+  }
+
+  const deletedIds = new Set();
+  for (const chunk of chunks) {
+    const snapshot = await admin.firestore()
+      .collection('users')
+      .where(admin.firestore.FieldPath.documentId(), 'in', chunk)
+      .where('is_deleted', '==', true)
+      .get();
+    snapshot.docs.forEach((doc) => deletedIds.add(doc.id));
+  }
+  return deletedIds;
+}
