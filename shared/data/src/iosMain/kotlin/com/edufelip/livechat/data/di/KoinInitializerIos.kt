@@ -1,10 +1,12 @@
 package com.edufelip.livechat.data.di
 
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
+import com.edufelip.livechat.data.bridge.AuthBridge
 import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.presentation.AppPresenter
+import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
@@ -25,9 +27,13 @@ object IosKoinBridge : KoinComponent {
 
     fun contactsPresenter(): ContactsPresenter = get()
 
+    fun accountPresenter(): AccountPresenter = get()
+
     fun appPresenter(): AppPresenter = get()
 
     fun phoneAuthPresenter(): PhoneAuthPresenter = get()
+
+    fun authBridge(): AuthBridge = get()
 }
 
 fun startKoinForiOS(

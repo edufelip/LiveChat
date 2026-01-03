@@ -6,8 +6,10 @@ import com.edufelip.livechat.data.bridge.FirebaseMessagesBridge
 import com.edufelip.livechat.data.bridge.FirebaseStorageBridge
 import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.bridge.MessagesRemoteBridge
+import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
+import com.edufelip.livechat.data.remote.FirebaseRestAccountRemoteData
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.edufelip.livechat.data.remote.STORAGE_BUCKET_URL
@@ -43,6 +45,12 @@ actual val firebaseBackendModule: Module =
         single<IContactsRemoteData> {
             FirebaseRestContactsRemoteData(
                 contactsBridge = get(),
+                config = get(),
+                httpClient = get(),
+            )
+        }
+        single<IAccountRemoteData> {
+            FirebaseRestAccountRemoteData(
                 config = get(),
                 httpClient = get(),
             )

@@ -10,10 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
+import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationUiState
+import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
@@ -82,6 +84,21 @@ internal fun rememberContactsPresenter(): ContactsPresenter {
 internal fun ContactsPresenter.collectState(): State<ContactsUiState> = this.state.collectAsComposeState()
 
 @Composable
+internal fun rememberAccountPresenter(): AccountPresenter {
+    val presenter =
+        remember {
+            provideAccountPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun AccountPresenter.collectState(): State<AccountUiState> = this.state.collectAsComposeState()
+
+@Composable
 internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
     return remember {
         provideSessionProvider()
@@ -119,6 +136,8 @@ internal expect fun provideConversationListPresenter(): ConversationListPresente
 internal expect fun provideConversationPresenter(): ConversationPresenter
 
 internal expect fun provideContactsPresenter(): ContactsPresenter
+
+internal expect fun provideAccountPresenter(): AccountPresenter
 
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
 

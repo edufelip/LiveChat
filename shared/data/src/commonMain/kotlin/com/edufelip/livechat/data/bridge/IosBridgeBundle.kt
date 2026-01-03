@@ -5,4 +5,5 @@ data class IosBridgeBundle(
     val contactsBridge: ContactsRemoteBridge,
     val storageBridge: MediaStorageBridge,
     val phoneAuthBridge: PhoneAuthBridge,
+    val authBridge: AuthBridge,
 )

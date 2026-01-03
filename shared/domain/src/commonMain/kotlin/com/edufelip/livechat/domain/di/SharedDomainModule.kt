@@ -1,13 +1,16 @@
 package com.edufelip.livechat.domain.di
 
 import com.edufelip.livechat.domain.presentation.AppPresenter
+import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
+import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
+import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
@@ -19,6 +22,7 @@ import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
+import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
@@ -28,6 +32,9 @@ import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
+import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
+import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
+import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
 import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
 import com.edufelip.livechat.domain.useCases.phone.ClearPhoneVerificationUseCase
 import com.edufelip.livechat.domain.useCases.phone.RequestPhoneVerificationUseCase
@@ -53,6 +60,7 @@ val sharedDomainModule: Module =
         factory { ObserveConversationUseCase(get()) }
         factory { ObserveConversationSummariesUseCase(get()) }
         factory { ObserveParticipantUseCase(get()) }
+        factory { ObserveAccountProfileUseCase(get<IAccountRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
@@ -65,6 +73,10 @@ val sharedDomainModule: Module =
         factory { SetConversationMutedUseCase(get()) }
         factory { SetConversationArchivedUseCase(get()) }
         factory { SetOnboardingCompleteUseCase(get()) }
+        factory { UpdateAccountDisplayNameUseCase(get<IAccountRepository>()) }
+        factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
+        factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
+        factory { DeleteAccountUseCase(get<IAccountRepository>()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
@@ -82,6 +94,16 @@ val sharedDomainModule: Module =
             )
         }
         factory { PhoneAuthPresenter(get(), get(), get(), get()) }
+        factory {
+            AccountPresenter(
+                observeAccountProfile = get(),
+                updateDisplayName = get(),
+                updateStatusMessage = get(),
+                updateEmail = get(),
+                deleteAccount = get(),
+                scope = MainScope(),
+            )
+        }
         factory {
             AppPresenter(
                 observeOnboardingStatus = get<ObserveOnboardingStatusUseCase>(),
