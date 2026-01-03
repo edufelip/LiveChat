@@ -19,7 +19,18 @@ class AccountRepository(
         sessionProvider.session
             .mapLatest { session ->
                 if (session == null) return@mapLatest null
-                remoteData.fetchAccountProfile(session.userId, session.idToken)
+                val fallbackPhone = session.phoneNumber?.takeIf { it.isNotBlank() }
+                val profile = remoteData.fetchAccountProfile(session.userId, session.idToken)
+                when {
+                    profile == null ->
+                        AccountProfile(
+                            userId = session.userId,
+                            phoneNumber = fallbackPhone,
+                        )
+                    profile.phoneNumber.isNullOrBlank() && fallbackPhone != null ->
+                        profile.copy(phoneNumber = fallbackPhone)
+                    else -> profile
+                }
             }
             .flowOn(dispatcher)
 
