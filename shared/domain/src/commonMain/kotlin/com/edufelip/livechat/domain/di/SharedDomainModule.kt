@@ -5,9 +5,11 @@ import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
+import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
+import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
@@ -23,6 +25,7 @@ import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
+import com.edufelip.livechat.domain.useCases.ObserveNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
@@ -35,6 +38,13 @@ import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
+import com.edufelip.livechat.domain.useCases.UpdateInAppVibrationUseCase
+import com.edufelip.livechat.domain.useCases.UpdateMessagePreviewUseCase
+import com.edufelip.livechat.domain.useCases.UpdateNotificationSoundUseCase
+import com.edufelip.livechat.domain.useCases.UpdatePushNotificationsUseCase
+import com.edufelip.livechat.domain.useCases.UpdateQuietHoursEnabledUseCase
+import com.edufelip.livechat.domain.useCases.UpdateQuietHoursWindowUseCase
+import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
 import com.edufelip.livechat.domain.useCases.phone.ClearPhoneVerificationUseCase
 import com.edufelip.livechat.domain.useCases.phone.RequestPhoneVerificationUseCase
@@ -61,6 +71,7 @@ val sharedDomainModule: Module =
         factory { ObserveConversationSummariesUseCase(get()) }
         factory { ObserveParticipantUseCase(get()) }
         factory { ObserveAccountProfileUseCase(get<IAccountRepository>()) }
+        factory { ObserveNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
@@ -77,6 +88,13 @@ val sharedDomainModule: Module =
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
+        factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
+        factory { UpdateNotificationSoundUseCase(get<INotificationSettingsRepository>()) }
+        factory { UpdateQuietHoursEnabledUseCase(get<INotificationSettingsRepository>()) }
+        factory { UpdateQuietHoursWindowUseCase(get<INotificationSettingsRepository>()) }
+        factory { UpdateInAppVibrationUseCase(get<INotificationSettingsRepository>()) }
+        factory { UpdateMessagePreviewUseCase(get<INotificationSettingsRepository>()) }
+        factory { ResetNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
@@ -101,6 +119,19 @@ val sharedDomainModule: Module =
                 updateStatusMessage = get(),
                 updateEmail = get(),
                 deleteAccount = get(),
+                scope = MainScope(),
+            )
+        }
+        factory {
+            NotificationSettingsPresenter(
+                observeSettings = get(),
+                updatePushEnabled = get(),
+                updateSound = get(),
+                updateQuietHoursEnabled = get(),
+                updateQuietHoursWindow = get(),
+                updateInAppVibration = get(),
+                updateShowMessagePreview = get(),
+                resetSettings = get(),
                 scope = MainScope(),
             )
         }

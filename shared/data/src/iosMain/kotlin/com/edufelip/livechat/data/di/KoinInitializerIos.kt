@@ -10,6 +10,7 @@ import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
+import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.shared.data.initSharedKoin
 import io.ktor.client.HttpClient
@@ -32,6 +33,8 @@ object IosKoinBridge : KoinComponent {
     fun appPresenter(): AppPresenter = get()
 
     fun phoneAuthPresenter(): PhoneAuthPresenter = get()
+
+    fun notificationSettingsPresenter(): NotificationSettingsPresenter = get()
 
     fun authBridge(): AuthBridge = get()
 }

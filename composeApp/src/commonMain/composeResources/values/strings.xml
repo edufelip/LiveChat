@@ -53,6 +53,33 @@
     <string name="account_edit_email_description">Use an email for account recovery.</string>
     <string name="account_save_cta">Save</string>
 
+    <!-- Notifications -->
+    <string name="notifications_screen_title">Notifications</string>
+    <string name="notifications_general_section">General</string>
+    <string name="notifications_quiet_hours_section">Quiet Hours</string>
+    <string name="notifications_advanced_section">Advanced</string>
+    <string name="notifications_push_title">Push Notifications</string>
+    <string name="notifications_push_subtitle">Receive messages when away</string>
+    <string name="notifications_permission_disabled_hint">Notifications disabled in system settings.</string>
+    <string name="notifications_sound_title">Sound</string>
+    <string name="notifications_sound_sheet_title">Notification sound</string>
+    <string name="notifications_sound_sheet_description">Choose a tone for incoming messages.</string>
+    <string name="notifications_sound_option_popcorn">Popcorn</string>
+    <string name="notifications_sound_option_chime">Chime</string>
+    <string name="notifications_sound_option_ripple">Ripple</string>
+    <string name="notifications_sound_option_silent">Silent</string>
+    <string name="notifications_quiet_hours_title">Scheduled Quiet Mode</string>
+    <string name="notifications_quiet_hours_subtitle">Mute notifications during set times</string>
+    <string name="notifications_quiet_hours_from_label">From</string>
+    <string name="notifications_quiet_hours_to_label">To</string>
+    <string name="notifications_quiet_hours_sheet_title">Edit quiet hours</string>
+    <string name="notifications_quiet_hours_sheet_description">Use 24h format (HH:MM).</string>
+    <string name="notifications_vibration_title">In-App Vibration</string>
+    <string name="notifications_preview_title">Show Message Preview</string>
+    <string name="notifications_preview_subtitle">Display text in banners</string>
+    <string name="notifications_reset_title">Reset Notifications</string>
+    <string name="notifications_save_cta">Save</string>
+
     <!-- Home -->
     <string name="home_conversation_title">Conversation</string>
     <string name="home_chats_tab">Chats</string>
