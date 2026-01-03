@@ -141,39 +141,46 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isDeleted(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
+    }
+
     function isParticipant(conversationId) {
       return isSignedIn() &&
         exists(/databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid));
     }
 
     match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read, write: if isSignedIn() && request.auth.uid == userId && !isDeleted(userId);
     }
 
     match /conversations/{conversationId} {
-      allow read: if isParticipant(conversationId);
+      allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
       allow write: if false; // conversation docs are created server-side
 
       match /participants/{userId} {
-        allow read: if isParticipant(conversationId);
-        allow write: if request.auth.uid == userId;
+        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
+        allow write: if request.auth.uid == userId && !isDeleted(request.auth.uid);
       }
 
       match /messages/{messageId} {
-        allow read: if isParticipant(conversationId);
+        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
         allow create: if isParticipant(conversationId)
+          && !isDeleted(request.auth.uid)
           && request.resource.data.senderId == request.auth.uid;
         allow update, delete: if false;
       }
 
       match /receipts/{receiptId} {
-        allow read: if isParticipant(conversationId);
+        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
         allow write: if isParticipant(conversationId)
+          && !isDeleted(request.auth.uid)
           && request.resource.data.userId == request.auth.uid;
       }
 
       match /reactions/{reactionId} {
         allow read, write: if isParticipant(conversationId)
+          && !isDeleted(request.auth.uid)
           && request.resource.data.userId == request.auth.uid;
       }
     }
