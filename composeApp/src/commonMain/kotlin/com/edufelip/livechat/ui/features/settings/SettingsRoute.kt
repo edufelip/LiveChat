@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,9 +20,14 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun SettingsRoute(
     modifier: Modifier = Modifier,
     onSectionSelected: (SettingsNavigationRequest) -> Unit = {},
+    onChromeVisibilityChanged: (Boolean) -> Unit = {},
 ) {
     var activeSection by remember { mutableStateOf<SettingsSection?>(null) }
     val showAccount = activeSection == SettingsSection.Account
+
+    LaunchedEffect(showAccount) {
+        onChromeVisibilityChanged(!showAccount)
+    }
 
     if (LocalInspectionMode.current) {
         SettingsScreen(
