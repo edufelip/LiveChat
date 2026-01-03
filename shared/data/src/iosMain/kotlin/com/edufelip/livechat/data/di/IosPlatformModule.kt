@@ -41,6 +41,7 @@ fun iosPlatformModule(
         single { bridgeBundle.contactsBridge }
         single { bridgeBundle.storageBridge }
         single { bridgeBundle.phoneAuthBridge }
+        single { bridgeBundle.authBridge }
         single<LiveChatDatabase> { buildLiveChatDatabase(createIosDatabaseBuilder()) }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }

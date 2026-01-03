@@ -38,6 +38,31 @@ data class SettingsStrings(
     val openingSectionTemplate: String = "Opening %1\$s settings soon",
 )
 
+data class AccountStrings(
+    val screenTitle: String = "Account Settings",
+    val screenSubtitle: String = "Manage your profile details",
+    val editCta: String = "Edit",
+    val displayNameLabel: String = "Display Name",
+    val displayNameMissing: String = "Add your name",
+    val statusLabel: String = "Status Message",
+    val phoneLabel: String = "Linked Phone Number",
+    val emailLabel: String = "Email Address",
+    val phoneReadOnlyHint: String = "Contact support to change",
+    val phoneMissing: String = "No phone linked",
+    val emailMissing: String = "Add an email",
+    val statusPlaceholder: String = "Available for chat",
+    val onlineLabel: String = "Online",
+    val deleteTitle: String = "Delete Account",
+    val deleteDescription: String = "Permanently remove your data",
+    val deleteConfirmTitle: String = "Delete account?",
+    val deleteConfirmBody: String = "This will permanently remove your data. This action can't be undone.",
+    val deleteConfirmCta: String = "Delete",
+    val editDisplayNameTitle: String = "Edit display name",
+    val editStatusTitle: String = "Edit status message",
+    val editEmailTitle: String = "Edit email address",
+    val saveCta: String = "Save",
+)
+
 data class HomeStrings(
     val conversationTitle: String = "Conversation",
     val chatsTab: String = "Chats",
@@ -148,6 +173,7 @@ data class GeneralStrings(
 data class LiveChatStrings(
     val contacts: ContactsStrings = ContactsStrings(),
     val settings: SettingsStrings = SettingsStrings(),
+    val account: AccountStrings = AccountStrings(),
     val home: HomeStrings = HomeStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
@@ -190,6 +216,32 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             privacyTitle = stringResource(Res.string.settings_privacy_title),
             privacyDescription = stringResource(Res.string.settings_privacy_description),
             openingSectionTemplate = stringResource(Res.string.settings_opening_section_toast),
+        )
+
+    val account =
+        AccountStrings(
+            screenTitle = stringResource(Res.string.account_screen_title),
+            screenSubtitle = stringResource(Res.string.account_screen_subtitle),
+            editCta = stringResource(Res.string.account_edit_cta),
+            displayNameLabel = stringResource(Res.string.account_display_name_label),
+            displayNameMissing = stringResource(Res.string.account_display_name_missing),
+            statusLabel = stringResource(Res.string.account_status_label),
+            phoneLabel = stringResource(Res.string.account_phone_label),
+            emailLabel = stringResource(Res.string.account_email_label),
+            phoneReadOnlyHint = stringResource(Res.string.account_phone_readonly_hint),
+            phoneMissing = stringResource(Res.string.account_phone_missing),
+            emailMissing = stringResource(Res.string.account_email_missing),
+            statusPlaceholder = stringResource(Res.string.account_status_placeholder),
+            onlineLabel = stringResource(Res.string.account_online_label),
+            deleteTitle = stringResource(Res.string.account_delete_title),
+            deleteDescription = stringResource(Res.string.account_delete_description),
+            deleteConfirmTitle = stringResource(Res.string.account_delete_confirm_title),
+            deleteConfirmBody = stringResource(Res.string.account_delete_confirm_body),
+            deleteConfirmCta = stringResource(Res.string.account_delete_confirm_cta),
+            editDisplayNameTitle = stringResource(Res.string.account_edit_display_name_title),
+            editStatusTitle = stringResource(Res.string.account_edit_status_title),
+            editEmailTitle = stringResource(Res.string.account_edit_email_title),
+            saveCta = stringResource(Res.string.account_save_cta),
         )
 
     val home =
@@ -319,6 +371,7 @@ fun rememberLiveChatStrings(): LiveChatStrings {
     return LiveChatStrings(
         contacts = contacts,
         settings = settings,
+        account = account,
         home = home,
         conversation = conversation,
         onboarding = onboarding,

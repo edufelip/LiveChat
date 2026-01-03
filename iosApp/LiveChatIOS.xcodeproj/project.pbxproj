@@ -24,6 +24,7 @@
 		EFD5952226034B8496F1D667 /* LiveChatIOS/FirebaseContactsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */; };
 		96E4D7A5B05C4E7CB0FE3611 /* LiveChatIOS/FirebaseStorageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */; };
 		D51F087574D14572ACCCDD85 /* LiveChatIOS/FirebasePhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */; };
+		F1A2B3C4D5E60718293A4C01 /* LiveChatIOS/FirebaseAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */; };
 		A1B2C3D4E5F60718293A4B70 /* LiveChatIOS/FirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */; };
 		A1B2C3D4E5F60718293A4B99 /* LiveChatIOS/FirebaseEmulatorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */; };
 		A1B2C3D4E5F60718293A4B72 /* LiveChatIOS/IosContactsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */; };
@@ -71,6 +72,7 @@
 		BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseContactsBridge.swift; sourceTree = SOURCE_ROOT; };
 		F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseStorageBridge.swift; sourceTree = SOURCE_ROOT; };
 		E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebasePhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
+		F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseAuthBridge.swift; sourceTree = SOURCE_ROOT; };
 		A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseConfig.swift; sourceTree = SOURCE_ROOT; };
 		A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseEmulatorSettings.swift; sourceTree = SOURCE_ROOT; };
 		A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/IosContactsProvider.swift; sourceTree = SOURCE_ROOT; };
@@ -119,6 +121,7 @@
 				BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */,
 				F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */,
 				E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */,
+				F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */,
 				A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */,
 				A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */,
 				A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */,
@@ -306,6 +309,7 @@
 				EFD5952226034B8496F1D667 /* LiveChatIOS/FirebaseContactsBridge.swift in Sources */,
 				96E4D7A5B05C4E7CB0FE3611 /* LiveChatIOS/FirebaseStorageBridge.swift in Sources */,
 				D51F087574D14572ACCCDD85 /* LiveChatIOS/FirebasePhoneAuthBridge.swift in Sources */,
+				F1A2B3C4D5E60718293A4C01 /* LiveChatIOS/FirebaseAuthBridge.swift in Sources */,
 				A1B2C3D4E5F60718293A4B70 /* LiveChatIOS/FirebaseConfig.swift in Sources */,
 				A1B2C3D4E5F60718293A4B99 /* LiveChatIOS/FirebaseEmulatorSettings.swift in Sources */,
 				A1B2C3D4E5F60718293A4B72 /* LiveChatIOS/IosContactsProvider.swift in Sources */,

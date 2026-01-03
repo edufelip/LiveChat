@@ -2,6 +2,7 @@ package com.edufelip.livechat.ui.state
 
 import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
+import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
@@ -13,6 +14,8 @@ internal actual fun provideConversationListPresenter(): ConversationListPresente
 internal actual fun provideConversationPresenter(): ConversationPresenter = IosKoinBridge.conversationPresenter()
 
 internal actual fun provideContactsPresenter(): ContactsPresenter = IosKoinBridge.contactsPresenter()
+
+internal actual fun provideAccountPresenter(): AccountPresenter = IosKoinBridge.accountPresenter()
 
 internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = IosKoinBridge.sessionProvider()
 

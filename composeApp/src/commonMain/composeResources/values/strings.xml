@@ -26,6 +26,30 @@
     <string name="settings_privacy_description">Blocked contacts, invite preferences</string>
     <string name="settings_opening_section_toast">Opening %1$s settings soon</string>
 
+    <!-- Account -->
+    <string name="account_screen_title">Account Settings</string>
+    <string name="account_screen_subtitle">Manage your profile details</string>
+    <string name="account_edit_cta">Edit</string>
+    <string name="account_display_name_label">Display Name</string>
+    <string name="account_display_name_missing">Add your name</string>
+    <string name="account_status_label">Status Message</string>
+    <string name="account_phone_label">Linked Phone Number</string>
+    <string name="account_email_label">Email Address</string>
+    <string name="account_phone_readonly_hint">Contact support to change</string>
+    <string name="account_phone_missing">No phone linked</string>
+    <string name="account_email_missing">Add an email</string>
+    <string name="account_status_placeholder">Available for chat</string>
+    <string name="account_online_label">Online</string>
+    <string name="account_delete_title">Delete Account</string>
+    <string name="account_delete_description">Permanently remove your data</string>
+    <string name="account_delete_confirm_title">Delete account?</string>
+    <string name="account_delete_confirm_body">This will permanently remove your data. This action can&apos;t be undone.</string>
+    <string name="account_delete_confirm_cta">Delete</string>
+    <string name="account_edit_display_name_title">Edit display name</string>
+    <string name="account_edit_status_title">Edit status message</string>
+    <string name="account_edit_email_title">Edit email address</string>
+    <string name="account_save_cta">Save</string>
+
     <!-- Home -->
     <string name="home_conversation_title">Conversation</string>
     <string name="home_chats_tab">Chats</string>

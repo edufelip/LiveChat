@@ -10,6 +10,7 @@ object IosBridgeDefaults {
             contactsBridge = NoopContactsBridge,
             storageBridge = NoopStorageBridge,
             phoneAuthBridge = NoopPhoneAuthBridge,
+            authBridge = NoopAuthBridge,
         )
 }
 
@@ -75,4 +76,9 @@ private object NoopPhoneAuthBridge : PhoneAuthBridge {
         verificationId: String,
         code: String,
     ): PhoneAuthBridgeError? = PhoneAuthBridgeError(message = "Phone auth not configured for iOS")
+}
+
+private object NoopAuthBridge : AuthBridge {
+    override fun signOut() {
+    }
 }
