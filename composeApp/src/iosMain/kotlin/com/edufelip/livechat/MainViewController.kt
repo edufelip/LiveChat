@@ -27,10 +27,11 @@ fun MainViewController(
     bridgeBundle: IosBridgeBundle,
     userId: String = "",
     idToken: String? = null,
+    phoneNumber: String? = null,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
 ): UIViewController {
     LiveChatIosInitializer.ensure(config, bridgeBundle)
-    LiveChatIosInitializer.updateSession(userId, idToken)
+    LiveChatIosInitializer.updateSession(userId, idToken, phoneNumber)
     return ComposeUIViewController {
         LiveChatApp(
             phoneContactsProvider = phoneContactsProvider,
@@ -50,8 +51,9 @@ fun MainViewController(
 fun updateLiveChatSession(
     userId: String,
     idToken: String? = null,
+    phoneNumber: String? = null,
 ) {
-    LiveChatIosInitializer.updateSession(userId, idToken)
+    LiveChatIosInitializer.updateSession(userId, idToken, phoneNumber)
 }
 
 private object LiveChatIosInitializer {
@@ -70,6 +72,7 @@ private object LiveChatIosInitializer {
     fun updateSession(
         userId: String,
         idToken: String?,
+        phoneNumber: String?,
     ) {
         val provider = IosKoinBridge.sessionProvider()
         if (userId.isBlank()) {
@@ -80,6 +83,7 @@ private object LiveChatIosInitializer {
             UserSession(
                 userId = userId,
                 idToken = idToken.orEmpty(),
+                phoneNumber = phoneNumber,
             ),
         )
     }
