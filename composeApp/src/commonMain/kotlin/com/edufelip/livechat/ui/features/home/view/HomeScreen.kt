@@ -24,7 +24,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.Contact
@@ -59,7 +62,10 @@ internal fun HomeScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
     val tabs = remember { defaultHomeTabs }
     val destination = state.destination
-    val showChrome = destination !is HomeDestination.ConversationDetail
+    var showSettingsChrome by remember { mutableStateOf(true) }
+    val showChrome =
+        destination !is HomeDestination.ConversationDetail &&
+            (destination != HomeDestination.Settings || showSettingsChrome)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -162,6 +168,7 @@ internal fun HomeScreen(
                     SettingsRoute(
                         modifier = Modifier.fillMaxSize(),
                         onSectionSelected = onOpenSettingsSection,
+                        onChromeVisibilityChanged = { showSettingsChrome = it },
                     )
             }
         }
