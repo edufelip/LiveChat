@@ -24,7 +24,14 @@ final class FirebasePhoneAuthBridge: NSObject, PhoneAuthBridge {
     private func configureTestingIfNeeded() {
         let environment = ProcessInfo.processInfo.environment
         let isE2e = environment["E2E_MODE"] == "1" || environment["E2E_MODE"] == "true"
-        if isE2e {
+        let isSimulator: Bool
+        #if targetEnvironment(simulator)
+        isSimulator = true
+        #else
+        isSimulator = false
+        #endif
+
+        if isE2e || isSimulator {
             Auth.auth().settings?.isAppVerificationDisabledForTesting = true
         }
     }
