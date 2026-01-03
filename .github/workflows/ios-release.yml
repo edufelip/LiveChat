@@ -3,7 +3,7 @@ name: iOS Release
 on:
   push:
     branches:
-      - "hotfix/*"
+      - "main"
   workflow_dispatch:
     inputs:
       export_method:
