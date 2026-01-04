@@ -7,10 +7,12 @@ import com.edufelip.livechat.data.bridge.FirebaseStorageBridge
 import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.bridge.MessagesRemoteBridge
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
+import com.edufelip.livechat.data.contracts.IAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestAccountRemoteData
+import com.edufelip.livechat.data.remote.FirebaseRestAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestNotificationSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
@@ -53,6 +55,12 @@ actual val firebaseBackendModule: Module =
         }
         single<IAccountRemoteData> {
             FirebaseRestAccountRemoteData(
+                config = get(),
+                httpClient = get(),
+            )
+        }
+        single<IAppearanceSettingsRemoteData> {
+            FirebaseRestAppearanceSettingsRemoteData(
                 config = get(),
                 httpClient = get(),
             )
