@@ -31,6 +31,10 @@ service cloud.firestore {
       allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
     }
 
+    match /users/{userId}/settings/{settingsId} {
+      allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
+    }
+
     match /conversations/{conversationId} {
       // Conversation ID is the recipient user ID.
       allow read: if isInboxOwner(conversationId);
