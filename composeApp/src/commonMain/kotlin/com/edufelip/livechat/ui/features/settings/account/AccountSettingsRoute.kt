@@ -14,7 +14,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
-import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -230,15 +229,7 @@ private fun EditField.canSave(value: String): Boolean =
 private fun previewState(): AccountUiState =
     AccountUiState(
         isLoading = false,
-        profile =
-            AccountProfile(
-                userId = "preview-user",
-                displayName = "Alex Morgan",
-                statusMessage = "Available for chat",
-                phoneNumber = "+1 (555) 123-4567",
-                email = "alex.morgan@example.com",
-                photoUrl = null,
-            ),
+        profile = null,
     )
 
 @DevicePreviews

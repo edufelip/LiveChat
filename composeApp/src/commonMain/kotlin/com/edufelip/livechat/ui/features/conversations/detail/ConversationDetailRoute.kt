@@ -41,11 +41,12 @@ fun ConversationDetailRoute(
     val strings = liveChatStrings()
     val conversationStrings = strings.conversation
     if (LocalInspectionMode.current) {
+        val previewState = PreviewFixtures.conversationUiState(strings)
         ConversationDetailScreen(
             modifier = modifier,
-            state = PreviewFixtures.conversationUiState,
-            contactName = "Preview Contact",
-            currentUserId = "preview-user",
+            state = previewState,
+            contactName = strings.preview.contactPrimaryName,
+            currentUserId = PreviewFixtures.previewUserId(),
             onSendMessage = {},
             isRecording = false,
             recordingDurationMillis = 0L,
@@ -319,9 +320,11 @@ fun ConversationDetailRoute(
 @Composable
 private fun ConversationDetailRoutePreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewState = PreviewFixtures.conversationUiState(strings)
         ConversationDetailRoute(
-            conversationId = PreviewFixtures.conversationUiState.conversationId,
-            contactName = "Preview Contact",
+            conversationId = previewState.conversationId,
+            contactName = strings.preview.contactPrimaryName,
             onBack = {},
         )
     }

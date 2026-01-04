@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -97,10 +98,11 @@ fun RowWithActions(
 @Composable
 private fun RowWithActionsPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         RowWithActions(
-            title = "Compose Chat",
-            subtitle = "Last message preview text goes here",
-            endContent = { Text("Action", style = MaterialTheme.typography.bodySmall) },
+            title = strings.home.chatsTab,
+            subtitle = strings.conversation.emptyList,
+            endContent = { Text(strings.general.ok, style = MaterialTheme.typography.bodySmall) },
             onClick = {},
             enabled = true,
         )

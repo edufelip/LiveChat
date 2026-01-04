@@ -60,6 +60,6 @@ fun ErrorBanner(
 @Composable
 private fun ErrorBannerPreview() {
     LiveChatPreviewContainer {
-        ErrorBanner(message = "Unable to reach server. Try again later.", onDismiss = {})
+        ErrorBanner(message = liveChatStrings().general.errorTitle, onDismiss = {})
     }
 }

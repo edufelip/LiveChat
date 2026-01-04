@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -48,6 +49,6 @@ fun LoadingState(
 @Composable
 private fun LoadingStatePreview() {
     LiveChatPreviewContainer {
-        LoadingState(message = "Loading chats…")
+        LoadingState(message = liveChatStrings().conversation.loadingList)
     }
 }

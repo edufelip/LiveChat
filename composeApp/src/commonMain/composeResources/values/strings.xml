@@ -72,6 +72,8 @@
     <string name="notifications_quiet_hours_subtitle">Mute notifications during set times</string>
     <string name="notifications_quiet_hours_from_label">From</string>
     <string name="notifications_quiet_hours_to_label">To</string>
+    <string name="notifications_quiet_hours_from_placeholder">22:00</string>
+    <string name="notifications_quiet_hours_to_placeholder">07:00</string>
     <string name="notifications_quiet_hours_sheet_title">Edit quiet hours</string>
     <string name="notifications_quiet_hours_sheet_description">Use 24h format (HH:MM).</string>
     <string name="notifications_vibration_title">In-App Vibration</string>
@@ -227,4 +229,18 @@
     <string name="general_open_settings">Open Settings</string>
     <string name="general_dismiss">Dismiss</string>
     <string name="general_error_title">Something went wrong</string>
+    <string name="general_time_period_am">AM</string>
+    <string name="general_time_period_pm">PM</string>
+    <string name="general_home_destination_transition_label">homeDestinationTransition</string>
+
+    <!-- Preview -->
+    <string name="preview_contact_primary_name">Ava Harper</string>
+    <string name="preview_contact_secondary_name">Brandon Diaz</string>
+    <string name="preview_contact_tertiary_name">Chioma Ade</string>
+    <string name="preview_contact_primary_phone">+1 555 0100</string>
+    <string name="preview_contact_secondary_phone">+1 555 0101</string>
+    <string name="preview_contact_tertiary_phone">+1 555 0102</string>
+    <string name="preview_message_outgoing">Hey there! This is a preview message to show how your own messages appear in bubbles.</string>
+    <string name="preview_message_incoming">Hi there! Compose Multiplatform previews are working like a charm!</string>
+    <string name="preview_message_snippet_secondary">Let's schedule a quick catch-up later today.</string>
 </resources>

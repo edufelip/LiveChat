@@ -100,8 +100,8 @@ fun NotificationSettingsScreen(
             enabled = allowEdits,
             fromLabel = strings.notifications.quietHoursFromLabel,
             toLabel = strings.notifications.quietHoursToLabel,
-            fromTime = formatDisplayTime(settings.quietHours.from),
-            toTime = formatDisplayTime(settings.quietHours.to),
+            fromTime = formatDisplayTime(settings.quietHours.from, strings.general.timePeriodAm, strings.general.timePeriodPm),
+            toTime = formatDisplayTime(settings.quietHours.to, strings.general.timePeriodAm, strings.general.timePeriodPm),
             onCheckedChange = onToggleQuietHours,
             onEditQuietHours = if (allowEdits) onEditQuietHours else null,
         )
@@ -136,13 +136,17 @@ fun NotificationSettingsScreen(
     }
 }
 
-private fun formatDisplayTime(raw: String): String {
+private fun formatDisplayTime(
+    raw: String,
+    amLabel: String,
+    pmLabel: String,
+): String {
     val parts = raw.split(":")
     if (parts.size != 2) return raw
     val hour = parts[0].toIntOrNull() ?: return raw
     val minute = parts[1].toIntOrNull() ?: return raw
     if (hour !in 0..23 || minute !in 0..59) return raw
-    val period = if (hour >= 12) "PM" else "AM"
+    val period = if (hour >= 12) pmLabel else amLabel
     val displayHour =
         when (val hour12 = hour % 12) {
             0 -> 12

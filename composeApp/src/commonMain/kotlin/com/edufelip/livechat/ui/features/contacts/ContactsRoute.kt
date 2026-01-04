@@ -36,10 +36,11 @@ fun ContactsRoute(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
+    val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
     if (LocalInspectionMode.current) {
         ContactsScreen(
             modifier = modifier,
-            state = PreviewFixtures.contactsState,
+            state = PreviewFixtures.contactsState(strings),
             onInvite = {},
             onContactSelected = {},
             onSync = {},
@@ -78,7 +79,7 @@ fun ContactsRoute(
 
     suspend fun loadContacts(): List<Contact> {
         return if (isUiTest) {
-            phoneContactsProvider().ifEmpty { PreviewFixtures.contacts }
+            phoneContactsProvider().ifEmpty { previewContacts }
         } else {
             withContext(Dispatchers.Default) {
                 phoneContactsProvider()
@@ -178,8 +179,10 @@ fun ContactsRoute(
 @Composable
 private fun ContactsRoutePreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
         ContactsRoute(
-            phoneContactsProvider = { PreviewFixtures.contacts },
+            phoneContactsProvider = { previewContacts },
             onContactSelected = { _, _ -> },
             onShareInvite = {},
         )

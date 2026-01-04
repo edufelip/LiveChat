@@ -138,6 +138,8 @@ fun NotificationSettingsRoute(
             description = strings.notifications.quietHoursSheetDescription,
             fromLabel = strings.notifications.quietHoursFromLabel,
             toLabel = strings.notifications.quietHoursToLabel,
+            fromPlaceholder = strings.notifications.quietHoursFromPlaceholder,
+            toPlaceholder = strings.notifications.quietHoursToPlaceholder,
             fromValue = quietFrom,
             toValue = quietTo,
             onFromChange = { quietFrom = it },

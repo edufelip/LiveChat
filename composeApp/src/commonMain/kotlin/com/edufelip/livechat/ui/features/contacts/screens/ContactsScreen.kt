@@ -276,8 +276,9 @@ private fun ContactsListContent(
 @Composable
 private fun ContactsScreenPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         ContactsScreen(
-            state = PreviewFixtures.contactsState,
+            state = PreviewFixtures.contactsState(strings),
             onInvite = {},
             onContactSelected = {},
             onSync = {},

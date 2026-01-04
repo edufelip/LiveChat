@@ -27,7 +27,7 @@ fun ConversationListRoute(
 ) {
     val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
-        val previewState = remember { PreviewFixtures.conversationListState }
+        val previewState = remember(strings) { PreviewFixtures.conversationListState(strings) }
         ConversationListScreen(
             modifier = modifier,
             state = previewState,

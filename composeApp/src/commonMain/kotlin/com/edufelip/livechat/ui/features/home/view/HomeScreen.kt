@@ -145,7 +145,7 @@ internal fun HomeScreen(
                     }
                 }
             },
-            label = "homeDestinationTransition",
+            label = strings.general.homeDestinationTransitionLabel,
         ) { target ->
             when (target) {
                 is HomeDestination.ConversationDetail ->

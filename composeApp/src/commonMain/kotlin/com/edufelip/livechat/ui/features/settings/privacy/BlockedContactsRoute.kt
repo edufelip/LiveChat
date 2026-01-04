@@ -11,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
-import com.edufelip.livechat.domain.models.BlockedContact
 import com.edufelip.livechat.domain.models.BlockedContactsUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -76,10 +75,7 @@ fun BlockedContactsRoute(
 private fun previewState(): BlockedContactsUiState =
     BlockedContactsUiState(
         isLoading = false,
-        contacts =
-            listOf(
-                BlockedContact(userId = "user_1", displayName = "Alex Morgan", phoneNumber = "+1 555 123 4567"),
-            ),
+        contacts = emptyList(),
     )
 
 @DevicePreviews

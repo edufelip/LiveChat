@@ -85,6 +85,8 @@ data class NotificationsStrings(
     val quietHoursSubtitle: String = "Mute notifications during set times",
     val quietHoursFromLabel: String = "From",
     val quietHoursToLabel: String = "To",
+    val quietHoursFromPlaceholder: String = "22:00",
+    val quietHoursToPlaceholder: String = "07:00",
     val quietHoursSheetTitle: String = "Edit quiet hours",
     val quietHoursSheetDescription: String = "Use 24h format (HH:MM).",
     val vibrationTitle: String = "In-App Vibration",
@@ -255,6 +257,22 @@ data class GeneralStrings(
     val openSettings: String = "Open Settings",
     val dismiss: String = "Dismiss",
     val errorTitle: String = "Something went wrong",
+    val timePeriodAm: String = "AM",
+    val timePeriodPm: String = "PM",
+    val homeDestinationTransitionLabel: String = "homeDestinationTransition",
+)
+
+data class PreviewStrings(
+    val contactPrimaryName: String = "Ava Harper",
+    val contactSecondaryName: String = "Brandon Diaz",
+    val contactTertiaryName: String = "Chioma Ade",
+    val contactPrimaryPhone: String = "+1 555 0100",
+    val contactSecondaryPhone: String = "+1 555 0101",
+    val contactTertiaryPhone: String = "+1 555 0102",
+    val messageOutgoing: String =
+        "Hey there! This is a preview message to show how your own messages appear in bubbles.",
+    val messageIncoming: String = "Hi there! Compose Multiplatform previews are working like a charm!",
+    val messageSnippetSecondary: String = "Let's schedule a quick catch-up later today.",
 )
 
 data class LiveChatStrings(
@@ -268,6 +286,7 @@ data class LiveChatStrings(
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
     val general: GeneralStrings = GeneralStrings(),
+    val preview: PreviewStrings = PreviewStrings(),
 )
 
 val LocalLiveChatStrings = staticCompositionLocalOf { LiveChatStrings() }
@@ -357,6 +376,8 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             quietHoursSubtitle = stringResource(Res.string.notifications_quiet_hours_subtitle),
             quietHoursFromLabel = stringResource(Res.string.notifications_quiet_hours_from_label),
             quietHoursToLabel = stringResource(Res.string.notifications_quiet_hours_to_label),
+            quietHoursFromPlaceholder = stringResource(Res.string.notifications_quiet_hours_from_placeholder),
+            quietHoursToPlaceholder = stringResource(Res.string.notifications_quiet_hours_to_placeholder),
             quietHoursSheetTitle = stringResource(Res.string.notifications_quiet_hours_sheet_title),
             quietHoursSheetDescription = stringResource(Res.string.notifications_quiet_hours_sheet_description),
             vibrationTitle = stringResource(Res.string.notifications_vibration_title),
@@ -539,6 +560,22 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             openSettings = stringResource(Res.string.general_open_settings),
             dismiss = stringResource(Res.string.general_dismiss),
             errorTitle = stringResource(Res.string.general_error_title),
+            timePeriodAm = stringResource(Res.string.general_time_period_am),
+            timePeriodPm = stringResource(Res.string.general_time_period_pm),
+            homeDestinationTransitionLabel = stringResource(Res.string.general_home_destination_transition_label),
+        )
+
+    val preview =
+        PreviewStrings(
+            contactPrimaryName = stringResource(Res.string.preview_contact_primary_name),
+            contactSecondaryName = stringResource(Res.string.preview_contact_secondary_name),
+            contactTertiaryName = stringResource(Res.string.preview_contact_tertiary_name),
+            contactPrimaryPhone = stringResource(Res.string.preview_contact_primary_phone),
+            contactSecondaryPhone = stringResource(Res.string.preview_contact_secondary_phone),
+            contactTertiaryPhone = stringResource(Res.string.preview_contact_tertiary_phone),
+            messageOutgoing = stringResource(Res.string.preview_message_outgoing),
+            messageIncoming = stringResource(Res.string.preview_message_incoming),
+            messageSnippetSecondary = stringResource(Res.string.preview_message_snippet_secondary),
         )
 
     return LiveChatStrings(
@@ -552,5 +589,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         conversation = conversation,
         onboarding = onboarding,
         general = general,
+        preview = preview,
     )
 }

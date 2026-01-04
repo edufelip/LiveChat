@@ -218,10 +218,11 @@ fun MessageBubble(
 @Composable
 private fun MessageBubblePreview() {
     LiveChatPreviewContainer {
-        val message = PreviewFixtures.conversationUiState.messages.first()
+        val strings = liveChatStrings()
+        val message = PreviewFixtures.conversationUiState(strings).messages.first()
         MessageBubble(
             message = message,
-            isOwn = message.senderId == "user",
+            isOwn = message.senderId == PreviewFixtures.previewUserId(),
             isPlaying = false,
             onAudioToggle = {},
             progress = 0f,
