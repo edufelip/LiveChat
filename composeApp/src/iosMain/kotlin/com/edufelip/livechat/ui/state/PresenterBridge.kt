@@ -4,11 +4,11 @@ import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
-import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 
 internal actual fun provideConversationListPresenter(): ConversationListPresenter = IosKoinBridge.conversationListPresenter()
@@ -19,11 +19,9 @@ internal actual fun provideContactsPresenter(): ContactsPresenter = IosKoinBridg
 
 internal actual fun provideAccountPresenter(): AccountPresenter = IosKoinBridge.accountPresenter()
 
-internal actual fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter =
-    IosKoinBridge.notificationSettingsPresenter()
+internal actual fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter = IosKoinBridge.notificationSettingsPresenter()
 
-internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter =
-    IosKoinBridge.appearanceSettingsPresenter()
+internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter = IosKoinBridge.appearanceSettingsPresenter()
 
 internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = IosKoinBridge.sessionProvider()
 

@@ -12,8 +12,8 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.account.AccountSettingsRoute
 import com.edufelip.livechat.ui.features.settings.appearance.AppearanceSettingsRoute
-import com.edufelip.livechat.ui.features.settings.notifications.NotificationSettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.features.settings.notifications.NotificationSettingsRoute
 import com.edufelip.livechat.ui.features.settings.screens.SettingsScreen
 import com.edufelip.livechat.ui.features.settings.screens.SettingsSection
 import org.jetbrains.compose.ui.tooling.preview.Preview

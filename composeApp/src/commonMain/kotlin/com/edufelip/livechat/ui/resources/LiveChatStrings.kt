@@ -108,7 +108,9 @@ data class AppearanceStrings(
     val typographySmallLabel: String = "Small",
     val typographyDefaultLabel: String = "Default",
     val typographyLargeLabel: String = "Large",
-    val typographySample: String = "The quick brown fox jumps over the lazy dog. Adjust the slider to see how text will appear in your chats.",
+    val typographySample: String =
+        "The quick brown fox jumps over the lazy dog. " +
+            "Adjust the slider to see how text will appear in your chats.",
     val reduceMotionTitle: String = "Reduce motion",
     val reduceMotionSubtitle: String = "Minimize animations",
     val highContrastTitle: String = "High contrast",

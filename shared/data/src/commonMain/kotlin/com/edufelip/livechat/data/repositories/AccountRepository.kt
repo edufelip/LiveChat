@@ -7,8 +7,8 @@ import com.edufelip.livechat.domain.repositories.IAccountRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 
 class AccountRepository(
     private val remoteData: IAccountRemoteData,

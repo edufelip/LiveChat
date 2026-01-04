@@ -214,10 +214,11 @@ private fun EditField.keyboardOptions(): KeyboardOptions =
         EditField.DisplayName,
         EditField.StatusMessage,
         EditField.None,
-        -> KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Done,
-        )
+        ->
+            KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done,
+            )
     }
 
 private fun EditField.canSave(value: String): Boolean =

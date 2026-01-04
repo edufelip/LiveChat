@@ -19,9 +19,9 @@ import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AppearanceSettingsRoute(
@@ -126,8 +126,11 @@ private fun Float.roundToTwoDecimals(): Float {
     return (this * 100f).roundToInt() / 100f
 }
 
-private fun approximatelyEqual(a: Float, b: Float, epsilon: Float = 0.005f): Boolean =
-    abs(a - b) <= epsilon
+private fun approximatelyEqual(
+    a: Float,
+    b: Float,
+    epsilon: Float = 0.005f,
+): Boolean = abs(a - b) <= epsilon
 
 private fun previewState(): AppearanceSettingsUiState =
     AppearanceSettingsUiState(

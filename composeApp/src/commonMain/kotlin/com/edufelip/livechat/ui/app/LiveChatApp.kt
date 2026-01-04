@@ -15,9 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.domain.models.AppDestination
+import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
-import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
