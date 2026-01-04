@@ -10,11 +10,14 @@ import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
+import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
+import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
+import com.edufelip.livechat.domain.useCases.BlockContactUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
@@ -25,14 +28,17 @@ import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
+import com.edufelip.livechat.domain.useCases.ObserveBlockedContactsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveContactByPhoneUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
+import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
@@ -40,17 +46,22 @@ import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
+import com.edufelip.livechat.domain.useCases.UnblockContactUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
 import com.edufelip.livechat.domain.useCases.UpdateHighContrastUseCase
 import com.edufelip.livechat.domain.useCases.UpdateInAppVibrationUseCase
+import com.edufelip.livechat.domain.useCases.UpdateInvitePreferenceUseCase
+import com.edufelip.livechat.domain.useCases.UpdateLastSeenAudienceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateMessagePreviewUseCase
 import com.edufelip.livechat.domain.useCases.UpdateNotificationSoundUseCase
 import com.edufelip.livechat.domain.useCases.UpdatePushNotificationsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateQuietHoursEnabledUseCase
 import com.edufelip.livechat.domain.useCases.UpdateQuietHoursWindowUseCase
+import com.edufelip.livechat.domain.useCases.UpdateReadReceiptsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateReduceMotionUseCase
+import com.edufelip.livechat.domain.useCases.UpdateShareUsageDataUseCase
 import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
@@ -81,6 +92,8 @@ val sharedDomainModule: Module =
         factory { ObserveAccountProfileUseCase(get<IAccountRepository>()) }
         factory { ObserveNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
         factory { ObserveAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { ObservePrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
+        factory { ObserveBlockedContactsUseCase(get<IBlockedContactsRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
@@ -102,6 +115,13 @@ val sharedDomainModule: Module =
         factory { UpdateReduceMotionUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateHighContrastUseCase(get<IAppearanceSettingsRepository>()) }
         factory { ResetAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { UpdateInvitePreferenceUseCase(get<IPrivacySettingsRepository>()) }
+        factory { UpdateLastSeenAudienceUseCase(get<IPrivacySettingsRepository>()) }
+        factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>()) }
+        factory { UpdateShareUsageDataUseCase(get<IPrivacySettingsRepository>()) }
+        factory { ResetPrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
+        factory { BlockContactUseCase(get<IBlockedContactsRepository>()) }
+        factory { UnblockContactUseCase(get<IBlockedContactsRepository>()) }
         factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateNotificationSoundUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateQuietHoursEnabledUseCase(get<INotificationSettingsRepository>()) }
