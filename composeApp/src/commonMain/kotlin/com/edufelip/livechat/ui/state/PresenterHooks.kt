@@ -16,12 +16,14 @@ import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
+import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -117,6 +119,22 @@ internal fun NotificationSettingsPresenter.collectState(): State<NotificationSet
     this.state.collectAsComposeState()
 
 @Composable
+internal fun rememberAppearanceSettingsPresenter(): AppearanceSettingsPresenter {
+    val presenter =
+        remember {
+            provideAppearanceSettingsPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun AppearanceSettingsPresenter.collectState(): State<AppearanceSettingsUiState> =
+    this.state.collectAsComposeState()
+
+@Composable
 internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
     return remember {
         provideSessionProvider()
@@ -158,6 +176,8 @@ internal expect fun provideContactsPresenter(): ContactsPresenter
 internal expect fun provideAccountPresenter(): AccountPresenter
 
 internal expect fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter
+
+internal expect fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter
 
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
 

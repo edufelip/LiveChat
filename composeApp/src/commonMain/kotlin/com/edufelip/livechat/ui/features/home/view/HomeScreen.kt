@@ -43,6 +43,7 @@ import com.edufelip.livechat.ui.features.settings.SettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
+import com.edufelip.livechat.ui.theme.LocalReduceMotion
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -62,6 +63,7 @@ internal fun HomeScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
     val tabs = remember { defaultHomeTabs }
     val destination = state.destination
+    val reduceMotion = LocalReduceMotion.current
     var showSettingsChrome by remember { mutableStateOf(true) }
     val showChrome =
         destination !is HomeDestination.ConversationDetail &&
@@ -118,6 +120,9 @@ internal fun HomeScreen(
             modifier = bodyModifier,
             targetState = destination,
             transitionSpec = {
+                if (reduceMotion) {
+                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                } else {
                 val direction =
                     when {
                         targetState.animationOrder() > initialState.animationOrder() -> 1
@@ -137,6 +142,7 @@ internal fun HomeScreen(
                                 animationSpec = tween(300),
                             ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
                         )
+                }
                 }
             },
             label = "homeDestinationTransition",

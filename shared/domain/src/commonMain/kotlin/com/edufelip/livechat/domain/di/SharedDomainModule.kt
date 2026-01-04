@@ -6,6 +6,7 @@ import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
@@ -144,6 +145,17 @@ val sharedDomainModule: Module =
                 updateQuietHoursWindow = get(),
                 updateInAppVibration = get(),
                 updateShowMessagePreview = get(),
+                resetSettings = get(),
+                scope = MainScope(),
+            )
+        }
+        factory {
+            AppearanceSettingsPresenter(
+                observeSettings = get(),
+                updateThemeMode = get(),
+                updateTextScale = get(),
+                updateReduceMotion = get(),
+                updateHighContrast = get(),
                 resetSettings = get(),
                 scope = MainScope(),
             )
