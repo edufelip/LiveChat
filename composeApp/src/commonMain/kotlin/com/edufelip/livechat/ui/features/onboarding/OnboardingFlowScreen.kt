@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -67,6 +68,62 @@ internal fun OnboardingFlowScreen(
     val inspectionMode = LocalInspectionMode.current
     val context = rememberPlatformContext()
     val allowVerification = !inspectionMode
+    val onFinishedAction = rememberStableAction(onFinished)
+    val onPickCountryAction = rememberStableAction { showCountryPicker = true }
+    val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
+    val onSelectCountryAction =
+        rememberStableAction<CountryOption> {
+            selectedCountryCode = it.isoCode
+            showCountryPicker = false
+        }
+    val onPhoneChangedAction =
+        rememberStableAction<String> { input ->
+            phoneNumber = input.filter(Char::isDigit).take(20)
+            phoneInputError = null
+            phoneAuthPresenter.dismissError()
+        }
+    val onContinueAction =
+        rememberStableAction {
+            if (!phoneNumber.isDigitsOnly() || phoneNumber.length < 7) {
+                phoneInputError = strings.onboarding.invalidPhoneError
+                return@rememberStableAction
+            }
+            if (!allowVerification) return@rememberStableAction
+            val presentationContext = runCatching { phoneAuthPresentationContext(context) }.getOrNull()
+            if (presentationContext == null) {
+                phoneInputError = strings.onboarding.startVerificationError
+                return@rememberStableAction
+            }
+            phoneAuthPresenter.startVerification(
+                PhoneNumber(
+                    dialCode = selectedCountry.dialCode,
+                    nationalNumber = phoneNumber,
+                ),
+                presentationContext,
+            )
+        }
+    val onOtpChangedAction =
+        rememberStableAction<String> { value ->
+            if (value.length <= 6 && value.all(Char::isDigit)) {
+                otp = value
+                phoneAuthPresenter.dismissError()
+            }
+        }
+    val onResendAction =
+        rememberStableAction {
+            if (!allowVerification) return@rememberStableAction
+            if (phoneAuthState.session == null) return@rememberStableAction
+            val presentationContext =
+                runCatching { phoneAuthPresentationContext(context) }.getOrNull()
+                    ?: return@rememberStableAction
+            phoneAuthPresenter.resendCode(presentationContext)
+        }
+    val onVerifyAction =
+        rememberStableAction {
+            if (allowVerification && otp.length == 6) {
+                phoneAuthPresenter.verifyCode(otp)
+            }
+        }
 
     LaunchedEffect(phoneAuthState.session?.verificationId) {
         otp = ""
@@ -113,32 +170,9 @@ internal fun OnboardingFlowScreen(
                     phoneNumber = phoneNumber,
                     phoneError = phoneErrorMessage,
                     isLoading = phoneAuthState.isRequesting,
-                    onPickCountry = { showCountryPicker = true },
-                    onPhoneChanged = { input ->
-                        phoneNumber = input.filter(Char::isDigit).take(20)
-                        phoneInputError = null
-                        phoneAuthPresenter.dismissError()
-                    },
-                    onContinue = {
-                        if (!phoneNumber.isDigitsOnly() || phoneNumber.length < 7) {
-                            phoneInputError = strings.onboarding.invalidPhoneError
-                            return@PhoneStep
-                        }
-                        if (!allowVerification) return@PhoneStep
-                        val presentationContext =
-                            runCatching { phoneAuthPresentationContext(context) }
-                                .getOrElse {
-                                    phoneInputError = strings.onboarding.startVerificationError
-                                    return@PhoneStep
-                                }
-                        phoneAuthPresenter.startVerification(
-                            PhoneNumber(
-                                dialCode = selectedCountry.dialCode,
-                                nationalNumber = phoneNumber,
-                            ),
-                            presentationContext,
-                        )
-                    },
+                    onPickCountry = onPickCountryAction,
+                    onPhoneChanged = onPhoneChangedAction,
+                    onContinue = onContinueAction,
                 )
 
             OnboardingStep.OTP ->
@@ -150,41 +184,20 @@ internal fun OnboardingFlowScreen(
                     isRequesting = phoneAuthState.isRequesting,
                     isVerifying = phoneAuthState.isVerifying,
                     errorMessage = otpErrorMessage,
-                    onOtpChanged = { value ->
-                        if (value.length <= 6 && value.all(Char::isDigit)) {
-                            otp = value
-                            phoneAuthPresenter.dismissError()
-                        }
-                    },
-                    onResend = {
-                        if (allowVerification) {
-                            phoneAuthState.session?.let {
-                                val presentationContext =
-                                    runCatching { phoneAuthPresentationContext(context) }.getOrNull()
-                                        ?: return@OTPStep
-                                phoneAuthPresenter.resendCode(presentationContext)
-                            }
-                        }
-                    },
-                    onVerify = {
-                        if (allowVerification && otp.length == 6) {
-                            phoneAuthPresenter.verifyCode(otp)
-                        }
-                    },
+                    onOtpChanged = onOtpChangedAction,
+                    onResend = onResendAction,
+                    onVerify = onVerifyAction,
                 )
 
-            OnboardingStep.Success -> SuccessStep(onFinished = onFinished)
+            OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
         }
     }
 
     if (showCountryPicker) {
         CountryPickerDialog(
             currentSelection = selectedCountry,
-            onDismiss = { showCountryPicker = false },
-            onSelect = {
-                selectedCountryCode = it.isoCode
-                showCountryPicker = false
-            },
+            onDismiss = onDismissCountryPickerAction,
+            onSelect = onSelectCountryAction,
         )
     }
 }
@@ -212,6 +225,50 @@ internal fun UiTestOnboardingFlow(
     var otpError by remember { mutableStateOf<String?>(null) }
     var showCountryPicker by remember { mutableStateOf(false) }
     var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
+    val onFinishedAction = rememberStableAction(onFinished)
+    val onPickCountryAction = rememberStableAction { showCountryPicker = true }
+    val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
+    val onSelectCountryAction =
+        rememberStableAction<CountryOption> {
+            selectedCountryCode = it.isoCode
+            showCountryPicker = false
+        }
+    val onPhoneChangedAction =
+        rememberStableAction<String> { input ->
+            phoneNumber = input.filter(Char::isDigit).take(20)
+            phoneInputError = null
+        }
+    val onContinueAction =
+        rememberStableAction {
+            val candidate = phoneNumber.ifBlank { phoneOverride.orEmpty() }
+            if (!candidate.isDigitsOnly() || candidate.length < 7) {
+                phoneInputError = strings.onboarding.invalidPhoneError
+                return@rememberStableAction
+            }
+            phoneNumber = candidate
+            phoneInputError = null
+            otp = ""
+            otpError = null
+            step = OnboardingStep.OTP
+        }
+    val onOtpChangedAction =
+        rememberStableAction<String> { value ->
+            if (value.length <= 6 && value.all(Char::isDigit)) {
+                otp = value
+                otpError = null
+            }
+        }
+    val onVerifyAction =
+        rememberStableAction {
+            val candidate = otp.ifBlank { otpOverride.orEmpty() }
+            if (candidate.length == 6) {
+                if (candidate == UI_TEST_OTP) {
+                    step = OnboardingStep.Success
+                } else {
+                    otpError = strings.onboarding.invalidVerificationCode
+                }
+            }
+        }
 
     Scaffold(
         modifier =
@@ -240,23 +297,9 @@ internal fun UiTestOnboardingFlow(
                     phoneNumber = phoneNumber,
                     phoneError = phoneInputError,
                     isLoading = false,
-                    onPickCountry = { showCountryPicker = true },
-                    onPhoneChanged = { input ->
-                        phoneNumber = input.filter(Char::isDigit).take(20)
-                        phoneInputError = null
-                    },
-                    onContinue = {
-                        val candidate = phoneNumber.ifBlank { phoneOverride.orEmpty() }
-                        if (!candidate.isDigitsOnly() || candidate.length < 7) {
-                            phoneInputError = strings.onboarding.invalidPhoneError
-                            return@PhoneStep
-                        }
-                        phoneNumber = candidate
-                        phoneInputError = null
-                        otp = ""
-                        otpError = null
-                        step = OnboardingStep.OTP
-                    },
+                    onPickCountry = onPickCountryAction,
+                    onPhoneChanged = onPhoneChangedAction,
+                    onContinue = onContinueAction,
                     continueEnabled = true,
                 )
 
@@ -269,38 +312,21 @@ internal fun UiTestOnboardingFlow(
                     isRequesting = false,
                     isVerifying = false,
                     errorMessage = otpError,
-                    onOtpChanged = { value ->
-                        if (value.length <= 6 && value.all(Char::isDigit)) {
-                            otp = value
-                            otpError = null
-                        }
-                    },
+                    onOtpChanged = onOtpChangedAction,
                     onResend = {},
-                    onVerify = {
-                        val candidate = otp.ifBlank { otpOverride.orEmpty() }
-                        if (candidate.length == 6) {
-                            if (candidate == UI_TEST_OTP) {
-                                step = OnboardingStep.Success
-                            } else {
-                                otpError = strings.onboarding.invalidVerificationCode
-                            }
-                        }
-                    },
+                    onVerify = onVerifyAction,
                     verifyEnabled = true,
                 )
 
-            OnboardingStep.Success -> SuccessStep(onFinished = onFinished)
+            OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
         }
     }
 
     if (showCountryPicker) {
         CountryPickerDialog(
             currentSelection = selectedCountry,
-            onDismiss = { showCountryPicker = false },
-            onSelect = {
-                selectedCountryCode = it.isoCode
-                showCountryPicker = false
-            },
+            onDismiss = onDismissCountryPickerAction,
+            onSelect = onSelectCountryAction,
         )
     }
 }
@@ -326,5 +352,17 @@ private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =
         is PhoneAuthError.Configuration -> this.message ?: strings.configurationError
         is PhoneAuthError.Unknown -> this.message ?: strings.unknownError
     }
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
+}
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
 
 private const val UI_TEST_OTP = "123123"

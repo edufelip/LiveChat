@@ -27,8 +27,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeDestination
@@ -41,7 +43,7 @@ import com.edufelip.livechat.ui.features.conversations.detail.ConversationDetail
 import com.edufelip.livechat.ui.features.conversations.list.ConversationListRoute
 import com.edufelip.livechat.ui.features.settings.SettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
-import com.edufelip.livechat.ui.resources.LiveChatStrings
+import com.edufelip.livechat.ui.resources.HomeStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LocalReduceMotion
 
@@ -59,15 +61,35 @@ internal fun HomeScreen(
     onOpenSettingsSection: (SettingsNavigationRequest) -> Unit,
 ) {
     val strings = liveChatStrings()
+    val homeStrings = strings.home
+    val onSelectTabAction = rememberStableAction(onSelectTab)
+    val onOpenConversationAction = rememberStableAction(onOpenConversation)
+    val onStartConversationWithContactAction = rememberStableAction(onStartConversationWithContact)
+    val onShareInviteAction = rememberStableAction(onShareInvite)
+    val onBackFromConversationAction = rememberStableAction(onBackFromConversation)
+    val onOpenSettingsSectionAction = rememberStableAction(onOpenSettingsSection)
+    val phoneContactsProviderAction = rememberStableProvider(phoneContactsProvider)
     val topBarState = rememberTopAppBarState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topBarState)
     val tabs = remember { defaultHomeTabs }
+    val tabOptions =
+        remember(homeStrings, tabs) {
+            tabs.map { tabItem ->
+                HomeTabOption(
+                    tab = tabItem.tab,
+                    label = tabItem.labelSelector(homeStrings),
+                    icon = tabItem.icon,
+                )
+            }
+        }
     val destination = state.destination
     val reduceMotion = LocalReduceMotion.current
     var showSettingsChrome by remember { mutableStateOf(true) }
+    val onChromeVisibilityChanged = remember { { isVisible: Boolean -> showSettingsChrome = isVisible } }
     val showChrome =
         destination !is HomeDestination.ConversationDetail &&
             (destination != HomeDestination.Settings || showSettingsChrome)
+    val title = remember(destination, homeStrings) { topBarTitle(destination, homeStrings) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -77,7 +99,7 @@ internal fun HomeScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = topBarTitle(destination, strings),
+                            text = title,
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(top = 8.dp, start = 8.dp),
                         )
@@ -91,12 +113,16 @@ internal fun HomeScreen(
                 NavigationBar(
                     windowInsets = WindowInsets.navigationBars,
                 ) {
-                    tabs.forEach { tabItem ->
+                    tabOptions.forEach { tabItem ->
+                        val onTabClick =
+                            remember(tabItem.tab, onSelectTabAction) {
+                                { onSelectTabAction(tabItem.tab) }
+                            }
                         NavigationBarItem(
                             selected = state.selectedTab == tabItem.tab,
-                            onClick = { onSelectTab(tabItem.tab) },
-                            icon = { Icon(tabItem.icon, contentDescription = tabItem.labelSelector(strings.home)) },
-                            label = { Text(tabItem.labelSelector(strings.home)) },
+                            onClick = onTabClick,
+                            icon = { Icon(tabItem.icon, contentDescription = tabItem.label) },
+                            label = { Text(tabItem.label) },
                         )
                     }
                 }
@@ -153,28 +179,28 @@ internal fun HomeScreen(
                         modifier = Modifier.fillMaxSize(),
                         conversationId = target.conversationId,
                         contactName = target.contactName,
-                        onBack = onBackFromConversation,
+                        onBack = onBackFromConversationAction,
                     )
 
                 HomeDestination.ConversationList ->
                     ConversationListRoute(
                         modifier = Modifier.fillMaxSize(),
-                        onConversationSelected = onOpenConversation,
+                        onConversationSelected = onOpenConversationAction,
                     )
 
                 HomeDestination.Contacts ->
                     ContactsRoute(
                         modifier = Modifier.fillMaxSize(),
-                        phoneContactsProvider = phoneContactsProvider,
-                        onContactSelected = onStartConversationWithContact,
-                        onShareInvite = onShareInvite,
+                        phoneContactsProvider = phoneContactsProviderAction,
+                        onContactSelected = onStartConversationWithContactAction,
+                        onShareInvite = onShareInviteAction,
                     )
 
                 HomeDestination.Settings ->
                     SettingsRoute(
                         modifier = Modifier.fillMaxSize(),
-                        onSectionSelected = onOpenSettingsSection,
-                        onChromeVisibilityChanged = { showSettingsChrome = it },
+                        onSectionSelected = onOpenSettingsSectionAction,
+                        onChromeVisibilityChanged = onChromeVisibilityChanged,
                     )
             }
         }
@@ -183,14 +209,44 @@ internal fun HomeScreen(
 
 private fun topBarTitle(
     destination: HomeDestination,
-    strings: LiveChatStrings,
+    strings: HomeStrings,
 ): String =
     when (destination) {
-        is HomeDestination.ConversationDetail -> strings.home.conversationTitle
-        HomeDestination.ConversationList -> strings.home.chatsTab
-        HomeDestination.Contacts -> strings.home.contactsTab
-        HomeDestination.Settings -> strings.home.settingsTab
+        is HomeDestination.ConversationDetail -> strings.conversationTitle
+        HomeDestination.ConversationList -> strings.chatsTab
+        HomeDestination.Contacts -> strings.contactsTab
+        HomeDestination.Settings -> strings.settingsTab
     }
+
+private data class HomeTabOption(
+    val tab: HomeTab,
+    val label: String,
+    val icon: ImageVector,
+)
+
+@Composable
+private fun <T> rememberStableProvider(provider: () -> T): () -> T {
+    val providerState = rememberUpdatedState(provider)
+    return remember { { providerState.value() } }
+}
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun <T1, T2> rememberStableAction(action: (T1, T2) -> Unit): (T1, T2) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value1, value2 -> actionState.value(value1, value2) } }
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
+}
 
 private fun HomeDestination.animationOrder(): Int =
     when (this) {

@@ -10,6 +10,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.InvitePreference
 import com.edufelip.livechat.domain.models.PrivacySettingsUiState
@@ -38,22 +40,49 @@ fun PrivacySettingsScreen(
     onOpenPrivacyPolicy: () -> Unit = {},
 ) {
     val strings = liveChatStrings()
+    val privacyStrings = strings.privacy
+    val generalStrings = strings.general
     val settings = state.settings
     val allowEdits = !state.isLoading && !state.isUpdating
+    val scrollState = rememberScrollState()
+    val onBackAction = rememberStableAction(onBack)
+    val onOpenBlockedContactsAction = rememberStableAction(onOpenBlockedContacts)
+    val onOpenLastSeenAction = rememberStableAction(onOpenLastSeen)
+    val onToggleReadReceiptsAction = rememberStableAction(onToggleReadReceipts)
+    val onToggleShareUsageDataAction = rememberStableAction(onToggleShareUsageData)
+    val onOpenPrivacyPolicyAction = rememberStableAction(onOpenPrivacyPolicy)
+    val onInvitePreferenceSelectedAction = rememberStableAction(onInvitePreferenceSelected)
+    val inviteOptions =
+        remember(privacyStrings) {
+            listOf(
+                InviteOption(
+                    preference = InvitePreference.Everyone,
+                    label = privacyStrings.inviteEveryone,
+                ),
+                InviteOption(
+                    preference = InvitePreference.Contacts,
+                    label = privacyStrings.inviteContacts,
+                ),
+                InviteOption(
+                    preference = InvitePreference.Nobody,
+                    label = privacyStrings.inviteNobody,
+                ),
+            )
+        }
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         PrivacySettingsHeader(
-            title = strings.privacy.screenTitle,
-            subtitle = strings.privacy.screenSubtitle,
-            backContentDescription = strings.general.dismiss,
-            onBack = onBack,
+            title = privacyStrings.screenTitle,
+            subtitle = privacyStrings.screenSubtitle,
+            backContentDescription = generalStrings.dismiss,
+            onBack = onBackAction,
         )
 
         if (state.isLoading) {
@@ -63,70 +92,81 @@ fun PrivacySettingsScreen(
         }
 
         PrivacyChevronCard(
-            title = strings.privacy.blockedContactsTitle,
-            subtitle = strings.privacy.blockedContactsSubtitle,
+            title = privacyStrings.blockedContactsTitle,
+            subtitle = privacyStrings.blockedContactsSubtitle,
             enabled = allowEdits,
-            onClick = onOpenBlockedContacts,
+            onClick = onOpenBlockedContactsAction,
         )
 
         PrivacySectionCard(
-            title = strings.privacy.invitePreferencesTitle,
-            subtitle = strings.privacy.invitePreferencesSubtitle,
+            title = privacyStrings.invitePreferencesTitle,
+            subtitle = privacyStrings.invitePreferencesSubtitle,
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
             ) {
-                PrivacyRadioOptionRow(
-                    label = strings.privacy.inviteEveryone,
-                    selected = settings.invitePreference == InvitePreference.Everyone,
-                    enabled = allowEdits,
-                    onClick = { onInvitePreferenceSelected(InvitePreference.Everyone) },
-                )
-                PrivacyRadioOptionRow(
-                    label = strings.privacy.inviteContacts,
-                    selected = settings.invitePreference == InvitePreference.Contacts,
-                    enabled = allowEdits,
-                    onClick = { onInvitePreferenceSelected(InvitePreference.Contacts) },
-                )
-                PrivacyRadioOptionRow(
-                    label = strings.privacy.inviteNobody,
-                    selected = settings.invitePreference == InvitePreference.Nobody,
-                    enabled = allowEdits,
-                    onClick = { onInvitePreferenceSelected(InvitePreference.Nobody) },
-                )
+                inviteOptions.forEach { option ->
+                    val onClick =
+                        remember(option.preference, onInvitePreferenceSelectedAction) {
+                            { onInvitePreferenceSelectedAction(option.preference) }
+                        }
+                    PrivacyRadioOptionRow(
+                        label = option.label,
+                        selected = settings.invitePreference == option.preference,
+                        enabled = allowEdits,
+                        onClick = onClick,
+                    )
+                }
             }
         }
 
         PrivacyChevronCard(
-            title = strings.privacy.lastSeenTitle,
+            title = privacyStrings.lastSeenTitle,
             subtitle = lastSeenSummary,
             enabled = allowEdits,
-            onClick = onOpenLastSeen,
+            onClick = onOpenLastSeenAction,
         )
 
         PrivacyToggleCard(
-            title = strings.privacy.readReceiptsTitle,
-            subtitle = strings.privacy.readReceiptsSubtitle,
+            title = privacyStrings.readReceiptsTitle,
+            subtitle = privacyStrings.readReceiptsSubtitle,
             checked = settings.readReceiptsEnabled,
             enabled = allowEdits,
-            onCheckedChange = onToggleReadReceipts,
+            onCheckedChange = onToggleReadReceiptsAction,
         )
 
         PrivacyToggleCard(
-            title = strings.privacy.shareUsageDataTitle,
-            subtitle = strings.privacy.shareUsageDataSubtitle,
+            title = privacyStrings.shareUsageDataTitle,
+            subtitle = privacyStrings.shareUsageDataSubtitle,
             checked = settings.shareUsageData,
             enabled = allowEdits,
-            onCheckedChange = onToggleShareUsageData,
+            onCheckedChange = onToggleShareUsageDataAction,
         )
 
         PrivacyChevronCard(
-            title = strings.privacy.privacyPolicyTitle,
-            subtitle = strings.privacy.privacyPolicySubtitle,
+            title = privacyStrings.privacyPolicyTitle,
+            subtitle = privacyStrings.privacyPolicySubtitle,
             enabled = allowEdits,
-            onClick = onOpenPrivacyPolicy,
+            onClick = onOpenPrivacyPolicyAction,
         )
     }
+}
+
+private data class InviteOption(
+    val preference: InvitePreference,
+    val label: String,
+)
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
 }
 
 @DevicePreviews

@@ -14,7 +14,10 @@ import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
 import com.edufelip.livechat.preview.DevicePreviews
@@ -42,23 +45,55 @@ fun AppearanceSettingsScreen(
     onToggleHighContrast: (Boolean) -> Unit = {},
 ) {
     val strings = liveChatStrings()
+    val appearanceStrings = strings.appearance
+    val generalStrings = strings.general
     val settings = state.settings
     val allowEdits = !state.isLoading && !state.isUpdating
     val selectedColor = MaterialTheme.colorScheme.primary
     val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val scrollState = rememberScrollState()
+    val onBackAction = rememberStableAction(onBack)
+    val onThemeSelectedAction = rememberStableAction(onThemeSelected)
+    val onTextScaleChangeAction = rememberStableAction(onTextScaleChange)
+    val onTextScaleChangeFinishedAction = rememberStableAction(onTextScaleChangeFinished)
+    val onToggleReduceMotionAction = rememberStableAction(onToggleReduceMotion)
+    val onToggleHighContrastAction = rememberStableAction(onToggleHighContrast)
+    val themeOptions =
+        remember(appearanceStrings) {
+            listOf(
+                ThemeOption(
+                    mode = ThemeMode.System,
+                    title = appearanceStrings.themeSystemTitle,
+                    subtitle = appearanceStrings.themeSystemSubtitle,
+                    icon = Icons.Rounded.BrightnessAuto,
+                ),
+                ThemeOption(
+                    mode = ThemeMode.Light,
+                    title = appearanceStrings.themeLightTitle,
+                    subtitle = appearanceStrings.themeLightSubtitle,
+                    icon = Icons.Rounded.LightMode,
+                ),
+                ThemeOption(
+                    mode = ThemeMode.Dark,
+                    title = appearanceStrings.themeDarkTitle,
+                    subtitle = appearanceStrings.themeDarkSubtitle,
+                    icon = Icons.Rounded.DarkMode,
+                ),
+            )
+        }
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         AppearanceSettingsHeader(
-            title = strings.appearance.screenTitle,
-            backContentDescription = strings.general.dismiss,
-            onBack = onBack,
+            title = appearanceStrings.screenTitle,
+            backContentDescription = generalStrings.dismiss,
+            onBack = onBackAction,
         )
 
         if (state.isLoading) {
@@ -67,70 +102,78 @@ fun AppearanceSettingsScreen(
             )
         }
 
-        AppearanceSectionHeader(title = strings.appearance.themesSection)
+        AppearanceSectionHeader(title = appearanceStrings.themesSection)
 
-        AppearanceThemeCard(
-            title = strings.appearance.themeSystemTitle,
-            subtitle = strings.appearance.themeSystemSubtitle,
-            icon = Icons.Rounded.BrightnessAuto,
-            iconTint = if (settings.themeMode == ThemeMode.System) selectedColor else unselectedColor,
-            selected = settings.themeMode == ThemeMode.System,
-            enabled = allowEdits,
-            onClick = { onThemeSelected(ThemeMode.System) },
-        )
+        themeOptions.forEach { option ->
+            val isSelected = settings.themeMode == option.mode
+            val onClick =
+                if (allowEdits) {
+                    remember(option.mode, onThemeSelectedAction) { { onThemeSelectedAction(option.mode) } }
+                } else {
+                    null
+                }
+            AppearanceThemeCard(
+                title = option.title,
+                subtitle = option.subtitle,
+                icon = option.icon,
+                iconTint = if (isSelected) selectedColor else unselectedColor,
+                selected = isSelected,
+                enabled = allowEdits,
+                onClick = onClick,
+            )
+        }
 
-        AppearanceThemeCard(
-            title = strings.appearance.themeLightTitle,
-            subtitle = strings.appearance.themeLightSubtitle,
-            icon = Icons.Rounded.LightMode,
-            iconTint = if (settings.themeMode == ThemeMode.Light) selectedColor else unselectedColor,
-            selected = settings.themeMode == ThemeMode.Light,
-            enabled = allowEdits,
-            onClick = { onThemeSelected(ThemeMode.Light) },
-        )
-
-        AppearanceThemeCard(
-            title = strings.appearance.themeDarkTitle,
-            subtitle = strings.appearance.themeDarkSubtitle,
-            icon = Icons.Rounded.DarkMode,
-            iconTint = if (settings.themeMode == ThemeMode.Dark) selectedColor else unselectedColor,
-            selected = settings.themeMode == ThemeMode.Dark,
-            enabled = allowEdits,
-            onClick = { onThemeSelected(ThemeMode.Dark) },
-        )
-
-        AppearanceSectionHeader(title = strings.appearance.typographySection)
+        AppearanceSectionHeader(title = appearanceStrings.typographySection)
 
         AppearanceTypographyCard(
-            smallLabel = strings.appearance.typographySmallLabel,
-            defaultLabel = strings.appearance.typographyDefaultLabel,
-            largeLabel = strings.appearance.typographyLargeLabel,
+            smallLabel = appearanceStrings.typographySmallLabel,
+            defaultLabel = appearanceStrings.typographyDefaultLabel,
+            largeLabel = appearanceStrings.typographyLargeLabel,
             sliderValue = sliderValue,
             enabled = allowEdits,
-            onValueChange = onTextScaleChange,
-            onValueChangeFinished = onTextScaleChangeFinished,
-            sampleText = strings.appearance.typographySample,
+            onValueChange = onTextScaleChangeAction,
+            onValueChangeFinished = onTextScaleChangeFinishedAction,
+            sampleText = appearanceStrings.typographySample,
             sampleScale = sampleScale,
         )
 
-        AppearanceSectionHeader(title = strings.appearance.accessibilitySection)
+        AppearanceSectionHeader(title = appearanceStrings.accessibilitySection)
 
         AppearanceToggleCard(
-            title = strings.appearance.reduceMotionTitle,
-            subtitle = strings.appearance.reduceMotionSubtitle,
+            title = appearanceStrings.reduceMotionTitle,
+            subtitle = appearanceStrings.reduceMotionSubtitle,
             checked = settings.reduceMotion,
             enabled = allowEdits,
-            onCheckedChange = onToggleReduceMotion,
+            onCheckedChange = onToggleReduceMotionAction,
         )
 
         AppearanceToggleCard(
-            title = strings.appearance.highContrastTitle,
-            subtitle = strings.appearance.highContrastSubtitle,
+            title = appearanceStrings.highContrastTitle,
+            subtitle = appearanceStrings.highContrastSubtitle,
             checked = settings.highContrast,
             enabled = allowEdits,
-            onCheckedChange = onToggleHighContrast,
+            onCheckedChange = onToggleHighContrastAction,
         )
     }
+}
+
+private data class ThemeOption(
+    val mode: ThemeMode,
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+)
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
 }
 
 @DevicePreviews
