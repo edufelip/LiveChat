@@ -310,9 +310,10 @@ private fun PrivacySettingsHeaderPreview() {
 @Composable
 private fun PrivacyChevronCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         PrivacyChevronCard(
-            title = "Blocked Contacts",
-            subtitle = "View and manage people you've blocked",
+            title = strings.privacy.blockedContactsTitle,
+            subtitle = strings.privacy.blockedContactsSubtitle,
             enabled = true,
             onClick = {},
         )
@@ -324,12 +325,13 @@ private fun PrivacyChevronCardPreview() {
 @Composable
 private fun PrivacySectionCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         PrivacySectionCard(
-            title = "Invite Preferences",
-            subtitle = "Control who can add you to groups and channels",
+            title = strings.privacy.invitePreferencesTitle,
+            subtitle = strings.privacy.invitePreferencesSubtitle,
         ) {
             PrivacyRadioOptionRow(
-                label = "Everyone",
+                label = strings.privacy.inviteEveryone,
                 selected = true,
                 enabled = true,
                 onClick = {},
@@ -343,9 +345,10 @@ private fun PrivacySectionCardPreview() {
 @Composable
 private fun PrivacyToggleCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         PrivacyToggleCard(
-            title = "Read Receipts",
-            subtitle = "If turned off, you won't see read receipts either.",
+            title = strings.privacy.readReceiptsTitle,
+            subtitle = strings.privacy.readReceiptsSubtitle,
             checked = true,
             enabled = true,
             onCheckedChange = {},
@@ -358,10 +361,16 @@ private fun PrivacyToggleCardPreview() {
 @Composable
 private fun BlockedContactRowPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         BlockedContactRow(
-            contact = BlockedContact(userId = "user_123", displayName = "Alex Morgan", phoneNumber = "+1 555 123 4567"),
-            fallbackLabel = "Unknown user",
-            unblockLabel = "Unblock",
+            contact =
+                BlockedContact(
+                    userId = strings.privacy.blockedContactUnknown,
+                    displayName = null,
+                    phoneNumber = strings.account.phoneMissing,
+                ),
+            fallbackLabel = strings.privacy.blockedContactUnknown,
+            unblockLabel = strings.privacy.unblockCta,
             enabled = true,
             onUnblock = {},
         )

@@ -11,41 +11,53 @@ import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.models.Participant
 import com.edufelip.livechat.domain.models.ParticipantRole
+import com.edufelip.livechat.ui.resources.LiveChatStrings
 
 object PreviewFixtures {
     private const val TIMESTAMP = 1_696_000_000_000L
+    private const val PREVIEW_USER_ID = "preview-user"
+    private const val PREVIEW_FRIEND_ID = "preview-friend"
+    private const val CONVERSATION_PRIMARY_ID = "conversation-1"
+    private const val CONVERSATION_SECONDARY_ID = "conversation-2"
 
-    val sampleMessages: List<Message> =
-        listOf(
+    val badgeColors = listOf(Color(0xFF64C7A8), Color(0xFF82D4B8))
+
+    fun previewUserId(): String = PREVIEW_USER_ID
+
+    fun sampleMessages(strings: LiveChatStrings): List<Message> {
+        val preview = strings.preview
+        return listOf(
             Message(
                 id = "1",
-                conversationId = "conversation-1",
-                senderId = "preview-user",
-                body = "Hey there! This is a preview message to show how your own messages appear in bubbles.",
+                conversationId = CONVERSATION_PRIMARY_ID,
+                senderId = PREVIEW_USER_ID,
+                body = preview.messageOutgoing,
                 createdAt = TIMESTAMP,
                 status = MessageStatus.DELIVERED,
             ),
             Message(
                 id = "2",
-                conversationId = "conversation-1",
-                senderId = "friend",
-                body = "Hi 👋🏾 Compose Multiplatform previews are working like a charm!",
+                conversationId = CONVERSATION_PRIMARY_ID,
+                senderId = PREVIEW_FRIEND_ID,
+                body = preview.messageIncoming,
                 createdAt = TIMESTAMP - 90_000,
                 status = MessageStatus.SENT,
             ),
         )
+    }
 
-    val conversationUiState =
-        ConversationUiState(
-            conversationId = "conversation-1",
-            messages = sampleMessages,
+    fun conversationUiState(strings: LiveChatStrings): ConversationUiState {
+        val messages = sampleMessages(strings)
+        return ConversationUiState(
+            conversationId = CONVERSATION_PRIMARY_ID,
+            messages = messages,
             isLoading = false,
             isSending = false,
             errorMessage = null,
             participant =
                 Participant(
-                    conversationId = "conversation-1",
-                    userId = "preview-user",
+                    conversationId = CONVERSATION_PRIMARY_ID,
+                    userId = PREVIEW_USER_ID,
                     role = ParticipantRole.Member,
                     joinedAt = TIMESTAMP - 10_000,
                     muteUntil = TIMESTAMP + 3_600_000,
@@ -57,78 +69,105 @@ object PreviewFixtures {
             muteUntil = TIMESTAMP + 3_600_000,
             isArchived = false,
         )
+    }
 
-    val loadingConversationState =
+    fun loadingConversationState(): ConversationUiState =
         ConversationUiState(
-            conversationId = "conversation-1",
+            conversationId = CONVERSATION_PRIMARY_ID,
             messages = emptyList(),
             isLoading = true,
             isSending = false,
             errorMessage = null,
         )
 
-    val sampleConversations: List<ConversationSummary> =
-        listOf(
-            ConversationSummary(
-                conversationId = "conversation-1",
-                contactName = "Ava Harper",
-                contactPhoto = null,
-                lastMessage = sampleMessages.first(),
-                unreadCount = 3,
-                isPinned = true,
-                pinnedAt = TIMESTAMP,
-                lastReadAt = TIMESTAMP - 5_000,
-            ),
-            ConversationSummary(
-                conversationId = "conversation-2",
-                contactName = "Brandon Diaz",
-                contactPhoto = null,
-                lastMessage = sampleMessages.last().copy(body = "Let's schedule a quick catch-up later today."),
-                unreadCount = 0,
-                isPinned = false,
-                pinnedAt = null,
-                lastReadAt = TIMESTAMP - 20_000,
-            ),
-        )
-
-    val conversationListState =
-        ConversationListUiState(
+    fun conversationListState(strings: LiveChatStrings): ConversationListUiState {
+        val preview = strings.preview
+        val messages = sampleMessages(strings)
+        val sampleConversations =
+            listOf(
+                ConversationSummary(
+                    conversationId = CONVERSATION_PRIMARY_ID,
+                    contactName = preview.contactPrimaryName,
+                    contactPhoto = null,
+                    lastMessage = messages.first(),
+                    unreadCount = 3,
+                    isPinned = true,
+                    pinnedAt = TIMESTAMP,
+                    lastReadAt = TIMESTAMP - 5_000,
+                ),
+                ConversationSummary(
+                    conversationId = CONVERSATION_SECONDARY_ID,
+                    contactName = preview.contactSecondaryName,
+                    contactPhoto = null,
+                    lastMessage = messages.last().copy(body = preview.messageSnippetSecondary),
+                    unreadCount = 0,
+                    isPinned = false,
+                    pinnedAt = null,
+                    lastReadAt = TIMESTAMP - 20_000,
+                ),
+            )
+        return ConversationListUiState(
             conversations = sampleConversations,
             searchQuery = "",
             isLoading = false,
             errorMessage = null,
             selectedFilter = ConversationFilter.All,
         )
+    }
 
-    val conversationListLoading = conversationListState.copy(conversations = emptyList(), isLoading = true)
-    val conversationListEmpty = conversationListState.copy(conversations = emptyList(), isLoading = false)
-    val conversationListError = conversationListState.copy(errorMessage = "Something went wrong")
+    fun conversationListLoading(strings: LiveChatStrings): ConversationListUiState =
+        conversationListState(strings).copy(conversations = emptyList(), isLoading = true)
 
-    val contacts: List<Contact> =
-        listOf(
-            Contact(id = 1, name = "Ava Harper", phoneNo = "+1 555 0100", description = "Designer", photo = null, isRegistered = true),
+    fun conversationListEmpty(strings: LiveChatStrings): ConversationListUiState =
+        conversationListState(strings).copy(conversations = emptyList(), isLoading = false)
+
+    fun conversationListError(strings: LiveChatStrings): ConversationListUiState =
+        conversationListState(strings).copy(errorMessage = strings.general.errorTitle)
+
+    fun contacts(strings: LiveChatStrings): List<Contact> {
+        val preview = strings.preview
+        return listOf(
             Contact(
-                id = 2,
-                name = "Brandon Diaz",
-                phoneNo = "+1 555 0101",
-                description = "Product Manager",
+                id = 1,
+                name = preview.contactPrimaryName,
+                phoneNo = preview.contactPrimaryPhone,
+                description = null,
                 photo = null,
                 isRegistered = true,
             ),
-            Contact(id = 3, name = "Chioma Ade", phoneNo = "+1 555 0102", description = "iOS Engineer", photo = null, isRegistered = false),
+            Contact(
+                id = 2,
+                name = preview.contactSecondaryName,
+                phoneNo = preview.contactSecondaryPhone,
+                description = null,
+                photo = null,
+                isRegistered = true,
+            ),
+            Contact(
+                id = 3,
+                name = preview.contactTertiaryName,
+                phoneNo = preview.contactTertiaryPhone,
+                description = null,
+                photo = null,
+                isRegistered = false,
+            ),
         )
+    }
 
-    val contactsState =
-        ContactsUiState(
-            localContacts = contacts,
-            validatedContacts = contacts.filter { it.isRegistered },
+    fun contactsState(strings: LiveChatStrings): ContactsUiState {
+        val previewContacts = contacts(strings)
+        return ContactsUiState(
+            localContacts = previewContacts,
+            validatedContacts = previewContacts.filter { it.isRegistered },
             isLoading = false,
             isSyncing = false,
             errorMessage = null,
         )
+    }
 
-    val contactsLoadingState = contactsState.copy(localContacts = emptyList(), validatedContacts = emptyList(), isLoading = true)
-    val contactsErrorState = contactsState.copy(errorMessage = "Invite failed")
+    fun contactsLoadingState(strings: LiveChatStrings): ContactsUiState =
+        contactsState(strings).copy(localContacts = emptyList(), validatedContacts = emptyList(), isLoading = true)
 
-    val badgeColors = listOf(Color(0xFF64C7A8), Color(0xFF82D4B8))
+    fun contactsErrorState(strings: LiveChatStrings): ContactsUiState =
+        contactsState(strings).copy(errorMessage = strings.general.errorTitle)
 }

@@ -663,10 +663,12 @@ private fun PermissionHint(hint: String?) {
 @Composable
 private fun ConversationDetailScreenPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewState = PreviewFixtures.conversationUiState(strings)
         ConversationDetailScreen(
-            state = PreviewFixtures.conversationUiState,
-            contactName = "Ava Harper",
-            currentUserId = "preview-user",
+            state = previewState,
+            contactName = strings.preview.contactPrimaryName,
+            currentUserId = PreviewFixtures.previewUserId(),
             onSendMessage = {},
             isRecording = false,
             recordingDurationMillis = 0L,
@@ -697,9 +699,11 @@ private fun ConversationDetailScreenPreview() {
 @Composable
 private fun ConversationMessagesListPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewState = PreviewFixtures.conversationUiState(strings)
         ConversationMessagesList(
-            messages = PreviewFixtures.conversationUiState.messages,
-            currentUserId = "preview-user",
+            messages = previewState.messages,
+            currentUserId = PreviewFixtures.previewUserId(),
             playingPath = null,
             isPlaying = false,
             progress = 0f,
@@ -734,6 +738,6 @@ private fun RecordingIndicatorPreview() {
 @Composable
 private fun PermissionHintPreview() {
     LiveChatPreviewContainer {
-        PermissionHint(hint = "Camera permission needed")
+        PermissionHint(hint = liveChatStrings().conversation.cameraPermissionHint)
     }
 }

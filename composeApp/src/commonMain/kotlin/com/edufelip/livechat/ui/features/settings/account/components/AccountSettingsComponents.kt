@@ -266,11 +266,13 @@ private fun AccountSettingsHeaderPreview() {
 @Composable
 private fun AccountProfileCardPreview() {
     val strings = liveChatStrings()
+    val displayName = strings.account.displayNameMissing
+    val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
     LiveChatPreviewContainer {
         AccountProfileCard(
-            displayName = "Alex Morgan",
+            displayName = displayName,
             onlineLabel = strings.account.onlineLabel,
-            initials = "AM",
+            initials = initials,
             editLabel = strings.account.editCta,
             onEdit = {},
         )

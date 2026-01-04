@@ -147,8 +147,9 @@ fun ConversationListScreen(
 @Composable
 private fun ConversationListScreenPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         ConversationListScreen(
-            state = PreviewFixtures.conversationListState,
+            state = PreviewFixtures.conversationListState(strings),
             onSearch = {},
             onConversationSelected = {},
             onTogglePin = { _, _ -> },

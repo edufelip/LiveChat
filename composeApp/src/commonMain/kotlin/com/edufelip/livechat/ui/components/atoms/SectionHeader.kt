@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -25,6 +26,6 @@ fun SectionHeader(title: String) {
 @Composable
 private fun SectionHeaderPreview() {
     LiveChatPreviewContainer {
-        SectionHeader(title = "Pinned")
+        SectionHeader(title = liveChatStrings().conversation.pinnedSectionTitle)
     }
 }

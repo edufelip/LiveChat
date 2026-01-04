@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardOptions
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -99,20 +100,21 @@ internal fun AccountEditBottomSheet(
 @Preview
 @Composable
 private fun AccountEditBottomSheetPreview() {
-    var text by remember { mutableStateOf("Alex Morgan") }
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        var text by remember { mutableStateOf(strings.account.displayNameMissing) }
         AccountEditBottomSheet(
-            title = "Edit display name",
-            description = "This is how your name appears to contacts.",
-            label = "Display Name",
-            placeholder = "Add your name",
+            title = strings.account.editDisplayNameTitle,
+            description = strings.account.editDisplayNameDescription,
+            label = strings.account.displayNameLabel,
+            placeholder = strings.account.displayNameMissing,
             value = text,
             onValueChange = { text = it },
             onDismiss = {},
             onConfirm = {},
             confirmEnabled = true,
             isUpdating = false,
-            confirmLabel = "Save",
+            confirmLabel = strings.account.saveCta,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
     }

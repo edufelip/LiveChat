@@ -114,8 +114,9 @@ fun ConversationListRow(
 @Composable
 private fun ConversationListRowPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         ConversationListRow(
-            summary = PreviewFixtures.conversationListState.conversations.first(),
+            summary = PreviewFixtures.conversationListState(strings).conversations.first(),
             onTogglePin = { _, _ -> },
             onToggleMute = { _, _ -> },
             onToggleArchive = { _, _ -> },

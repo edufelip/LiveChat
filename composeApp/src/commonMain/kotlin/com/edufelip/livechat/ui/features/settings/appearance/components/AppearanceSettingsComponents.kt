@@ -289,9 +289,10 @@ private fun SelectionIndicator(selected: Boolean) {
 @Composable
 private fun AppearanceSettingsHeaderPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         AppearanceSettingsHeader(
-            title = "Appearance",
-            backContentDescription = "Back",
+            title = strings.appearance.screenTitle,
+            backContentDescription = strings.general.dismiss,
             onBack = {},
         )
     }
@@ -302,7 +303,7 @@ private fun AppearanceSettingsHeaderPreview() {
 @Composable
 private fun AppearanceSectionHeaderPreview() {
     LiveChatPreviewContainer {
-        AppearanceSectionHeader(title = "Themes")
+        AppearanceSectionHeader(title = liveChatStrings().appearance.themesSection)
     }
 }
 
@@ -311,9 +312,10 @@ private fun AppearanceSectionHeaderPreview() {
 @Composable
 private fun AppearanceThemeCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         AppearanceThemeCard(
-            title = "System default",
-            subtitle = "Match your device settings",
+            title = strings.appearance.themeSystemTitle,
+            subtitle = strings.appearance.themeSystemSubtitle,
             icon = Icons.Rounded.BrightnessAuto,
             iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
             selected = true,
@@ -328,9 +330,10 @@ private fun AppearanceThemeCardPreview() {
 @Composable
 private fun AppearanceToggleCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         AppearanceToggleCard(
-            title = "Reduce motion",
-            subtitle = "Minimize animations",
+            title = strings.appearance.reduceMotionTitle,
+            subtitle = strings.appearance.reduceMotionSubtitle,
             checked = true,
             enabled = true,
             onCheckedChange = {},
@@ -343,15 +346,16 @@ private fun AppearanceToggleCardPreview() {
 @Composable
 private fun AppearanceTypographyCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         AppearanceTypographyCard(
-            smallLabel = "Small",
-            defaultLabel = "Default",
-            largeLabel = "Large",
+            smallLabel = strings.appearance.typographySmallLabel,
+            defaultLabel = strings.appearance.typographyDefaultLabel,
+            largeLabel = strings.appearance.typographyLargeLabel,
             sliderValue = 50f,
             enabled = true,
             onValueChange = {},
             onValueChangeFinished = {},
-            sampleText = "The quick brown fox jumps over the lazy dog.",
+            sampleText = strings.appearance.typographySample,
             sampleScale = 1f,
         )
     }

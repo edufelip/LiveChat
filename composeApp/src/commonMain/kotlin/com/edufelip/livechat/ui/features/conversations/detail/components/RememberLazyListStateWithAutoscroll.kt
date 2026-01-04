@@ -13,6 +13,7 @@ import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -31,7 +32,8 @@ fun rememberLazyListStateWithAutoscroll(messages: List<Message>): LazyListState 
 @Composable
 private fun RememberLazyListStatePreview() {
     LiveChatPreviewContainer {
-        val messages = PreviewFixtures.sampleMessages
+        val strings = liveChatStrings()
+        val messages = PreviewFixtures.sampleMessages(strings)
         val listState = rememberLazyListStateWithAutoscroll(messages)
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             items(messages, key = Message::id) { message ->

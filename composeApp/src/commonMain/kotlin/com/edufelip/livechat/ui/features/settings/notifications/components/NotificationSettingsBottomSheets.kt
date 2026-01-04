@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardOptions
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -126,6 +127,8 @@ internal fun NotificationQuietHoursBottomSheet(
     description: String,
     fromLabel: String,
     toLabel: String,
+    fromPlaceholder: String,
+    toPlaceholder: String,
     fromValue: String,
     toValue: String,
     onFromChange: (String) -> Unit,
@@ -168,7 +171,7 @@ internal fun NotificationQuietHoursBottomSheet(
                 onValueChange = { onFromChange(sanitizeTimeInput(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(fromLabel) },
-                placeholder = { Text("22:00") },
+                placeholder = { Text(fromPlaceholder) },
                 singleLine = true,
                 enabled = !isUpdating,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -178,7 +181,7 @@ internal fun NotificationQuietHoursBottomSheet(
                 onValueChange = { onToChange(sanitizeTimeInput(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(toLabel) },
-                placeholder = { Text("07:00") },
+                placeholder = { Text(toPlaceholder) },
                 singleLine = true,
                 enabled = !isUpdating,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -205,20 +208,27 @@ private fun sanitizeTimeInput(value: String): String {
 @Composable
 private fun NotificationSoundBottomSheetPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         NotificationSoundBottomSheet(
-            title = "Notification sound",
-            description = "Choose a tone for incoming messages.",
+            title = strings.notifications.soundSheetTitle,
+            description = strings.notifications.soundSheetDescription,
             options =
                 listOf(
-                    NotificationSoundOption("Popcorn", "Popcorn"),
-                    NotificationSoundOption("Chime", "Chime"),
+                    NotificationSoundOption(
+                        strings.notifications.soundOptionPopcorn,
+                        strings.notifications.soundOptionPopcorn,
+                    ),
+                    NotificationSoundOption(
+                        strings.notifications.soundOptionChime,
+                        strings.notifications.soundOptionChime,
+                    ),
                 ),
-            selectedId = "Popcorn",
+            selectedId = strings.notifications.soundOptionPopcorn,
             onSelect = {},
             onDismiss = {},
             onConfirm = {},
             confirmEnabled = true,
-            confirmLabel = "Save",
+            confirmLabel = strings.notifications.saveCta,
         )
     }
 }
@@ -227,14 +237,17 @@ private fun NotificationSoundBottomSheetPreview() {
 @Preview
 @Composable
 private fun NotificationQuietHoursBottomSheetPreview() {
-    var from by remember { mutableStateOf("22:00") }
-    var to by remember { mutableStateOf("07:00") }
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        var from by remember { mutableStateOf(strings.notifications.quietHoursFromPlaceholder) }
+        var to by remember { mutableStateOf(strings.notifications.quietHoursToPlaceholder) }
         NotificationQuietHoursBottomSheet(
-            title = "Edit quiet hours",
-            description = "Use 24h format (HH:MM).",
-            fromLabel = "From",
-            toLabel = "To",
+            title = strings.notifications.quietHoursSheetTitle,
+            description = strings.notifications.quietHoursSheetDescription,
+            fromLabel = strings.notifications.quietHoursFromLabel,
+            toLabel = strings.notifications.quietHoursToLabel,
+            fromPlaceholder = strings.notifications.quietHoursFromPlaceholder,
+            toPlaceholder = strings.notifications.quietHoursToPlaceholder,
             fromValue = from,
             toValue = to,
             onFromChange = { from = it },
@@ -242,7 +255,7 @@ private fun NotificationQuietHoursBottomSheetPreview() {
             onDismiss = {},
             onConfirm = {},
             confirmEnabled = true,
-            confirmLabel = "Save",
+            confirmLabel = strings.notifications.saveCta,
             isUpdating = false,
         )
     }

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
@@ -45,6 +46,6 @@ fun Badge(
 @Composable
 private fun BadgePreview() {
     LiveChatPreviewContainer {
-        Badge(text = "Pinned")
+        Badge(text = liveChatStrings().conversation.pinnedSectionTitle)
     }
 }

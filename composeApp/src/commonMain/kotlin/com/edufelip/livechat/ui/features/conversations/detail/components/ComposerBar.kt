@@ -149,7 +149,7 @@ private fun ComposerBarPreview() {
             isRecording = false,
             onSend = {},
             onStartRecording = {},
-            errorMessage = "Failed to send",
+            errorMessage = liveChatStrings().conversation.messageFailed,
         )
     }
 }

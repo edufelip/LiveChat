@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.domain.models.AppDestination
@@ -25,6 +26,7 @@ import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.home.view.HomeScreen
 import com.edufelip.livechat.ui.features.onboarding.OnboardingFlowScreen
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
@@ -122,6 +124,8 @@ fun LiveChatApp(
 @Composable
 private fun LiveChatAppPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
@@ -129,7 +133,7 @@ private fun LiveChatAppPreview() {
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
-            phoneContactsProvider = { PreviewFixtures.contacts },
+            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }
@@ -140,6 +144,8 @@ private fun LiveChatAppPreview() {
 @Composable
 private fun HomeScreenConversationsPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
@@ -147,7 +153,7 @@ private fun HomeScreenConversationsPreview() {
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
-            phoneContactsProvider = { PreviewFixtures.contacts },
+            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }
@@ -158,14 +164,17 @@ private fun HomeScreenConversationsPreview() {
 @Composable
 private fun HomeScreenDetailPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
+        val previewConversation = remember(strings) { PreviewFixtures.conversationUiState(strings) }
         HomeScreen(
-            state = HomeUiState(activeConversationId = PreviewFixtures.conversationUiState.conversationId),
+            state = HomeUiState(activeConversationId = previewConversation.conversationId),
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
             onShareInvite = {},
             onBackFromConversation = {},
-            phoneContactsProvider = { PreviewFixtures.contacts },
+            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }

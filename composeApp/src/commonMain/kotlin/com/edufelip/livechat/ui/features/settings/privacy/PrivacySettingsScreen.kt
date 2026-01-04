@@ -136,7 +136,7 @@ private fun PrivacySettingsScreenPreview() {
     LiveChatPreviewContainer {
         PrivacySettingsScreen(
             state = PrivacySettingsUiState(isLoading = false),
-            lastSeenSummary = "Nobody",
+            lastSeenSummary = liveChatStrings().privacy.lastSeenNobody,
         )
     }
 }

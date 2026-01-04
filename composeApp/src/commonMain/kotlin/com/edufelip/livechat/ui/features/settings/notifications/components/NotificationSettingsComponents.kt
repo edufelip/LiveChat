@@ -328,9 +328,10 @@ internal fun NotificationResetCard(
 @Composable
 private fun NotificationSettingsHeaderPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         NotificationSettingsHeader(
-            title = "Notifications",
-            backContentDescription = liveChatStrings().general.dismiss,
+            title = strings.notifications.screenTitle,
+            backContentDescription = strings.general.dismiss,
             onBack = {},
         )
     }
@@ -341,7 +342,7 @@ private fun NotificationSettingsHeaderPreview() {
 @Composable
 private fun NotificationSectionHeaderPreview() {
     LiveChatPreviewContainer {
-        NotificationSectionHeader(title = "General")
+        NotificationSectionHeader(title = liveChatStrings().notifications.generalSection)
     }
 }
 
@@ -350,10 +351,11 @@ private fun NotificationSectionHeaderPreview() {
 @Composable
 private fun NotificationToggleCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         NotificationToggleCard(
-            title = "Push Notifications",
-            subtitle = "Receive messages when away",
-            supportingText = "Notifications disabled in system settings.",
+            title = strings.notifications.pushTitle,
+            subtitle = strings.notifications.pushSubtitle,
+            supportingText = strings.notifications.permissionDisabledHint,
             checked = true,
             enabled = true,
             onCheckedChange = {},
@@ -366,9 +368,10 @@ private fun NotificationToggleCardPreview() {
 @Composable
 private fun NotificationOptionCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         NotificationOptionCard(
-            title = "Sound",
-            value = "Popcorn",
+            title = strings.notifications.soundTitle,
+            value = strings.notifications.soundOptionPopcorn,
             enabled = true,
             onClick = {},
         )
@@ -380,15 +383,16 @@ private fun NotificationOptionCardPreview() {
 @Composable
 private fun QuietHoursCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         QuietHoursCard(
-            title = "Scheduled Quiet Mode",
-            subtitle = "Mute notifications during set times",
+            title = strings.notifications.quietHoursTitle,
+            subtitle = strings.notifications.quietHoursSubtitle,
             checked = true,
             enabled = true,
-            fromLabel = "From",
-            toLabel = "To",
-            fromTime = "10:00 PM",
-            toTime = "7:00 AM",
+            fromLabel = strings.notifications.quietHoursFromLabel,
+            toLabel = strings.notifications.quietHoursToLabel,
+            fromTime = strings.notifications.quietHoursFromPlaceholder,
+            toTime = strings.notifications.quietHoursToPlaceholder,
             onCheckedChange = {},
             onEditQuietHours = {},
         )
@@ -400,8 +404,9 @@ private fun QuietHoursCardPreview() {
 @Composable
 private fun NotificationResetCardPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         NotificationResetCard(
-            title = "Reset Notifications",
+            title = strings.notifications.resetTitle,
             enabled = true,
             onClick = {},
         )
