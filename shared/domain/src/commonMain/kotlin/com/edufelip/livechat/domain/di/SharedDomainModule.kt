@@ -8,11 +8,18 @@ import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.repositories.IAccountRepository
+import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
+import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
+import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
+import com.edufelip.livechat.domain.useCases.UpdateHighContrastUseCase
+import com.edufelip.livechat.domain.useCases.UpdateReduceMotionUseCase
+import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
+import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
@@ -72,6 +79,7 @@ val sharedDomainModule: Module =
         factory { ObserveParticipantUseCase(get()) }
         factory { ObserveAccountProfileUseCase(get<IAccountRepository>()) }
         factory { ObserveNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
+        factory { ObserveAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
@@ -88,6 +96,11 @@ val sharedDomainModule: Module =
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
+        factory { UpdateThemeModeUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { UpdateTextScaleUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { UpdateReduceMotionUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { UpdateHighContrastUseCase(get<IAppearanceSettingsRepository>()) }
+        factory { ResetAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateNotificationSoundUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateQuietHoursEnabledUseCase(get<INotificationSettingsRepository>()) }
