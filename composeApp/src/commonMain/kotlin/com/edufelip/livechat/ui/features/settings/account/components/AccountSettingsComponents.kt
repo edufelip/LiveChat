@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,8 +73,6 @@ internal fun AccountProfileCard(
     displayName: String,
     onlineLabel: String,
     initials: String,
-    editLabel: String,
-    onEdit: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -138,9 +135,6 @@ internal fun AccountProfileCard(
                     )
                 }
             }
-            TextButton(onClick = onEdit) {
-                Text(editLabel)
-            }
         }
     }
 }
@@ -151,6 +145,7 @@ internal fun AccountFieldCard(
     value: String,
     helper: String? = null,
     onClick: (() -> Unit)?,
+    showChevron: Boolean = true,
 ) {
     val isEnabled = onClick != null
     Card(
@@ -192,17 +187,19 @@ internal fun AccountFieldCard(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-            Icon(
-                imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = null,
-                tint =
-                    if (isEnabled) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    },
-            )
+            if (showChevron) {
+                Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint =
+                        if (isEnabled) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        },
+                )
+            }
         }
     }
 }
@@ -275,8 +272,6 @@ private fun AccountProfileCardPreview() {
             displayName = displayName,
             onlineLabel = strings.account.onlineLabel,
             initials = initials,
-            editLabel = strings.account.editCta,
-            onEdit = {},
         )
     }
 }

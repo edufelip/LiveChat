@@ -2,10 +2,8 @@ package com.edufelip.livechat.ui.features.settings.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +29,6 @@ fun AccountSettingsScreen(
     state: AccountUiState,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
-    onEditProfile: () -> Unit = {},
     onEditDisplayName: () -> Unit = {},
     onEditStatus: () -> Unit = {},
     onEditEmail: () -> Unit = {},
@@ -64,7 +61,6 @@ fun AccountSettingsScreen(
             )
         }
     val onBackAction = rememberStableAction(onBack)
-    val onEditProfileAction = rememberStableAction(onEditProfile)
     val onEditDisplayNameAction = rememberStableAction(onEditDisplayName)
     val onEditStatusAction = rememberStableAction(onEditStatus)
     val onEditEmailAction = rememberStableAction(onEditEmail)
@@ -95,8 +91,6 @@ fun AccountSettingsScreen(
             displayName = displayData.displayName,
             onlineLabel = accountStrings.onlineLabel,
             initials = displayData.initials,
-            onEdit = onEditProfileAction,
-            editLabel = accountStrings.editCta,
         )
 
         AccountFieldCard(
@@ -116,6 +110,7 @@ fun AccountSettingsScreen(
             value = displayData.phoneNumber,
             helper = accountStrings.phoneReadOnlyHint,
             onClick = null,
+            showChevron = false,
         )
 
         AccountFieldCard(
@@ -123,8 +118,6 @@ fun AccountSettingsScreen(
             value = displayData.email,
             onClick = onEditEmailAction,
         )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
 
         AccountDeleteCard(
             title = accountStrings.deleteTitle,
