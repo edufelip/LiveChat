@@ -255,8 +255,13 @@ internal fun PhoneStep(
 @Composable
 private fun PhoneStepPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         PhoneStep(
-            selectedCountry = CountryOption.default(),
+            selectedCountry =
+                CountryOption.default(
+                    strings.onboarding.priorityCountryIsos,
+                    strings.onboarding.defaultCountryIso,
+                ),
             phoneNumber = "5550100",
             phoneError = null,
             isLoading = false,

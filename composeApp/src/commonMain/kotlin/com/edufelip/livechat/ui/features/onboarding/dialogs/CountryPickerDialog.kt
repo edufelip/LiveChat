@@ -38,8 +38,12 @@ internal fun CountryPickerDialog(
     onDismiss: () -> Unit,
     onSelect: (CountryOption) -> Unit,
 ) {
-    val strings = liveChatStrings().onboarding
-    val countries = remember { CountryOption.defaults }
+    val strings = liveChatStrings()
+    val onboardingStrings = strings.onboarding
+    val countries =
+        remember(onboardingStrings.priorityCountryIsos) {
+            CountryOption.defaults(onboardingStrings.priorityCountryIsos)
+        }
     var query by remember { mutableStateOf("") }
     val filteredCountries =
         remember(query, countries) {
@@ -61,7 +65,7 @@ internal fun CountryPickerDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(strings.countryPickerTitle) },
+        title = { Text(onboardingStrings.countryPickerTitle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextField(
@@ -72,7 +76,7 @@ internal fun CountryPickerDialog(
                             .fillMaxWidth()
                             .testTag(OnboardingTestTags.COUNTRY_PICKER_SEARCH),
                     singleLine = true,
-                    placeholder = { Text(strings.countryPickerSearchPlaceholder) },
+                    placeholder = { Text(onboardingStrings.countryPickerSearchPlaceholder) },
                 )
 
                 LazyColumn(
@@ -86,7 +90,7 @@ internal fun CountryPickerDialog(
                     if (filteredCountries.isEmpty()) {
                         item {
                             Text(
-                                text = strings.countryPickerEmpty,
+                                text = onboardingStrings.countryPickerEmpty,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -121,7 +125,7 @@ internal fun CountryPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(strings.countryPickerClose)
+                Text(onboardingStrings.countryPickerClose)
             }
         },
     )
@@ -132,8 +136,13 @@ internal fun CountryPickerDialog(
 @Composable
 private fun CountryPickerDialogPreview() {
     LiveChatPreviewContainer {
+        val strings = liveChatStrings()
         CountryPickerDialog(
-            currentSelection = CountryOption.default(),
+            currentSelection =
+                CountryOption.default(
+                    strings.onboarding.priorityCountryIsos,
+                    strings.onboarding.defaultCountryIso,
+                ),
             onDismiss = {},
             onSelect = {},
         )

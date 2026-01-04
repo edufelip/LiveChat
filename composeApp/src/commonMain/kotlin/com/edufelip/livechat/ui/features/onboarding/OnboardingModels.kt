@@ -9,26 +9,41 @@ data class CountryOption(
     val flag: String,
 ) {
     companion object {
-        private val priorityIsoCodes = listOf("US", "CA", "BR")
-        private val countries: List<CountryOption> =
-            GeneratedCountryOptions.sortedWith(
+        private fun sortedCountries(priorityIsoCodes: List<String>): List<CountryOption> {
+            val normalizedPriority =
+                priorityIsoCodes.mapNotNull { code ->
+                    code.trim().takeIf { it.isNotEmpty() }?.uppercase()
+                }
+            val indexMap = normalizedPriority.withIndex().associate { it.value to it.index }
+            return GeneratedCountryOptions.sortedWith(
                 compareBy<CountryOption> {
                     val normalizedIso = it.isoCode.uppercase()
-                    val index = priorityIsoCodes.indexOf(normalizedIso)
-                    if (index >= 0) index else Int.MAX_VALUE
+                    indexMap[normalizedIso] ?: Int.MAX_VALUE
                 }.thenBy { it.name },
             )
+        }
 
-        val defaults: List<CountryOption>
-            get() = countries
+        fun defaults(priorityIsoCodes: List<String>): List<CountryOption> = sortedCountries(priorityIsoCodes)
 
-        fun default(): CountryOption =
-            countries.firstOrNull { it.isoCode.equals("US", ignoreCase = true) }
+        fun default(
+            priorityIsoCodes: List<String>,
+            defaultIsoCode: String,
+        ): CountryOption {
+            val countries = sortedCountries(priorityIsoCodes)
+            val normalizedDefault = defaultIsoCode.trim()
+            return countries.firstOrNull { it.isoCode.equals(normalizedDefault, ignoreCase = true) }
                 ?: countries.first()
+        }
 
-        fun fromIsoCode(isoCode: String): CountryOption =
-            countries.firstOrNull { it.isoCode.equals(isoCode, ignoreCase = true) }
-                ?: default()
+        fun fromIsoCode(
+            isoCode: String,
+            priorityIsoCodes: List<String>,
+            defaultIsoCode: String,
+        ): CountryOption {
+            val countries = sortedCountries(priorityIsoCodes)
+            return countries.firstOrNull { it.isoCode.equals(isoCode, ignoreCase = true) }
+                ?: default(priorityIsoCodes, defaultIsoCode)
+        }
     }
 }
 

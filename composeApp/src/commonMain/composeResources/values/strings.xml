@@ -214,6 +214,8 @@
     <string name="onboarding_country_picker_search_placeholder">Search by country or code</string>
     <string name="onboarding_country_picker_empty">No countries found</string>
     <string name="onboarding_country_picker_close">Close</string>
+    <string name="onboarding_default_country_iso">US</string>
+    <string name="onboarding_priority_country_isos">US,CA,BR</string>
     <string name="onboarding_invalid_verification_code">Invalid verification code</string>
     <string name="onboarding_too_many_requests">Too many attempts. Try again later.</string>
     <string name="onboarding_quota_exceeded">SMS quota exceeded. Please try again later.</string>
