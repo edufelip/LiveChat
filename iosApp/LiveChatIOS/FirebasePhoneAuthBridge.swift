@@ -97,8 +97,7 @@ private extension FirebasePhoneAuthBridge {
         user.getIDTokenForcingRefresh(false) { token, _ in
             MainViewControllerKt.updateLiveChatSession(
                 userId: user.uid,
-                idToken: token,
-                phoneNumber: user.phoneNumber
+                idToken: token
             )
         }
     }
