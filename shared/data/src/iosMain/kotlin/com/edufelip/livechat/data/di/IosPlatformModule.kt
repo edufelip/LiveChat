@@ -1,5 +1,6 @@
 package com.edufelip.livechat.data.di
 
+import com.edufelip.livechat.data.auth.email.IosEmailAuthRepository
 import com.edufelip.livechat.data.auth.phone.IosPhoneAuthRepository
 import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.files.MediaFileStore
@@ -7,6 +8,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.repositories.IEmailAuthRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.shared.data.database.LiveChatDatabase
@@ -46,6 +48,7 @@ fun iosPlatformModule(
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }
         single<IPhoneAuthRepository> { IosPhoneAuthRepository(get()) }
+        single<IEmailAuthRepository> { IosEmailAuthRepository(get()) }
         single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }
 

@@ -197,3 +197,19 @@ fun countryCallingCodeFor(regionIso: String?): String? =
         ?.takeIf { it.length in 2..3 }
         ?.uppercase()
         ?.let { REGION_TO_CALLING_CODE[it] }
+
+private val CALLING_CODES_DESCENDING: List<String> =
+    REGION_TO_CALLING_CODE.values
+        .distinct()
+        .sortedByDescending { it.length }
+
+fun splitE164PhoneNumber(e164: String): Pair<String, String>? {
+    val trimmed = e164.trim()
+    if (!trimmed.startsWith("+")) return null
+    val digits = trimmed.drop(1).filter(Char::isDigit)
+    if (digits.isEmpty()) return null
+    val callingCode = CALLING_CODES_DESCENDING.firstOrNull { digits.startsWith(it) } ?: return null
+    val nationalNumber = digits.removePrefix(callingCode)
+    if (nationalNumber.isEmpty()) return null
+    return "+$callingCode" to nationalNumber
+}
