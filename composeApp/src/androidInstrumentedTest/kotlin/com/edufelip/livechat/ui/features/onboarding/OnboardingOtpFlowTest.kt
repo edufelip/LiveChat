@@ -50,7 +50,7 @@ class OnboardingOtpFlowTest {
                     OnboardingDestination.Home ->
                         Box(modifier = Modifier.testTag(HOME_DESTINATION_TAG)) {
                             ConversationListScreen(
-                                state = PreviewFixtures.conversationListState,
+                                state = PreviewFixtures.conversationListState(strings),
                                 onSearch = {},
                                 onConversationSelected = {},
                                 onTogglePin = { _, _ -> },

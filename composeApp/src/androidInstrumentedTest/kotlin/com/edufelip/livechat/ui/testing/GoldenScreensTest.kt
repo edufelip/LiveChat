@@ -16,6 +16,7 @@ import com.edufelip.livechat.ui.features.onboarding.CountryOption
 import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LiveChatTheme
 import org.junit.Rule
 import org.junit.Test
@@ -28,8 +29,14 @@ class GoldenScreensTest {
     fun goldenPhoneStep() {
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
                 PhoneStep(
-                    selectedCountry = CountryOption.fromIsoCode("US"),
+                    selectedCountry =
+                        CountryOption.fromIsoCode(
+                            strings.onboarding.defaultCountryIso,
+                            strings.onboarding.priorityCountryIsos,
+                            strings.onboarding.defaultCountryIso,
+                        ),
                     phoneNumber = "6505553434",
                     phoneError = null,
                     isLoading = false,
@@ -46,8 +53,14 @@ class GoldenScreensTest {
     fun goldenPhoneStepWithKeyboard() {
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
                 PhoneStep(
-                    selectedCountry = CountryOption.fromIsoCode("US"),
+                    selectedCountry =
+                        CountryOption.fromIsoCode(
+                            strings.onboarding.defaultCountryIso,
+                            strings.onboarding.priorityCountryIsos,
+                            strings.onboarding.defaultCountryIso,
+                        ),
                     phoneNumber = "6505553434",
                     phoneError = null,
                     isLoading = false,
@@ -97,8 +110,9 @@ class GoldenScreensTest {
     fun goldenConversationList() {
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
                 ConversationListScreen(
-                    state = PreviewFixtures.conversationListState,
+                    state = PreviewFixtures.conversationListState(strings),
                     onSearch = {},
                     onConversationSelected = {},
                     onTogglePin = { _, _ -> },
@@ -115,8 +129,9 @@ class GoldenScreensTest {
     fun goldenContacts() {
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
                 ContactsScreen(
-                    state = PreviewFixtures.contactsState,
+                    state = PreviewFixtures.contactsState(strings),
                     onInvite = {},
                     onContactSelected = {},
                     onSync = {},
@@ -129,13 +144,14 @@ class GoldenScreensTest {
 
     @Test
     fun goldenConversationDetail() {
-        val state = PreviewFixtures.conversationUiState
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
+                val state = PreviewFixtures.conversationUiState(strings)
                 ConversationDetailScreen(
                     state = state,
-                    contactName = "Preview Contact",
-                    currentUserId = "preview-user",
+                    contactName = strings.preview.contactPrimaryName,
+                    currentUserId = PreviewFixtures.previewUserId(),
                     onSendMessage = {},
                     isRecording = false,
                     recordingDurationMillis = 0L,

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.features.contacts.screens.ContactsScreen
@@ -37,13 +38,20 @@ class ContactsPermissionFlowTest {
         var emptyStateLabel = ""
         var syncCta = ""
         var syncingLabel = ""
+        var primaryName = ""
+        var tertiaryName = ""
+        var previewContacts: List<Contact> = emptyList()
         composeRule.setContent {
             LiveChatTheme {
-                val strings = liveChatStrings().contacts
+                val strings = liveChatStrings()
+                val preview = strings.preview
                 SideEffect {
-                    emptyStateLabel = strings.emptyState
-                    syncCta = strings.syncCta
-                    syncingLabel = strings.syncing
+                    emptyStateLabel = strings.contacts.emptyState
+                    syncCta = strings.contacts.syncCta
+                    syncingLabel = strings.contacts.syncing
+                    primaryName = preview.contactPrimaryName
+                    tertiaryName = preview.contactTertiaryName
+                    previewContacts = PreviewFixtures.contacts(strings)
                 }
                 var state by remember { mutableStateOf(initialState) }
                 SideEffect {
@@ -72,17 +80,17 @@ class ContactsPermissionFlowTest {
         composeRule.onNodeWithText(syncingLabel).assertIsDisplayed()
 
         composeRule.runOnIdle {
-            val validated = PreviewFixtures.contacts.filter { it.isRegistered }
+            val validated = previewContacts.filter { it.isRegistered }
             setState?.invoke(
                 currentState.copy(
-                    localContacts = PreviewFixtures.contacts,
+                    localContacts = previewContacts,
                     validatedContacts = validated,
                     isSyncing = false,
                 ),
             )
         }
 
-        composeRule.onNodeWithText("Ava Harper").assertIsDisplayed()
-        composeRule.onNodeWithText("Chioma Ade").assertIsDisplayed()
+        composeRule.onNodeWithText(primaryName).assertIsDisplayed()
+        composeRule.onNodeWithText(tertiaryName).assertIsDisplayed()
     }
 }

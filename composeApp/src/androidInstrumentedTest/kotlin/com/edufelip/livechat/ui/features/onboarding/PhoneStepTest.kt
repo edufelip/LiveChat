@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LiveChatTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -28,8 +29,14 @@ class PhoneStepTest {
         composeRule.setContent {
             var phoneNumber by mutableStateOf("")
             LiveChatTheme {
+                val strings = liveChatStrings()
                 PhoneStep(
-                    selectedCountry = CountryOption.fromIsoCode("US"),
+                    selectedCountry =
+                        CountryOption.fromIsoCode(
+                            strings.onboarding.defaultCountryIso,
+                            strings.onboarding.priorityCountryIsos,
+                            strings.onboarding.defaultCountryIso,
+                        ),
                     phoneNumber = phoneNumber,
                     phoneError = null,
                     isLoading = false,
@@ -54,8 +61,13 @@ class PhoneStepTest {
         var taps = 0
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
                 PhoneStep(
-                    selectedCountry = CountryOption.default(),
+                    selectedCountry =
+                        CountryOption.default(
+                            strings.onboarding.priorityCountryIsos,
+                            strings.onboarding.defaultCountryIso,
+                        ),
                     phoneNumber = "5550100",
                     phoneError = null,
                     isLoading = false,
@@ -74,11 +86,17 @@ class PhoneStepTest {
 
     @Test
     fun showsPhoneErrorMessage() {
-        val errorMessage = "Invalid phone"
+        var errorMessage = ""
         composeRule.setContent {
             LiveChatTheme {
+                val strings = liveChatStrings()
+                androidx.compose.runtime.SideEffect { errorMessage = strings.onboarding.invalidPhoneError }
                 PhoneStep(
-                    selectedCountry = CountryOption.default(),
+                    selectedCountry =
+                        CountryOption.default(
+                            strings.onboarding.priorityCountryIsos,
+                            strings.onboarding.defaultCountryIso,
+                        ),
                     phoneNumber = "123",
                     phoneError = errorMessage,
                     isLoading = false,
