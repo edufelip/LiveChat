@@ -184,6 +184,8 @@ data class OnboardingStrings(
     val countryPickerSearchPlaceholder: String = "Search by country or code",
     val countryPickerEmpty: String = "No countries found",
     val countryPickerClose: String = "Close",
+    val defaultCountryIso: String = "US",
+    val priorityCountryIsos: List<String> = listOf("US", "CA", "BR"),
     val invalidVerificationCode: String = "Invalid verification code",
     val tooManyRequests: String = "Too many attempts. Try again later.",
     val quotaExceeded: String = "SMS quota exceeded. Please try again later.",
@@ -515,6 +517,15 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             sendRecording = stringResource(Res.string.conversation_send_recording),
         )
 
+    val onboardingPriorityIsos =
+        stringResource(Res.string.onboarding_priority_country_isos)
+            .split(',')
+            .mapNotNull { code -> code.trim().takeIf { it.isNotEmpty() } }
+    val onboardingDefaultIso =
+        stringResource(Res.string.onboarding_default_country_iso)
+            .trim()
+            .ifEmpty { onboardingPriorityIsos.firstOrNull().orEmpty() }
+
     val onboarding =
         OnboardingStrings(
             phoneTitle = stringResource(Res.string.onboarding_phone_title),
@@ -543,6 +554,8 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             countryPickerSearchPlaceholder = stringResource(Res.string.onboarding_country_picker_search_placeholder),
             countryPickerEmpty = stringResource(Res.string.onboarding_country_picker_empty),
             countryPickerClose = stringResource(Res.string.onboarding_country_picker_close),
+            defaultCountryIso = onboardingDefaultIso,
+            priorityCountryIsos = onboardingPriorityIsos,
             invalidVerificationCode = stringResource(Res.string.onboarding_invalid_verification_code),
             tooManyRequests = stringResource(Res.string.onboarding_too_many_requests),
             quotaExceeded = stringResource(Res.string.onboarding_quota_exceeded),

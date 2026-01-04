@@ -50,10 +50,16 @@ internal fun OnboardingFlowScreen(
         return
     }
     val strings = liveChatStrings()
+    val onboardingConfig = strings.onboarding
+    val priorityIsoCodes = onboardingConfig.priorityCountryIsos
+    val defaultCountryIso = onboardingConfig.defaultCountryIso
     val phoneAuthPresenter = rememberPhoneAuthPresenter()
     val phoneAuthState by phoneAuthPresenter.collectState()
-    var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
-    val selectedCountry = remember(selectedCountryCode) { CountryOption.fromIsoCode(selectedCountryCode) }
+    var selectedCountryCode by rememberSaveable { mutableStateOf(defaultCountryIso) }
+    val selectedCountry =
+        remember(selectedCountryCode, priorityIsoCodes, defaultCountryIso) {
+            CountryOption.fromIsoCode(selectedCountryCode, priorityIsoCodes, defaultCountryIso)
+        }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     var phoneInputError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
@@ -189,11 +195,17 @@ internal fun UiTestOnboardingFlow(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
+    val onboardingConfig = strings.onboarding
+    val priorityIsoCodes = onboardingConfig.priorityCountryIsos
+    val defaultCountryIso = onboardingConfig.defaultCountryIso
     val overrides = uiTestOverrides()
     val phoneOverride = remember(overrides.phone) { overrides.phone?.filter(Char::isDigit) }
     val otpOverride = remember(overrides.otp) { overrides.otp?.filter(Char::isDigit)?.take(6) }
-    var selectedCountryCode by rememberSaveable { mutableStateOf(CountryOption.default().isoCode) }
-    val selectedCountry = remember(selectedCountryCode) { CountryOption.fromIsoCode(selectedCountryCode) }
+    var selectedCountryCode by rememberSaveable { mutableStateOf(defaultCountryIso) }
+    val selectedCountry =
+        remember(selectedCountryCode, priorityIsoCodes, defaultCountryIso) {
+            CountryOption.fromIsoCode(selectedCountryCode, priorityIsoCodes, defaultCountryIso)
+        }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     var phoneInputError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
