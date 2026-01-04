@@ -94,6 +94,28 @@ data class NotificationsStrings(
     val saveCta: String = "Save",
 )
 
+data class AppearanceStrings(
+    val screenTitle: String = "Appearance",
+    val themesSection: String = "Themes",
+    val typographySection: String = "Typography scale",
+    val accessibilitySection: String = "Accessibility",
+    val themeSystemTitle: String = "System default",
+    val themeSystemSubtitle: String = "Match your device settings",
+    val themeLightTitle: String = "Light mode",
+    val themeLightSubtitle: String = "Always bright and clear",
+    val themeDarkTitle: String = "Dark mode",
+    val themeDarkSubtitle: String = "Easy on the eyes",
+    val typographySmallLabel: String = "Small",
+    val typographyDefaultLabel: String = "Default",
+    val typographyLargeLabel: String = "Large",
+    val typographySample: String = "The quick brown fox jumps over the lazy dog. Adjust the slider to see how text will appear in your chats.",
+    val reduceMotionTitle: String = "Reduce motion",
+    val reduceMotionSubtitle: String = "Minimize animations",
+    val highContrastTitle: String = "High contrast",
+    val highContrastSubtitle: String = "Increase text legibility",
+    val resetTitle: String = "Reset appearance",
+)
+
 data class HomeStrings(
     val conversationTitle: String = "Conversation",
     val chatsTab: String = "Chats",
@@ -206,6 +228,7 @@ data class LiveChatStrings(
     val settings: SettingsStrings = SettingsStrings(),
     val account: AccountStrings = AccountStrings(),
     val notifications: NotificationsStrings = NotificationsStrings(),
+    val appearance: AppearanceStrings = AppearanceStrings(),
     val home: HomeStrings = HomeStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
@@ -306,6 +329,29 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             previewSubtitle = stringResource(Res.string.notifications_preview_subtitle),
             resetTitle = stringResource(Res.string.notifications_reset_title),
             saveCta = stringResource(Res.string.notifications_save_cta),
+        )
+
+    val appearance =
+        AppearanceStrings(
+            screenTitle = stringResource(Res.string.appearance_screen_title),
+            themesSection = stringResource(Res.string.appearance_themes_section),
+            typographySection = stringResource(Res.string.appearance_typography_section),
+            accessibilitySection = stringResource(Res.string.appearance_accessibility_section),
+            themeSystemTitle = stringResource(Res.string.appearance_theme_system_title),
+            themeSystemSubtitle = stringResource(Res.string.appearance_theme_system_subtitle),
+            themeLightTitle = stringResource(Res.string.appearance_theme_light_title),
+            themeLightSubtitle = stringResource(Res.string.appearance_theme_light_subtitle),
+            themeDarkTitle = stringResource(Res.string.appearance_theme_dark_title),
+            themeDarkSubtitle = stringResource(Res.string.appearance_theme_dark_subtitle),
+            typographySmallLabel = stringResource(Res.string.appearance_typography_small_label),
+            typographyDefaultLabel = stringResource(Res.string.appearance_typography_default_label),
+            typographyLargeLabel = stringResource(Res.string.appearance_typography_large_label),
+            typographySample = stringResource(Res.string.appearance_typography_sample),
+            reduceMotionTitle = stringResource(Res.string.appearance_reduce_motion_title),
+            reduceMotionSubtitle = stringResource(Res.string.appearance_reduce_motion_subtitle),
+            highContrastTitle = stringResource(Res.string.appearance_high_contrast_title),
+            highContrastSubtitle = stringResource(Res.string.appearance_high_contrast_subtitle),
+            resetTitle = stringResource(Res.string.appearance_reset_title),
         )
 
     val home =

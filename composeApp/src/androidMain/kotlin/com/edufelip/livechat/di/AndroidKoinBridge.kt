@@ -7,6 +7,7 @@ import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -27,4 +28,6 @@ object AndroidKoinBridge : KoinComponent {
     fun phoneAuthPresenter(): PhoneAuthPresenter = get()
 
     fun notificationSettingsPresenter(): NotificationSettingsPresenter = get()
+
+    fun appearanceSettingsPresenter(): AppearanceSettingsPresenter = get()
 }

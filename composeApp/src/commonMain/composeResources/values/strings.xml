@@ -80,6 +80,27 @@
     <string name="notifications_reset_title">Reset Notifications</string>
     <string name="notifications_save_cta">Save</string>
 
+    <!-- Appearance -->
+    <string name="appearance_screen_title">Appearance</string>
+    <string name="appearance_themes_section">Themes</string>
+    <string name="appearance_typography_section">Typography scale</string>
+    <string name="appearance_accessibility_section">Accessibility</string>
+    <string name="appearance_theme_system_title">System default</string>
+    <string name="appearance_theme_system_subtitle">Match your device settings</string>
+    <string name="appearance_theme_light_title">Light mode</string>
+    <string name="appearance_theme_light_subtitle">Always bright and clear</string>
+    <string name="appearance_theme_dark_title">Dark mode</string>
+    <string name="appearance_theme_dark_subtitle">Easy on the eyes</string>
+    <string name="appearance_typography_small_label">Small</string>
+    <string name="appearance_typography_default_label">Default</string>
+    <string name="appearance_typography_large_label">Large</string>
+    <string name="appearance_typography_sample">The quick brown fox jumps over the lazy dog. Adjust the slider to see how text will appear in your chats.</string>
+    <string name="appearance_reduce_motion_title">Reduce motion</string>
+    <string name="appearance_reduce_motion_subtitle">Minimize animations</string>
+    <string name="appearance_high_contrast_title">High contrast</string>
+    <string name="appearance_high_contrast_subtitle">Increase text legibility</string>
+    <string name="appearance_reset_title">Reset appearance</string>
+
     <!-- Home -->
     <string name="home_conversation_title">Conversation</string>
     <string name="home_chats_tab">Chats</string>

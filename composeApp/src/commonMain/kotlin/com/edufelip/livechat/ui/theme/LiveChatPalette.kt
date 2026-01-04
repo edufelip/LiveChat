@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 data class LiveChatPalette(
     val light: ColorScheme,
@@ -24,6 +25,31 @@ private fun ColorScheme.withTonalContainers(
         surfaceContainerHigh = high,
         surfaceContainerHighest = highest,
     )
+
+fun ColorScheme.highContrast(isDark: Boolean): ColorScheme {
+    return if (isDark) {
+        copy(
+            onSurface = Color(0xFFFFFFFF),
+            onSurfaceVariant = Color(0xFFE6E6E6),
+            outline = Color(0xFFBDBDBD),
+            outlineVariant = Color(0xFF8C8C8C),
+        )
+    } else {
+        val primaryHighContrast =
+            if (primary.luminance() < 0.25f) {
+                primary
+            } else {
+                Color(0xFF00443F)
+            }
+        copy(
+            primary = primaryHighContrast,
+            onSurface = Color(0xFF0A0A0A),
+            onSurfaceVariant = Color(0xFF1C1C1C),
+            outline = Color(0xFF4F4F4F),
+            outlineVariant = Color(0xFF3A3A3A),
+        )
+    }
+}
 
 object LiveChatPalettes {
     val Pastel =

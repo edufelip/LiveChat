@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.domain.models.AppDestination
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
+import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -26,6 +27,7 @@ import com.edufelip.livechat.ui.features.onboarding.OnboardingFlowScreen
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
+import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
 import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
@@ -39,7 +41,21 @@ fun LiveChatApp(
     onShareInvite: (InviteShareRequest) -> Unit = {},
     onOpenSettingsSection: (SettingsNavigationRequest) -> Unit = {},
 ) {
-    LiveChatTheme {
+    val isInspection = LocalInspectionMode.current
+    val appearanceSettings =
+        if (isInspection) {
+            AppearanceSettings()
+        } else {
+            val appearancePresenter = rememberAppearanceSettingsPresenter()
+            val appearanceState by appearancePresenter.collectState()
+            appearanceState.settings
+        }
+    LiveChatTheme(
+        themeMode = appearanceSettings.themeMode,
+        textScale = appearanceSettings.textScale,
+        reduceMotion = appearanceSettings.reduceMotion,
+        highContrast = appearanceSettings.highContrast,
+    ) {
         Box(
             modifier =
                 modifier
@@ -50,7 +66,7 @@ fun LiveChatApp(
                 Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
-            if (LocalInspectionMode.current) {
+            if (isInspection) {
                 HomeScreen(
                     modifier = contentModifier,
                     state = HomeUiState(),
