@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
 import com.edufelip.livechat.preview.DevicePreviews
@@ -41,30 +43,58 @@ fun NotificationSettingsScreen(
     onResetNotifications: () -> Unit = {},
 ) {
     val strings = liveChatStrings()
+    val notificationStrings = strings.notifications
+    val generalStrings = strings.general
     val settings = state.settings
     val allowEdits = !state.isUpdating && !state.isLoading
     val soundLabel =
         settings.sound.takeIf { it.isNotBlank() }
-            ?: strings.notifications.soundOptionPopcorn
+            ?: notificationStrings.soundOptionPopcorn
     val permissionHint =
         if (systemPermissionGranted) {
             null
         } else {
-            strings.notifications.permissionDisabledHint
+            notificationStrings.permissionDisabledHint
+        }
+    val scrollState = rememberScrollState()
+    val onBackAction = rememberStableAction(onBack)
+    val onTogglePushAction = rememberStableAction(onTogglePush)
+    val onEditSoundAction = rememberStableAction(onEditSound)
+    val onToggleQuietHoursAction = rememberStableAction(onToggleQuietHours)
+    val onEditQuietHoursAction = rememberStableAction(onEditQuietHours)
+    val onToggleVibrationAction = rememberStableAction(onToggleVibration)
+    val onToggleMessagePreviewAction = rememberStableAction(onToggleMessagePreview)
+    val onResetNotificationsAction = rememberStableAction(onResetNotifications)
+    val quietHoursPresentation =
+        remember(settings.quietHours, generalStrings) {
+            QuietHoursPresentation(
+                fromTime =
+                    formatDisplayTime(
+                        settings.quietHours.from,
+                        generalStrings.timePeriodAm,
+                        generalStrings.timePeriodPm,
+                    ),
+                toTime =
+                    formatDisplayTime(
+                        settings.quietHours.to,
+                        generalStrings.timePeriodAm,
+                        generalStrings.timePeriodPm,
+                    ),
+            )
         }
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         NotificationSettingsHeader(
-            title = strings.notifications.screenTitle,
-            backContentDescription = strings.general.dismiss,
-            onBack = onBack,
+            title = notificationStrings.screenTitle,
+            backContentDescription = generalStrings.dismiss,
+            onBack = onBackAction,
         )
 
         if (state.isLoading) {
@@ -73,68 +103,73 @@ fun NotificationSettingsScreen(
             )
         }
 
-        NotificationSectionHeader(title = strings.notifications.generalSection)
+        NotificationSectionHeader(title = notificationStrings.generalSection)
 
         NotificationToggleCard(
-            title = strings.notifications.pushTitle,
-            subtitle = strings.notifications.pushSubtitle,
+            title = notificationStrings.pushTitle,
+            subtitle = notificationStrings.pushSubtitle,
             supportingText = permissionHint,
             checked = settings.pushEnabled,
             enabled = allowEdits,
-            onCheckedChange = onTogglePush,
+            onCheckedChange = onTogglePushAction,
         )
 
         NotificationOptionCard(
-            title = strings.notifications.soundTitle,
+            title = notificationStrings.soundTitle,
             value = soundLabel,
             enabled = allowEdits,
-            onClick = onEditSound,
+            onClick = onEditSoundAction,
         )
 
-        NotificationSectionHeader(title = strings.notifications.quietHoursSection)
+        NotificationSectionHeader(title = notificationStrings.quietHoursSection)
 
         QuietHoursCard(
-            title = strings.notifications.quietHoursTitle,
-            subtitle = strings.notifications.quietHoursSubtitle,
+            title = notificationStrings.quietHoursTitle,
+            subtitle = notificationStrings.quietHoursSubtitle,
             checked = settings.quietHoursEnabled,
             enabled = allowEdits,
-            fromLabel = strings.notifications.quietHoursFromLabel,
-            toLabel = strings.notifications.quietHoursToLabel,
-            fromTime = formatDisplayTime(settings.quietHours.from, strings.general.timePeriodAm, strings.general.timePeriodPm),
-            toTime = formatDisplayTime(settings.quietHours.to, strings.general.timePeriodAm, strings.general.timePeriodPm),
-            onCheckedChange = onToggleQuietHours,
-            onEditQuietHours = if (allowEdits) onEditQuietHours else null,
+            fromLabel = notificationStrings.quietHoursFromLabel,
+            toLabel = notificationStrings.quietHoursToLabel,
+            fromTime = quietHoursPresentation.fromTime,
+            toTime = quietHoursPresentation.toTime,
+            onCheckedChange = onToggleQuietHoursAction,
+            onEditQuietHours = if (allowEdits) onEditQuietHoursAction else null,
         )
 
-        NotificationSectionHeader(title = strings.notifications.advancedSection)
+        NotificationSectionHeader(title = notificationStrings.advancedSection)
 
         NotificationToggleCard(
-            title = strings.notifications.vibrationTitle,
+            title = notificationStrings.vibrationTitle,
             subtitle = null,
             supportingText = null,
             checked = settings.inAppVibration,
             enabled = allowEdits,
-            onCheckedChange = onToggleVibration,
+            onCheckedChange = onToggleVibrationAction,
         )
 
         NotificationToggleCard(
-            title = strings.notifications.previewTitle,
-            subtitle = strings.notifications.previewSubtitle,
+            title = notificationStrings.previewTitle,
+            subtitle = notificationStrings.previewSubtitle,
             supportingText = null,
             checked = settings.showMessagePreview,
             enabled = allowEdits,
-            onCheckedChange = onToggleMessagePreview,
+            onCheckedChange = onToggleMessagePreviewAction,
         )
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
 
         NotificationResetCard(
-            title = strings.notifications.resetTitle,
+            title = notificationStrings.resetTitle,
             enabled = allowEdits,
-            onClick = onResetNotifications,
+            onClick = onResetNotificationsAction,
         )
     }
 }
+
+private data class QuietHoursPresentation(
+    val fromTime: String,
+    val toTime: String,
+)
 
 private fun formatDisplayTime(
     raw: String,
@@ -154,6 +189,18 @@ private fun formatDisplayTime(
         }
     val minuteText = minute.toString().padStart(2, '0')
     return "$displayHour:$minuteText $period"
+}
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
 }
 
 @DevicePreviews

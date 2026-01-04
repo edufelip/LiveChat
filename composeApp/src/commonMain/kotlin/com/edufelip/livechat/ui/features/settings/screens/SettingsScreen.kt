@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -50,7 +51,22 @@ fun SettingsScreen(
     onSectionSelected: (SettingsNavigationRequest) -> Unit = {},
 ) {
     val strings = liveChatStrings()
+    val settingsStrings = strings.settings
     val sections = remember { SettingsSection.values() }
+    val sectionRequests =
+        remember(settingsStrings) {
+            sections.map { section ->
+                val title = section.title(settingsStrings)
+                val description = section.description(settingsStrings)
+                val message = buildOpeningSectionMessage(settingsStrings.openingSectionTemplate, title)
+                SettingsNavigationRequest(
+                    section = section,
+                    title = title,
+                    description = description,
+                    placeholderMessage = message,
+                )
+            }
+        }
 
     Column(
         modifier =
@@ -60,51 +76,58 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         Text(
-            text = strings.settings.screenTitle,
+            text = settingsStrings.screenTitle,
             style = MaterialTheme.typography.titleMedium,
         )
-        sections.forEach { section ->
-            Card(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val title = section.title(strings.settings)
-                            val description = section.description(strings.settings)
-                            val template = strings.settings.openingSectionTemplate
-                            val message =
-                                template
-                                    .replace("%1\$s", title)
-                                    .replace("%s", title)
-                            onSectionSelected(
-                                SettingsNavigationRequest(
-                                    section = section,
-                                    title = title,
-                                    description = description,
-                                    placeholderMessage = message,
-                                ),
-                            )
-                        },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            ) {
-                Column(
-                    modifier = Modifier.padding(MaterialTheme.spacing.md),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                ) {
-                    Text(
-                        text = section.title(strings.settings),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(
-                        text = section.description(strings.settings),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+        sectionRequests.forEach { request ->
+            SettingsSectionCard(
+                request = request,
+                onSectionSelected = onSectionSelected,
+            )
         }
     }
 }
+
+@Composable
+private fun SettingsSectionCard(
+    request: SettingsNavigationRequest,
+    onSectionSelected: (SettingsNavigationRequest) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val onSectionSelectedState = rememberUpdatedState(onSectionSelected)
+    val onClick = remember(request) { { onSectionSelectedState.value(request) } }
+
+    Card(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(MaterialTheme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        ) {
+            Text(
+                text = request.title,
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = request.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private fun buildOpeningSectionMessage(
+    template: String,
+    title: String,
+): String =
+    template
+        .replace("%1\$s", title)
+        .replace("%s", title)
 
 @DevicePreviews
 @Preview

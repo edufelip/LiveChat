@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -38,7 +39,7 @@ import com.edufelip.livechat.ui.components.molecules.ErrorBanner
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.components.molecules.RowWithActions
 import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
-import com.edufelip.livechat.ui.resources.LiveChatStrings
+import com.edufelip.livechat.ui.resources.ContactsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -54,7 +55,13 @@ fun ContactsScreen(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
-    val hasContacts = state.localContacts.isNotEmpty() || state.validatedContacts.isNotEmpty()
+    val contactsStrings = strings.contacts
+    val hasContacts =
+        remember(state.localContacts, state.validatedContacts) {
+            state.localContacts.isNotEmpty() || state.validatedContacts.isNotEmpty()
+        }
+    val onSyncClick = rememberStableAction(onSync)
+    val onDismissErrorClick = rememberStableAction(onDismissError)
 
     Box(
         modifier =
@@ -69,15 +76,24 @@ fun ContactsScreen(
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
         ) {
             when {
-                state.isLoading -> LoadingState(strings.contacts.loading)
-                !hasContacts -> EmptyContactsState(strings, showSyncButton, state.isSyncing, onSync)
+                state.isLoading -> LoadingState(contactsStrings.loading)
+                !hasContacts ->
+                    EmptyContactsState(
+                        strings = contactsStrings,
+                        showSyncButton = showSyncButton,
+                        isSyncing = state.isSyncing,
+                        onSync = onSyncClick,
+                    )
                 else ->
                     ContactsListContent(
-                        state = state,
+                        localContacts = state.localContacts,
+                        validatedContacts = state.validatedContacts,
+                        isSyncing = state.isSyncing,
                         showSyncButton = showSyncButton,
-                        onSync = onSync,
+                        onSync = onSyncClick,
                         onInvite = onInvite,
                         onContactSelected = onContactSelected,
+                        strings = contactsStrings,
                     )
             }
         }
@@ -95,7 +111,7 @@ fun ContactsScreen(
             ErrorBanner(
                 modifier = Modifier.fillMaxWidth(),
                 message = errorMessage.orEmpty(),
-                onDismiss = onDismissError,
+                onDismiss = onDismissErrorClick,
             )
         }
     }
@@ -103,7 +119,7 @@ fun ContactsScreen(
 
 @Composable
 private fun EmptyContactsState(
-    strings: LiveChatStrings,
+    strings: ContactsStrings,
     showSyncButton: Boolean,
     isSyncing: Boolean,
     onSync: () -> Unit,
@@ -118,7 +134,7 @@ private fun EmptyContactsState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = strings.contacts.emptyState,
+            text = strings.emptyState,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -133,15 +149,15 @@ private fun EmptyContactsState(
                         .heightIn(min = 48.dp)
                         .semantics {
                             if (isSyncing) {
-                                stateDescription = strings.contacts.syncingStateDescription
+                                stateDescription = strings.syncingStateDescription
                             }
                         },
             ) {
-                Text(if (isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
+                Text(if (isSyncing) strings.syncing else strings.syncCta)
             }
         } else if (isSyncing) {
             Text(
-                text = strings.contacts.syncing,
+                text = strings.syncing,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
                 textAlign = TextAlign.Center,
@@ -152,19 +168,21 @@ private fun EmptyContactsState(
 
 @Composable
 private fun ContactsListContent(
-    state: ContactsUiState,
+    localContacts: List<Contact>,
+    validatedContacts: List<Contact>,
+    isSyncing: Boolean,
     showSyncButton: Boolean,
     onSync: () -> Unit,
     onInvite: (Contact) -> Unit,
     onContactSelected: (Contact) -> Unit,
+    strings: ContactsStrings,
 ) {
-    val strings = liveChatStrings()
     val contacts =
-        remember(state.localContacts, state.validatedContacts) {
+        remember(localContacts, validatedContacts) {
             val merged = linkedMapOf<String, Contact>()
             val validatedMap =
-                state.validatedContacts.associateBy { normalizePhoneNumber(it.phoneNo) }
-            state.localContacts.forEach { contact ->
+                validatedContacts.associateBy { normalizePhoneNumber(it.phoneNo) }
+            localContacts.forEach { contact ->
                 val normalizedPhone = normalizePhoneNumber(contact.phoneNo)
                 val validated = validatedMap[normalizedPhone]
                 merged[normalizedPhone] =
@@ -174,15 +192,17 @@ private fun ContactsListContent(
                         contact
                     }
             }
-            state.validatedContacts.forEach { contact ->
+            validatedContacts.forEach { contact ->
                 merged[normalizePhoneNumber(contact.phoneNo)] = contact.copy(isRegistered = true)
             }
-            merged.values.sortedBy { it.name.lowercase() }
+            merged.entries
+                .map { (normalizedPhone, contact) -> ContactEntry(normalizedPhone, contact) }
+                .sortedBy { it.contact.name.lowercase() }
         }
     val registeredContacts =
-        remember(contacts) { contacts.filter { it.isRegistered } }
+        remember(contacts) { contacts.filter { it.contact.isRegistered } }
     val inviteCandidates =
-        remember(contacts) { contacts.filterNot { it.isRegistered } }
+        remember(contacts) { contacts.filterNot { it.contact.isRegistered } }
 
     Column(
         modifier =
@@ -199,68 +219,50 @@ private fun ContactsListContent(
                 item {
                     Button(
                         onClick = onSync,
-                        enabled = !state.isSyncing,
+                        enabled = !isSyncing,
                         modifier =
                             Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 48.dp)
                                 .semantics {
-                                    if (state.isSyncing) {
-                                        stateDescription = strings.contacts.syncingStateDescription
+                                    if (isSyncing) {
+                                        stateDescription = strings.syncingStateDescription
                                     }
                                 },
                     ) {
-                        Text(if (state.isSyncing) strings.contacts.syncing else strings.contacts.syncCta)
+                        Text(if (isSyncing) strings.syncing else strings.syncCta)
                     }
                 }
             }
 
             if (registeredContacts.isNotEmpty()) {
                 item {
-                    SectionHeader(title = strings.contacts.registeredSectionTitle)
+                    SectionHeader(title = strings.registeredSectionTitle)
                 }
-                items(registeredContacts, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
-                    RowWithActions(
-                        title = contact.name,
-                        subtitle = contact.phoneNo,
-                        endContent = {
-                            Badge(
-                                text = strings.contacts.onLiveChatBadge,
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        },
-                        highlight = true,
-                        onClick = { onContactSelected(contact) },
-                        enabled = true,
+                items(registeredContacts, key = { it.normalizedPhone }) { entry ->
+                    RegisteredContactRow(
+                        entry = entry,
+                        badgeText = strings.onLiveChatBadge,
+                        onContactSelected = onContactSelected,
                     )
                 }
             }
 
-            if (!state.isSyncing && inviteCandidates.isNotEmpty()) {
+            if (!isSyncing && inviteCandidates.isNotEmpty()) {
                 item {
-                    SectionHeader(title = strings.contacts.inviteSectionTitle)
+                    SectionHeader(title = strings.inviteSectionTitle)
                 }
-                items(inviteCandidates, key = { normalizePhoneNumber(it.phoneNo) }) { contact ->
-                    RowWithActions(
-                        title = contact.name,
-                        subtitle = contact.phoneNo,
-                        endContent = {
-                            TextButton(
-                                onClick = { onInvite(contact) },
-                                modifier = Modifier.heightIn(min = 48.dp),
-                            ) {
-                                Text(strings.contacts.inviteCta)
-                            }
-                        },
-                        highlight = false,
-                        onClick = {},
-                        enabled = false,
+                items(inviteCandidates, key = { it.normalizedPhone }) { entry ->
+                    InviteContactRow(
+                        entry = entry,
+                        inviteLabel = strings.inviteCta,
+                        onInvite = onInvite,
                     )
                 }
-            } else if (state.isSyncing && inviteCandidates.isNotEmpty()) {
+            } else if (isSyncing && inviteCandidates.isNotEmpty()) {
                 item {
                     Text(
-                        text = strings.contacts.validatingSectionMessage,
+                        text = strings.validatingSectionMessage,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = MaterialTheme.spacing.sm),
@@ -270,6 +272,88 @@ private fun ContactsListContent(
         }
     }
 }
+
+@Composable
+private fun RegisteredContactRow(
+    entry: ContactEntry,
+    badgeText: String,
+    onContactSelected: (Contact) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val onClick = rememberContactAction(entry.contact, onContactSelected)
+    val endContent: @Composable () -> Unit =
+        remember(badgeText) {
+            {
+                Badge(
+                    text = badgeText,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+    RowWithActions(
+        title = entry.contact.name,
+        subtitle = entry.contact.phoneNo,
+        endContent = endContent,
+        highlight = true,
+        onClick = onClick,
+        enabled = true,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun InviteContactRow(
+    entry: ContactEntry,
+    inviteLabel: String,
+    onInvite: (Contact) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val onInviteClick = rememberContactAction(entry.contact, onInvite)
+    val endContent: @Composable () -> Unit =
+        remember(inviteLabel, onInviteClick) {
+            {
+                TextButton(
+                    onClick = onInviteClick,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(inviteLabel)
+                }
+            }
+        }
+
+    RowWithActions(
+        title = entry.contact.name,
+        subtitle = entry.contact.phoneNo,
+        endContent = endContent,
+        highlight = false,
+        onClick = NoOpClick,
+        enabled = false,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
+}
+
+@Composable
+private fun rememberContactAction(
+    contact: Contact,
+    action: (Contact) -> Unit,
+): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember(contact) { { actionState.value(contact) } }
+}
+
+private data class ContactEntry(
+    val normalizedPhone: String,
+    val contact: Contact,
+)
+
+private val NoOpClick: () -> Unit = {}
 
 @DevicePreviews
 @Preview

@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.ConversationFilter
 import com.edufelip.livechat.domain.models.ConversationListUiState
@@ -42,12 +43,30 @@ fun ConversationListScreen(
     modifier: Modifier = Modifier,
 ) {
     val conversationStrings = liveChatStrings().conversation
+    val onSearchAction = rememberStableAction(onSearch)
+    val onConversationSelectedAction = rememberStableAction(onConversationSelected)
+    val onTogglePinAction = rememberStableAction(onTogglePin)
+    val onToggleMuteAction = rememberStableAction(onToggleMute)
+    val onToggleArchiveAction = rememberStableAction(onToggleArchive)
+    val onFilterSelectedAction = rememberStableAction(onFilterSelected)
+    val filterOptions =
+        remember(conversationStrings) {
+            ConversationFilter.entries.map { filter ->
+                val label =
+                    when (filter) {
+                        ConversationFilter.All -> conversationStrings.filterAll
+                        ConversationFilter.Unread -> conversationStrings.filterUnread
+                        ConversationFilter.Pinned -> conversationStrings.filterPinned
+                        ConversationFilter.Archived -> conversationStrings.filterArchived
+                    }
+                FilterChipOption(filter = filter, label = label)
+            }
+        }
     val uniqueConversations =
-        remember(state.conversations, state.searchQuery) {
+        remember(state.conversations) {
             state.conversations.distinctBy { it.conversationId }
         }
-    val pinned = remember(uniqueConversations, state.searchQuery) { uniqueConversations.filter { it.isPinned } }
-    val others = remember(uniqueConversations, state.searchQuery) { uniqueConversations.filterNot { it.isPinned } }
+    val (pinned, others) = remember(uniqueConversations) { uniqueConversations.partition { it.isPinned } }
     val selectedFilter = state.selectedFilter
 
     Column(
@@ -61,7 +80,7 @@ fun ConversationListScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = state.searchQuery,
-                onValueChange = onSearch,
+                onValueChange = onSearchAction,
                 placeholder = { Text(conversationStrings.searchPlaceholder) },
                 singleLine = true,
             )
@@ -70,20 +89,15 @@ fun ConversationListScreen(
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
-            items(ConversationFilter.entries.toTypedArray()) { filter ->
+            items(filterOptions, key = { it.filter.name }) { option ->
+                val onFilterClick =
+                    remember(option.filter, onFilterSelectedAction) {
+                        { onFilterSelectedAction(option.filter) }
+                    }
                 FilterChip(
-                    selected = selectedFilter == filter,
-                    onClick = { onFilterSelected(filter) },
-                    label = {
-                        val label =
-                            when (filter) {
-                                ConversationFilter.All -> conversationStrings.filterAll
-                                ConversationFilter.Unread -> conversationStrings.filterUnread
-                                ConversationFilter.Pinned -> conversationStrings.filterPinned
-                                ConversationFilter.Archived -> conversationStrings.filterArchived
-                            }
-                        Text(label)
-                    },
+                    selected = selectedFilter == option.filter,
+                    onClick = onFilterClick,
+                    label = { Text(option.label) },
                 )
             }
         }
@@ -106,10 +120,10 @@ fun ConversationListScreen(
                         items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(
                                 summary = summary,
-                                onTogglePin = onTogglePin,
-                                onToggleMute = onToggleMute,
-                                onToggleArchive = onToggleArchive,
-                                onClick = onConversationSelected,
+                                onTogglePin = onTogglePinAction,
+                                onToggleMute = onToggleMuteAction,
+                                onToggleArchive = onToggleArchiveAction,
+                                onClick = onConversationSelectedAction,
                             )
                         }
                         if (others.isNotEmpty()) {
@@ -119,20 +133,20 @@ fun ConversationListScreen(
                     items(others, key = { "conv-${it.conversationId}" }) { summary ->
                         ConversationListRow(
                             summary = summary,
-                            onTogglePin = onTogglePin,
-                            onToggleMute = onToggleMute,
-                            onToggleArchive = onToggleArchive,
-                            onClick = onConversationSelected,
+                            onTogglePin = onTogglePinAction,
+                            onToggleMute = onToggleMuteAction,
+                            onToggleArchive = onToggleArchiveAction,
+                            onClick = onConversationSelectedAction,
                         )
                     }
                     if (selectedFilter == ConversationFilter.Pinned) {
                         items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
                             ConversationListRow(
                                 summary = summary,
-                                onTogglePin = onTogglePin,
-                                onToggleMute = onToggleMute,
-                                onToggleArchive = onToggleArchive,
-                                onClick = onConversationSelected,
+                                onTogglePin = onTogglePinAction,
+                                onToggleMute = onToggleMuteAction,
+                                onToggleArchive = onToggleArchiveAction,
+                                onClick = onConversationSelectedAction,
                             )
                         }
                     }
@@ -140,6 +154,29 @@ fun ConversationListScreen(
             }
         }
     }
+}
+
+private data class FilterChipOption(
+    val filter: ConversationFilter,
+    val label: String,
+)
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
+}
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun <T1, T2> rememberStableAction(action: (T1, T2) -> Unit): (T1, T2) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value1, value2 -> actionState.value(value1, value2) } }
 }
 
 @DevicePreviews

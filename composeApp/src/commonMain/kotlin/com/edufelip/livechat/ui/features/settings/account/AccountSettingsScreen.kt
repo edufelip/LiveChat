@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.preview.DevicePreviews
@@ -36,30 +38,51 @@ fun AccountSettingsScreen(
     onDeleteAccount: () -> Unit = {},
 ) {
     val strings = liveChatStrings()
-    val profile = state.profile
-    val displayName =
-        profile?.displayName?.takeIf { it.isNotBlank() }
-            ?: strings.account.displayNameMissing
-    val statusMessage =
-        profile?.statusMessage?.takeIf { it.isNotBlank() }
-            ?: strings.account.statusPlaceholder
-    val phoneNumber = profile?.phoneNumber?.takeIf { it.isNotBlank() } ?: strings.account.phoneMissing
-    val email = profile?.email?.takeIf { it.isNotBlank() } ?: strings.account.emailMissing
-    val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+    val accountStrings = strings.account
+    val generalStrings = strings.general
+    val scrollState = rememberScrollState()
+    val displayData =
+        remember(state.profile, accountStrings) {
+            val profile = state.profile
+            val displayName =
+                profile?.displayName?.takeIf { it.isNotBlank() }
+                    ?: accountStrings.displayNameMissing
+            val statusMessage =
+                profile?.statusMessage?.takeIf { it.isNotBlank() }
+                    ?: accountStrings.statusPlaceholder
+            val phoneNumber =
+                profile?.phoneNumber?.takeIf { it.isNotBlank() }
+                    ?: accountStrings.phoneMissing
+            val email = profile?.email?.takeIf { it.isNotBlank() } ?: accountStrings.emailMissing
+            val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+            AccountDisplayData(
+                displayName = displayName,
+                statusMessage = statusMessage,
+                phoneNumber = phoneNumber,
+                email = email,
+                initials = initials,
+            )
+        }
+    val onBackAction = rememberStableAction(onBack)
+    val onEditProfileAction = rememberStableAction(onEditProfile)
+    val onEditDisplayNameAction = rememberStableAction(onEditDisplayName)
+    val onEditStatusAction = rememberStableAction(onEditStatus)
+    val onEditEmailAction = rememberStableAction(onEditEmail)
+    val onDeleteAccountAction = rememberStableAction(onDeleteAccount)
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
     ) {
         AccountSettingsHeader(
-            title = strings.account.screenTitle,
-            subtitle = strings.account.screenSubtitle,
-            backContentDescription = strings.general.dismiss,
-            onBack = onBack,
+            title = accountStrings.screenTitle,
+            subtitle = accountStrings.screenSubtitle,
+            backContentDescription = generalStrings.dismiss,
+            onBack = onBackAction,
         )
 
         if (state.isLoading) {
@@ -69,46 +92,60 @@ fun AccountSettingsScreen(
         }
 
         AccountProfileCard(
-            displayName = displayName,
-            onlineLabel = strings.account.onlineLabel,
-            initials = initials,
-            onEdit = onEditProfile,
-            editLabel = strings.account.editCta,
+            displayName = displayData.displayName,
+            onlineLabel = accountStrings.onlineLabel,
+            initials = displayData.initials,
+            onEdit = onEditProfileAction,
+            editLabel = accountStrings.editCta,
         )
 
         AccountFieldCard(
-            title = strings.account.displayNameLabel,
-            value = displayName,
-            onClick = onEditDisplayName,
+            title = accountStrings.displayNameLabel,
+            value = displayData.displayName,
+            onClick = onEditDisplayNameAction,
         )
 
         AccountFieldCard(
-            title = strings.account.statusLabel,
-            value = statusMessage,
-            onClick = onEditStatus,
+            title = accountStrings.statusLabel,
+            value = displayData.statusMessage,
+            onClick = onEditStatusAction,
         )
 
         AccountFieldCard(
-            title = strings.account.phoneLabel,
-            value = phoneNumber,
-            helper = strings.account.phoneReadOnlyHint,
+            title = accountStrings.phoneLabel,
+            value = displayData.phoneNumber,
+            helper = accountStrings.phoneReadOnlyHint,
             onClick = null,
         )
 
         AccountFieldCard(
-            title = strings.account.emailLabel,
-            value = email,
-            onClick = onEditEmail,
+            title = accountStrings.emailLabel,
+            value = displayData.email,
+            onClick = onEditEmailAction,
         )
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
 
         AccountDeleteCard(
-            title = strings.account.deleteTitle,
-            description = strings.account.deleteDescription,
-            onClick = onDeleteAccount,
+            title = accountStrings.deleteTitle,
+            description = accountStrings.deleteDescription,
+            onClick = onDeleteAccountAction,
         )
     }
+}
+
+private data class AccountDisplayData(
+    val displayName: String,
+    val statusMessage: String,
+    val phoneNumber: String,
+    val email: String,
+    val initials: String,
+)
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
 }
 
 @DevicePreviews

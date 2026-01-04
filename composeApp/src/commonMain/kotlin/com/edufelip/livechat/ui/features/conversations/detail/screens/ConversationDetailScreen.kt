@@ -140,7 +140,20 @@ fun ConversationDetailScreen(
     val duration by audioController.durationMillis.collectAsState()
     val position by audioController.positionMillis.collectAsState()
     val scope = rememberCoroutineScope()
-    val onBackState by rememberUpdatedState(onBack)
+    val onBackAction = rememberStableAction(onBack)
+    val onDismissErrorAction = rememberStableAction(onDismissError)
+    val onStartRecordingAction = rememberStableAction(onStartRecording)
+    val onCancelRecordingAction = rememberStableAction(onCancelRecording)
+    val onSendRecordingAction = rememberStableAction(onSendRecording)
+    val onPickImageAction = rememberStableAction(onPickImage)
+    val onTakePhotoAction = rememberStableAction(onTakePhoto)
+    val onSendMessageAction = rememberStableAction(onSendMessage)
+    val onMessageErrorClickAction = rememberStableAction(onMessageErrorClick)
+    val onMessageLongPressAction = rememberStableAction(onMessageLongPress)
+    val onDismissMessageActionsAction = rememberStableAction(onDismissMessageActions)
+    val onCopyMessageAction = rememberStableAction(onCopyMessage)
+    val onDeleteMessageAction = rememberStableAction(onDeleteMessage)
+    val onRetryMessageAction = rememberStableAction(onRetryMessage)
     val density = LocalDensity.current
     val edgeWidthPx = remember(density) { with(density) { 24.dp.toPx() } }
     val swipeThresholdPx = remember(density) { with(density) { 72.dp.toPx() } }
@@ -160,7 +173,7 @@ fun ConversationDetailScreen(
         if (isAndroid()) {
             Modifier
         } else {
-            Modifier.pointerInput(edgeWidthPx, swipeThresholdPx, onBackState) {
+            Modifier.pointerInput(edgeWidthPx, swipeThresholdPx, onBackAction) {
                 var fromEdge = false
                 var dragDistance = 0f
                 var triggered = false
@@ -180,7 +193,7 @@ fun ConversationDetailScreen(
                         change.consume()
                         if (dragDistance >= swipeThresholdPx) {
                             triggered = true
-                            onBackState()
+                            onBackAction()
                         }
                     },
                     onDragEnd = {
@@ -227,7 +240,7 @@ fun ConversationDetailScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(onClick = onBackAction) {
                             Icon(imageVector = AppIcons.back, contentDescription = strings.home.backCta)
                         }
                     },
@@ -286,8 +299,8 @@ fun ConversationDetailScreen(
                             position = position,
                             selectedMessageId = activeMessage?.localTempId ?: activeMessage?.id,
                             onAudioToggle = onAudioToggle,
-                            onMessageLongPress = onMessageLongPress,
-                            onMessageErrorClick = onMessageErrorClick,
+                            onMessageLongPress = onMessageLongPressAction,
+                            onMessageErrorClick = onMessageErrorClickAction,
                             rootOffset = rootOffset,
                             scrollToBottomSignal = scrollToBottomSignal,
                         )
@@ -295,26 +308,26 @@ fun ConversationDetailScreen(
                 }
 
                 state.errorMessage?.let { message ->
-                    ErrorBanner(message = message, onDismiss = onDismissError)
+                    ErrorBanner(message = message, onDismiss = onDismissErrorAction)
                 }
 
                 RecordingControlsBar(
                     isRecording = isRecording,
                     durationMillis = recordingDurationMillis,
-                    onCancel = onCancelRecording,
-                    onSend = onSendRecording,
+                    onCancel = onCancelRecordingAction,
+                    onSend = onSendRecordingAction,
                 )
                 PermissionHint(hint = permissionHint)
 
                 ComposerBar(
                     isSending = state.isSending,
                     errorMessage = state.errorMessage,
-                    onSend = onSendMessage,
+                    onSend = onSendMessageAction,
                     isRecording = isRecording,
-                    onStartRecording = onStartRecording,
-                    onPickImage = onPickImage,
-                    onTakePhoto = onTakePhoto,
-                    onErrorClick = onDismissError,
+                    onStartRecording = onStartRecordingAction,
+                    onPickImage = onPickImageAction,
+                    onTakePhoto = onTakePhotoAction,
+                    onErrorClick = onDismissErrorAction,
                 )
             }
         }
@@ -325,24 +338,38 @@ fun ConversationDetailScreen(
             exit = fadeOut(),
         ) {
             if (activeMessage != null && activeBounds != null) {
+                val message = activeMessage
+                val bounds = activeBounds
+                val onCopySelection =
+                    remember(message, onCopyMessageAction, onDismissMessageActionsAction) {
+                        {
+                            onCopyMessageAction(message)
+                            onDismissMessageActionsAction()
+                        }
+                    }
+                val onDeleteSelection =
+                    remember(message, onDeleteMessageAction, onDismissMessageActionsAction) {
+                        {
+                            onDeleteMessageAction(message)
+                            onDismissMessageActionsAction()
+                        }
+                    }
+                val onRetrySelection =
+                    remember(message, onRetryMessageAction, onDismissMessageActionsAction) {
+                        {
+                            onRetryMessageAction(message)
+                            onDismissMessageActionsAction()
+                        }
+                    }
                 MessageActionsOverlay(
-                    message = activeMessage,
-                    messageBounds = activeBounds,
+                    message = message,
+                    messageBounds = bounds,
                     rootSize = rootSize,
                     currentUserId = currentUserId,
-                    onDismiss = onDismissMessageActions,
-                    onCopy = {
-                        onCopyMessage(activeMessage)
-                        onDismissMessageActions()
-                    },
-                    onDelete = {
-                        onDeleteMessage(activeMessage)
-                        onDismissMessageActions()
-                    },
-                    onRetry = {
-                        onRetryMessage(activeMessage)
-                        onDismissMessageActions()
-                    },
+                    onDismiss = onDismissMessageActionsAction,
+                    onCopy = onCopySelection,
+                    onDelete = onDeleteSelection,
+                    onRetry = onRetrySelection,
                 )
             }
         }
@@ -367,6 +394,9 @@ private fun ConversationMessagesList(
     rootOffset: Offset,
     scrollToBottomSignal: Int,
 ) {
+    val onAudioToggleAction = rememberStableAction(onAudioToggle)
+    val onMessageErrorClickAction = rememberStableAction(onMessageErrorClick)
+    val onMessageLongPressAction = rememberStableAction(onMessageLongPress)
     val listState = rememberLazyListStateWithAutoscroll(messages)
     LaunchedEffect(scrollToBottomSignal) {
         if (scrollToBottomSignal > 0 && messages.isNotEmpty()) {
@@ -389,17 +419,29 @@ private fun ConversationMessagesList(
             val messageKey = message.localTempId ?: message.id
             val isHighlighted = selectedMessageId != null && selectedMessageId == messageKey
             var bubbleBounds by remember(messageKey) { mutableStateOf<Rect?>(null) }
+            val onErrorClick =
+                remember(message, onMessageErrorClickAction) {
+                    { onMessageErrorClickAction(message) }
+                }
+            val onLongPress =
+                remember(message, onMessageLongPressAction) {
+                    { bubbleBounds?.let { bounds -> onMessageLongPressAction(message, bounds) } }
+                }
+            val onBubblePositioned =
+                remember(messageKey, rootOffset) {
+                    { bounds: Rect -> bubbleBounds = bounds.toRootBounds(rootOffset) }
+                }
             MessageBubble(
                 message = message,
                 isOwn = isOwnMessage,
                 isPlaying = message.body == playingPath && isPlaying,
-                onAudioToggle = onAudioToggle,
+                onAudioToggle = onAudioToggleAction,
                 progress = if (playingPath == message.body) progress else 0f,
                 durationMillis = if (playingPath == message.body) duration else 0L,
                 positionMillis = if (playingPath == message.body) position else 0L,
-                onErrorClick = { onMessageErrorClick(message) },
-                onLongPress = { bubbleBounds?.let { bounds -> onMessageLongPress(message, bounds) } },
-                onBubblePositioned = { bounds -> bubbleBounds = bounds.toRootBounds(rootOffset) },
+                onErrorClick = onErrorClick,
+                onLongPress = onLongPress,
+                onBubblePositioned = onBubblePositioned,
                 highlighted = isHighlighted,
             )
         }
@@ -443,6 +485,7 @@ private fun MessageActionsOverlay(
                 alignToEnd = isOwnMessage,
             )
         }
+    val onDismissAction = rememberStableAction(onDismiss)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -450,7 +493,7 @@ private fun MessageActionsOverlay(
                 Modifier
                     .fillMaxSize()
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                    .pointerInput(onDismiss) { detectTapGestures { onDismiss() } }
+                    .pointerInput(Unit) { detectTapGestures { onDismissAction() } }
                     .drawWithContent {
                         drawRect(dimColor)
                         val cutoutSize = Size(safeBounds.width, safeBounds.height)
@@ -656,6 +699,24 @@ private fun PermissionHint(hint: String?) {
         color = MaterialTheme.colorScheme.error,
         style = MaterialTheme.typography.bodySmall,
     )
+}
+
+@Composable
+private fun rememberStableAction(action: () -> Unit): () -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { actionState.value() } }
+}
+
+@Composable
+private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value -> actionState.value(value) } }
+}
+
+@Composable
+private fun <T1, T2> rememberStableAction(action: (T1, T2) -> Unit): (T1, T2) -> Unit {
+    val actionState = rememberUpdatedState(action)
+    return remember { { value1, value2 -> actionState.value(value1, value2) } }
 }
 
 @DevicePreviews
