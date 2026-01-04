@@ -71,8 +71,7 @@ enum LiveChatBridgeFactory {
         user.getIDTokenForcingRefresh(false) { token, _ in
             MainViewControllerKt.updateLiveChatSession(
                 userId: user.uid,
-                idToken: token,
-                phoneNumber: user.phoneNumber
+                idToken: token
             )
         }
         #endif
