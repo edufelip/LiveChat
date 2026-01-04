@@ -118,6 +118,38 @@ data class AppearanceStrings(
     val resetTitle: String = "Reset appearance",
 )
 
+data class PrivacyStrings(
+    val screenTitle: String = "Privacy",
+    val screenSubtitle: String = "Manage your visibility and data",
+    val blockedContactsTitle: String = "Blocked Contacts",
+    val blockedContactsSubtitle: String =
+        "View and manage people you've blocked",
+    val blockedContactsEmpty: String = "No blocked contacts yet",
+    val blockedContactUnknown: String = "Unknown user",
+    val unblockCta: String = "Unblock",
+    val invitePreferencesTitle: String = "Invite Preferences",
+    val invitePreferencesSubtitle: String =
+        "Control who can add you to groups and channels",
+    val inviteEveryone: String = "Everyone",
+    val inviteContacts: String = "My Contacts",
+    val inviteNobody: String = "Nobody",
+    val lastSeenTitle: String = "Last Seen & Online",
+    val lastSeenSheetDescription: String = "Choose who can see your last seen status.",
+    val lastSeenEveryone: String = "Everyone",
+    val lastSeenContacts: String = "My Contacts",
+    val lastSeenNobody: String = "Nobody",
+    val readReceiptsTitle: String = "Read Receipts",
+    val readReceiptsSubtitle: String =
+        "If turned off, you won't see read receipts from other people either.",
+    val shareUsageDataTitle: String = "Share Usage Data",
+    val shareUsageDataSubtitle: String =
+        "Help us improve LiveChat by automatically sending diagnostic data.",
+    val privacyPolicyTitle: String = "Privacy Policy",
+    val privacyPolicySubtitle: String =
+        "View our privacy policy and terms of service.",
+    val saveCta: String = "Save",
+)
+
 data class HomeStrings(
     val conversationTitle: String = "Conversation",
     val chatsTab: String = "Chats",
@@ -231,6 +263,7 @@ data class LiveChatStrings(
     val account: AccountStrings = AccountStrings(),
     val notifications: NotificationsStrings = NotificationsStrings(),
     val appearance: AppearanceStrings = AppearanceStrings(),
+    val privacy: PrivacyStrings = PrivacyStrings(),
     val home: HomeStrings = HomeStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
@@ -354,6 +387,34 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             highContrastTitle = stringResource(Res.string.appearance_high_contrast_title),
             highContrastSubtitle = stringResource(Res.string.appearance_high_contrast_subtitle),
             resetTitle = stringResource(Res.string.appearance_reset_title),
+        )
+
+    val privacy =
+        PrivacyStrings(
+            screenTitle = stringResource(Res.string.privacy_screen_title),
+            screenSubtitle = stringResource(Res.string.privacy_screen_subtitle),
+            blockedContactsTitle = stringResource(Res.string.privacy_blocked_contacts_title),
+            blockedContactsSubtitle = stringResource(Res.string.privacy_blocked_contacts_subtitle),
+            blockedContactsEmpty = stringResource(Res.string.privacy_blocked_contacts_empty),
+            blockedContactUnknown = stringResource(Res.string.privacy_blocked_contact_unknown),
+            unblockCta = stringResource(Res.string.privacy_unblock_cta),
+            invitePreferencesTitle = stringResource(Res.string.privacy_invite_preferences_title),
+            invitePreferencesSubtitle = stringResource(Res.string.privacy_invite_preferences_subtitle),
+            inviteEveryone = stringResource(Res.string.privacy_invite_everyone),
+            inviteContacts = stringResource(Res.string.privacy_invite_contacts),
+            inviteNobody = stringResource(Res.string.privacy_invite_nobody),
+            lastSeenTitle = stringResource(Res.string.privacy_last_seen_title),
+            lastSeenSheetDescription = stringResource(Res.string.privacy_last_seen_sheet_description),
+            lastSeenEveryone = stringResource(Res.string.privacy_last_seen_everyone),
+            lastSeenContacts = stringResource(Res.string.privacy_last_seen_contacts),
+            lastSeenNobody = stringResource(Res.string.privacy_last_seen_nobody),
+            readReceiptsTitle = stringResource(Res.string.privacy_read_receipts_title),
+            readReceiptsSubtitle = stringResource(Res.string.privacy_read_receipts_subtitle),
+            shareUsageDataTitle = stringResource(Res.string.privacy_share_usage_data_title),
+            shareUsageDataSubtitle = stringResource(Res.string.privacy_share_usage_data_subtitle),
+            privacyPolicyTitle = stringResource(Res.string.privacy_policy_title),
+            privacyPolicySubtitle = stringResource(Res.string.privacy_policy_subtitle),
+            saveCta = stringResource(Res.string.privacy_save_cta),
         )
 
     val home =
@@ -484,6 +545,9 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         contacts = contacts,
         settings = settings,
         account = account,
+        notifications = notifications,
+        appearance = appearance,
+        privacy = privacy,
         home = home,
         conversation = conversation,
         onboarding = onboarding,

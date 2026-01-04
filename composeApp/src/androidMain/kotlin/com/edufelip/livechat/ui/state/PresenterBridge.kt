@@ -5,11 +5,13 @@ import com.edufelip.livechat.di.AndroidKoinBridge
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
+import com.edufelip.livechat.domain.presentation.BlockedContactsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
+import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 
 internal actual fun provideConversationListPresenter(): ConversationListPresenter = AndroidKoinBridge.conversationListPresenter()
 
@@ -23,6 +25,10 @@ internal actual fun provideNotificationSettingsPresenter(): NotificationSettings
     AndroidKoinBridge.notificationSettingsPresenter()
 
 internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter = AndroidKoinBridge.appearanceSettingsPresenter()
+
+internal actual fun providePrivacySettingsPresenter(): PrivacySettingsPresenter = AndroidKoinBridge.privacySettingsPresenter()
+
+internal actual fun provideBlockedContactsPresenter(): BlockedContactsPresenter = AndroidKoinBridge.blockedContactsPresenter()
 
 internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = AndroidKoinBridge.sessionProvider()
 
