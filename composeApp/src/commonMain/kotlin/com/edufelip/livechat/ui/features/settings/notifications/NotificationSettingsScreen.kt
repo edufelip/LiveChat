@@ -143,12 +143,13 @@ private fun formatDisplayTime(raw: String): String {
     val minute = parts[1].toIntOrNull() ?: return raw
     if (hour !in 0..23 || minute !in 0..59) return raw
     val period = if (hour >= 12) "PM" else "AM"
-    val displayHour = when (val hour12 = hour % 12) {
-        0 -> 12
-        else -> hour12
-    }
+    val displayHour =
+        when (val hour12 = hour % 12) {
+            0 -> 12
+            else -> hour12
+        }
     val minuteText = minute.toString().padStart(2, '0')
-    return "${displayHour}:${minuteText} $period"
+    return "$displayHour:$minuteText $period"
 }
 
 @DevicePreviews

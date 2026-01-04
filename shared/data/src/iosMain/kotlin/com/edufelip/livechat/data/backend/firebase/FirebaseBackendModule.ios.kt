@@ -1,8 +1,8 @@
 package com.edufelip.livechat.data.backend.firebase
 
-import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IAppearanceSettingsRemoteData
+import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData

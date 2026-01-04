@@ -54,9 +54,7 @@ internal fun NotificationSettingsHeader(
 }
 
 @Composable
-internal fun NotificationSectionHeader(
-    title: String,
-) {
+internal fun NotificationSectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,

@@ -5,13 +5,13 @@ import com.edufelip.livechat.data.bridge.AuthBridge
 import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
-import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AccountPresenter
+import com.edufelip.livechat.domain.presentation.AppPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
-import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.shared.data.initSharedKoin
 import io.ktor.client.HttpClient

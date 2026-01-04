@@ -4,11 +4,11 @@ import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.di.AndroidKoinBridge
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
-import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 
 internal actual fun provideConversationListPresenter(): ConversationListPresenter = AndroidKoinBridge.conversationListPresenter()
@@ -22,8 +22,7 @@ internal actual fun provideAccountPresenter(): AccountPresenter = AndroidKoinBri
 internal actual fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter =
     AndroidKoinBridge.notificationSettingsPresenter()
 
-internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter =
-    AndroidKoinBridge.appearanceSettingsPresenter()
+internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter = AndroidKoinBridge.appearanceSettingsPresenter()
 
 internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = AndroidKoinBridge.sessionProvider()
 
