@@ -25,6 +25,7 @@ class AccountRepository(
                     profile == null ->
                         AccountProfile(
                             userId = session.userId,
+                            displayName = "",
                             phoneNumber = fallbackPhone,
                         )
                     profile.phoneNumber.isNullOrBlank() && fallbackPhone != null ->

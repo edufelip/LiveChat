@@ -16,6 +16,7 @@ final class LiveChatRootViewController: UIViewController {
             bridgeBundle: LiveChatBridgeFactory.make(config: config),
             userId: userId,
             idToken: idToken,
+            phoneNumber: nil,
             phoneContactsProvider: {
                 if isUiTest && isContactsFlowEnabled() {
                     return UiTestContactsKt.uiTestContacts()

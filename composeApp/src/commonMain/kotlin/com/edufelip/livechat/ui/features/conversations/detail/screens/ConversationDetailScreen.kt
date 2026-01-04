@@ -425,7 +425,10 @@ private fun ConversationMessagesList(
                 }
             val onLongPress =
                 remember(message, onMessageLongPressAction) {
-                    { bubbleBounds?.let { bounds -> onMessageLongPressAction(message, bounds) } }
+                    {
+                        bubbleBounds?.let { bounds -> onMessageLongPressAction(message, bounds) }
+                        Unit
+                    }
                 }
             val onBubblePositioned =
                 remember(messageKey, rootOffset) {
