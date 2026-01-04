@@ -54,7 +54,7 @@ private fun TextStyle.scale(scale: Float): TextStyle =
     )
 
 private fun TextUnit.scaleTextUnit(scale: Float): TextUnit =
-    if (isUnspecified) {
+    if (this == TextUnit.Unspecified) {
         this
     } else {
         (value * scale).sp

@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.LastSeenAudience
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.components.atoms.BottomSheetDragHandle
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -31,6 +32,7 @@ data class PrivacyOption(
 )
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun PrivacyLastSeenBottomSheet(
     title: String,
     description: String,
@@ -46,7 +48,7 @@ internal fun PrivacyLastSeenBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        dragHandle = { ModalBottomSheetDefaults.DragHandle() },
+        dragHandle = { BottomSheetDragHandle() },
     ) {
         Column(
             modifier =

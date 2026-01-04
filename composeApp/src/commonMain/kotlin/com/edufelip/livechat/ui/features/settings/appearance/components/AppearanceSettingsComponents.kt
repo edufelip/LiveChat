@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -250,7 +251,7 @@ private fun TextStyle.scale(scale: Float): TextStyle =
     )
 
 private fun TextUnit.scaleTextUnit(scale: Float): TextUnit =
-    if (isUnspecified) {
+    if (this == TextUnit.Unspecified) {
         this
     } else {
         (value * scale).sp
