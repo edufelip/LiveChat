@@ -23,16 +23,21 @@ class ContactsScreenTest {
         var registeredLabel = ""
         var inviteSectionTitle = ""
         var inviteCta = ""
+        var primaryName = ""
+        var tertiaryName = ""
         composeRule.setContent {
             LiveChatTheme {
-                val strings = liveChatStrings().contacts
+                val strings = liveChatStrings()
+                val preview = strings.preview
                 SideEffect {
-                    registeredLabel = strings.registeredSectionTitle
-                    inviteSectionTitle = strings.inviteSectionTitle
-                    inviteCta = strings.inviteCta
+                    registeredLabel = strings.contacts.registeredSectionTitle
+                    inviteSectionTitle = strings.contacts.inviteSectionTitle
+                    inviteCta = strings.contacts.inviteCta
+                    primaryName = preview.contactPrimaryName
+                    tertiaryName = preview.contactTertiaryName
                 }
                 ContactsScreen(
-                    state = PreviewFixtures.contactsState,
+                    state = PreviewFixtures.contactsState(strings),
                     onInvite = {},
                     onContactSelected = {},
                     onSync = {},
@@ -47,7 +52,7 @@ class ContactsScreenTest {
         composeRule.onNodeWithText(inviteSectionTitle).assertIsDisplayed()
         val inviteButtons = composeRule.onAllNodesWithText(inviteCta).fetchSemanticsNodes()
         assertTrue(inviteButtons.isNotEmpty())
-        composeRule.onNodeWithText("Ava Harper").assertIsDisplayed()
-        composeRule.onNodeWithText("Chioma Ade").assertIsDisplayed()
+        composeRule.onNodeWithText(primaryName).assertIsDisplayed()
+        composeRule.onNodeWithText(tertiaryName).assertIsDisplayed()
     }
 }

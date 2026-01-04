@@ -21,12 +21,19 @@ class ConversationListScreenTest {
     @Test
     fun showsPinnedAndConversationNames() {
         var pinnedLabel = ""
+        var primaryName = ""
+        var secondaryName = ""
         composeRule.setContent {
             LiveChatTheme {
-                val strings = liveChatStrings().conversation
-                SideEffect { pinnedLabel = strings.pinnedSectionTitle }
+                val strings = liveChatStrings()
+                val preview = strings.preview
+                SideEffect {
+                    pinnedLabel = strings.conversation.pinnedSectionTitle
+                    primaryName = preview.contactPrimaryName
+                    secondaryName = preview.contactSecondaryName
+                }
                 ConversationListScreen(
-                    state = PreviewFixtures.conversationListState,
+                    state = PreviewFixtures.conversationListState(strings),
                     onSearch = {},
                     onConversationSelected = {},
                     onTogglePin = { _, _ -> },
@@ -40,7 +47,7 @@ class ConversationListScreenTest {
         composeRule.waitForIdle()
         val pinnedHeaders = composeRule.onAllNodesWithText(pinnedLabel).fetchSemanticsNodes()
         assertTrue(pinnedHeaders.isNotEmpty())
-        composeRule.onNodeWithText("Ava Harper").assertIsDisplayed()
-        composeRule.onNodeWithText("Brandon Diaz").assertIsDisplayed()
+        composeRule.onNodeWithText(primaryName).assertIsDisplayed()
+        composeRule.onNodeWithText(secondaryName).assertIsDisplayed()
     }
 }
