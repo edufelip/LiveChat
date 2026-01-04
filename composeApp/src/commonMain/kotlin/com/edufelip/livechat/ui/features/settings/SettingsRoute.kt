@@ -14,6 +14,7 @@ import com.edufelip.livechat.ui.features.settings.account.AccountSettingsRoute
 import com.edufelip.livechat.ui.features.settings.appearance.AppearanceSettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.features.settings.notifications.NotificationSettingsRoute
+import com.edufelip.livechat.ui.features.settings.privacy.PrivacySettingsRoute
 import com.edufelip.livechat.ui.features.settings.screens.SettingsScreen
 import com.edufelip.livechat.ui.features.settings.screens.SettingsSection
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -28,7 +29,8 @@ fun SettingsRoute(
     val hideChrome =
         activeSection == SettingsSection.Account ||
             activeSection == SettingsSection.Notifications ||
-            activeSection == SettingsSection.Appearance
+            activeSection == SettingsSection.Appearance ||
+            activeSection == SettingsSection.Privacy
 
     LaunchedEffect(hideChrome) {
         onChromeVisibilityChanged(!hideChrome)
@@ -66,6 +68,14 @@ fun SettingsRoute(
         return
     }
 
+    if (activeSection == SettingsSection.Privacy) {
+        PrivacySettingsRoute(
+            modifier = modifier,
+            onBack = { activeSection = null },
+        )
+        return
+    }
+
     SettingsScreen(
         modifier = modifier,
         onSectionSelected = { request ->
@@ -74,6 +84,8 @@ fun SettingsRoute(
             } else if (request.section == SettingsSection.Notifications) {
                 activeSection = request.section
             } else if (request.section == SettingsSection.Appearance) {
+                activeSection = request.section
+            } else if (request.section == SettingsSection.Privacy) {
                 activeSection = request.section
             } else {
                 onSectionSelected(request)

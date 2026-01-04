@@ -13,18 +13,22 @@ import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
+import com.edufelip.livechat.domain.models.BlockedContactsUiState
 import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationUiState
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
+import com.edufelip.livechat.domain.models.PrivacySettingsUiState
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
+import com.edufelip.livechat.domain.presentation.BlockedContactsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
+import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 
@@ -133,6 +137,36 @@ internal fun rememberAppearanceSettingsPresenter(): AppearanceSettingsPresenter 
 internal fun AppearanceSettingsPresenter.collectState(): State<AppearanceSettingsUiState> = this.state.collectAsComposeState()
 
 @Composable
+internal fun rememberPrivacySettingsPresenter(): PrivacySettingsPresenter {
+    val presenter =
+        remember {
+            providePrivacySettingsPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun PrivacySettingsPresenter.collectState(): State<PrivacySettingsUiState> = this.state.collectAsComposeState()
+
+@Composable
+internal fun rememberBlockedContactsPresenter(): BlockedContactsPresenter {
+    val presenter =
+        remember {
+            provideBlockedContactsPresenter()
+        }
+    DisposableEffect(presenter) {
+        onDispose { presenter.close() }
+    }
+    return presenter
+}
+
+@Composable
+internal fun BlockedContactsPresenter.collectState(): State<BlockedContactsUiState> = this.state.collectAsComposeState()
+
+@Composable
 internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
     return remember {
         provideSessionProvider()
@@ -176,6 +210,10 @@ internal expect fun provideAccountPresenter(): AccountPresenter
 internal expect fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter
 
 internal expect fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter
+
+internal expect fun providePrivacySettingsPresenter(): PrivacySettingsPresenter
+
+internal expect fun provideBlockedContactsPresenter(): BlockedContactsPresenter
 
 internal expect fun provideSessionProvider(): InMemoryUserSessionProvider
 

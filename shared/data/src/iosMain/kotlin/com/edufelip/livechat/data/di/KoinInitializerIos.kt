@@ -8,11 +8,13 @@ import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
+import com.edufelip.livechat.domain.presentation.BlockedContactsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
+import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 import com.edufelip.livechat.shared.data.initSharedKoin
 import io.ktor.client.HttpClient
 import org.koin.core.KoinApplication
@@ -38,6 +40,10 @@ object IosKoinBridge : KoinComponent {
     fun notificationSettingsPresenter(): NotificationSettingsPresenter = get()
 
     fun appearanceSettingsPresenter(): AppearanceSettingsPresenter = get()
+
+    fun privacySettingsPresenter(): PrivacySettingsPresenter = get()
+
+    fun blockedContactsPresenter(): BlockedContactsPresenter = get()
 
     fun authBridge(): AuthBridge = get()
 }

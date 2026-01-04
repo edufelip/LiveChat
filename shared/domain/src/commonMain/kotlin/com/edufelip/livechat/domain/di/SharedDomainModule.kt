@@ -3,11 +3,13 @@ package com.edufelip.livechat.domain.di
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
+import com.edufelip.livechat.domain.presentation.BlockedContactsPresenter
 import com.edufelip.livechat.domain.presentation.ContactsPresenter
 import com.edufelip.livechat.domain.presentation.ConversationListPresenter
 import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
+import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
@@ -177,6 +179,25 @@ val sharedDomainModule: Module =
                 updateReduceMotion = get(),
                 updateHighContrast = get(),
                 resetSettings = get(),
+                scope = MainScope(),
+            )
+        }
+        factory {
+            PrivacySettingsPresenter(
+                observeSettings = get(),
+                updateInvitePreference = get(),
+                updateLastSeenAudience = get(),
+                updateReadReceipts = get(),
+                updateShareUsageData = get(),
+                resetSettings = get(),
+                scope = MainScope(),
+            )
+        }
+        factory {
+            BlockedContactsPresenter(
+                observeBlockedContacts = get(),
+                blockContact = get(),
+                unblockContact = get(),
                 scope = MainScope(),
             )
         }
