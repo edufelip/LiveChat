@@ -20,41 +20,41 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.edufelip.livechat.preview.DevicePreviews
-import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.components.atoms.BottomSheetDragHandle
-import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AccountEditBottomSheet(
+internal fun AccountEmailBottomSheet(
+    step: EmailBottomSheetStep,
     title: String,
     description: String,
-    label: String,
+    verifyTitle: String,
+    verifyDescription: String,
+    email: String,
     placeholder: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    sendLabel: String,
+    verifyLabel: String,
+    changeLabel: String,
+    resendLabel: String,
+    onEmailChange: (String) -> Unit,
+    onSendVerification: () -> Unit,
+    onConfirmVerified: () -> Unit,
+    onChangeEmail: () -> Unit,
+    onResend: () -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
+    isLoading: Boolean,
     confirmEnabled: Boolean,
-    isUpdating: Boolean,
-    confirmLabel: String,
     keyboardOptions: KeyboardOptions,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -96,29 +96,40 @@ internal fun AccountEditBottomSheet(
                     .imePadding(),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
         ) {
+            val headerTitle =
+                when (step) {
+                    EmailBottomSheetStep.Entry -> title
+                    EmailBottomSheetStep.AwaitVerification -> verifyTitle
+                }
+            val headerDescription =
+                when (step) {
+                    EmailBottomSheetStep.Entry -> description
+                    EmailBottomSheetStep.AwaitVerification -> verifyDescription
+                }
             Text(
-                text = title,
+                text = headerTitle,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             )
-            if (description.isNotBlank()) {
+            if (headerDescription.isNotBlank()) {
                 Text(
-                    text = description,
+                    text = headerDescription,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
             OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
+                value = email,
+                onValueChange = onEmailChange,
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .semantics { contentDescription = label },
+                        .semantics { contentDescription = placeholder },
                 placeholder = { Text(placeholder) },
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyLarge,
-                enabled = !isUpdating,
+                enabled = !isLoading && step == EmailBottomSheetStep.Entry,
+                readOnly = step == EmailBottomSheetStep.AwaitVerification,
                 keyboardOptions = keyboardOptions,
                 shape = fieldShape,
                 colors =
@@ -136,13 +147,26 @@ internal fun AccountEditBottomSheet(
                     ),
             )
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
+            val primaryLabel =
+                when (step) {
+                    EmailBottomSheetStep.Entry -> sendLabel
+                    EmailBottomSheetStep.AwaitVerification -> verifyLabel
+                }
             Button(
-                onClick = onConfirm,
+                onClick =
+                    when (step) {
+                        EmailBottomSheetStep.Entry -> onSendVerification
+                        EmailBottomSheetStep.AwaitVerification -> onConfirmVerified
+                    },
                 modifier =
                     Modifier
                         .fillMaxWidth()
                         .heightIn(min = 52.dp),
-                enabled = confirmEnabled && !isUpdating,
+                enabled =
+                    when (step) {
+                        EmailBottomSheetStep.Entry -> confirmEnabled && !isLoading
+                        EmailBottomSheetStep.AwaitVerification -> !isLoading
+                    },
                 shape = RoundedCornerShape(percent = 50),
                 contentPadding = PaddingValues(vertical = 14.dp),
                 colors =
@@ -154,34 +178,30 @@ internal fun AccountEditBottomSheet(
                     ),
             ) {
                 Text(
-                    text = confirmLabel,
+                    text = primaryLabel,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
+            }
+            if (step == EmailBottomSheetStep.AwaitVerification) {
+                Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+                TextButton(
+                    onClick = onResend,
+                    enabled = !isLoading,
+                ) {
+                    Text(resendLabel)
+                }
+                TextButton(
+                    onClick = onChangeEmail,
+                    enabled = !isLoading,
+                ) {
+                    Text(changeLabel)
+                }
             }
         }
     }
 }
 
-@DevicePreviews
-@Preview
-@Composable
-private fun AccountEditBottomSheetPreview() {
-    LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        var text by remember { mutableStateOf(strings.account.displayNameMissing) }
-        AccountEditBottomSheet(
-            title = strings.account.editDisplayNameTitle,
-            description = strings.account.editDisplayNameDescription,
-            label = strings.account.displayNameLabel,
-            placeholder = strings.account.displayNameMissing,
-            value = text,
-            onValueChange = { text = it },
-            onDismiss = {},
-            onConfirm = {},
-            confirmEnabled = true,
-            isUpdating = false,
-            confirmLabel = strings.account.saveCta,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        )
-    }
+internal enum class EmailBottomSheetStep {
+    Entry,
+    AwaitVerification,
 }

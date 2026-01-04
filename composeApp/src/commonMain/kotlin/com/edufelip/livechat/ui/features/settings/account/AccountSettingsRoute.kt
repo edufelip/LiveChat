@@ -14,15 +14,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
+import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.domain.models.AccountUiState
+import com.edufelip.livechat.domain.models.EmailUpdateState
+import com.edufelip.livechat.domain.utils.phoneNumberFromE164
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.settings.account.components.AccountDeleteBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
+import com.edufelip.livechat.ui.features.settings.account.components.AccountEmailBottomSheet
+import com.edufelip.livechat.ui.features.settings.account.components.DeleteBottomSheetStep
+import com.edufelip.livechat.ui.features.settings.account.components.EmailBottomSheetStep
+import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.LiveChatStrings
+import com.edufelip.livechat.ui.resources.OnboardingStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAccountPresenter
+import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -37,7 +49,6 @@ fun AccountSettingsRoute(
             modifier = modifier,
             state = previewState(),
             onBack = onBack,
-            onEditProfile = {},
             onEditDisplayName = {},
             onEditStatus = {},
             onEditEmail = {},
@@ -49,10 +60,19 @@ fun AccountSettingsRoute(
     val presenter = rememberAccountPresenter()
     val state by presenter.collectState()
     val sessionProvider = rememberSessionProvider()
+    val phoneAuthPresenter = rememberPhoneAuthPresenter()
+    val phoneAuthState by phoneAuthPresenter.collectState()
+    val platformContext = rememberPlatformContext()
+    val onboardingStrings = strings.onboarding
 
     var activeEdit by remember { mutableStateOf(EditField.None) }
     var editValue by remember { mutableStateOf("") }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var emailValue by remember { mutableStateOf("") }
+    var emailStep by remember { mutableStateOf(EmailBottomSheetStep.Entry) }
+    var deleteStep by remember { mutableStateOf<DeleteBottomSheetStep?>(null) }
+    var deleteCountdown by remember { mutableStateOf(DELETE_COUNTDOWN_SECONDS) }
+    var otpCode by remember { mutableStateOf("") }
+    var reauthError by remember { mutableStateOf<String?>(null) }
     var showErrorDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.errorMessage) {
@@ -60,21 +80,97 @@ fun AccountSettingsRoute(
     }
 
     LaunchedEffect(activeEdit, state.profile) {
-        editValue =
-            when (activeEdit) {
-                EditField.DisplayName -> state.profile?.displayName.orEmpty()
-                EditField.StatusMessage -> state.profile?.statusMessage.orEmpty()
-                EditField.Email -> state.profile?.email.orEmpty()
-                EditField.None -> ""
+        when (activeEdit) {
+            EditField.DisplayName -> editValue = state.profile?.displayName.orEmpty()
+            EditField.StatusMessage -> editValue = state.profile?.statusMessage.orEmpty()
+            EditField.Email -> emailValue = state.profile?.email.orEmpty()
+            EditField.None -> Unit
+        }
+    }
+
+    LaunchedEffect(activeEdit) {
+        if (activeEdit == EditField.Email) {
+            emailStep = EmailBottomSheetStep.Entry
+            presenter.clearEmailUpdateState()
+        } else if (activeEdit == EditField.None) {
+            presenter.clearEmailUpdateState()
+        }
+    }
+
+    LaunchedEffect(state.emailUpdateState) {
+        when (val emailState = state.emailUpdateState) {
+            is EmailUpdateState.Sent -> {
+                emailStep = EmailBottomSheetStep.AwaitVerification
+                emailValue = emailState.email
             }
+            is EmailUpdateState.Verified -> {
+                activeEdit = EditField.None
+                presenter.clearEmailUpdateState()
+            }
+            else -> Unit
+        }
     }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) {
+            deleteStep = null
             signOutPlatformUser()
             sessionProvider.setSession(null)
             onAccountDeleted()
             presenter.acknowledgeDeletion()
+        }
+    }
+
+    val sessionPhone = sessionProvider.currentUserPhone()
+    val reauthPhone =
+        remember(state.profile?.phoneNumber, sessionPhone) {
+            val candidate = state.profile?.phoneNumber ?: sessionPhone
+            candidate?.let { phoneNumberFromE164(it) }
+        }
+    val phoneAuthContext =
+        remember(platformContext) {
+            runCatching { phoneAuthPresentationContext(platformContext) }.getOrNull()
+        }
+
+    LaunchedEffect(deleteStep) {
+        if (deleteStep == DeleteBottomSheetStep.Countdown) {
+            deleteCountdown = DELETE_COUNTDOWN_SECONDS
+            while (deleteCountdown > 0) {
+                delay(1_000)
+                deleteCountdown -= 1
+            }
+        } else {
+            deleteCountdown = DELETE_COUNTDOWN_SECONDS
+        }
+
+        if (deleteStep != DeleteBottomSheetStep.Reauth) {
+            otpCode = ""
+            reauthError = null
+        }
+    }
+
+    LaunchedEffect(state.requiresReauth) {
+        if (state.requiresReauth) {
+            deleteStep = DeleteBottomSheetStep.Reauth
+        }
+    }
+
+    LaunchedEffect(deleteStep, phoneAuthContext, reauthPhone) {
+        if (deleteStep == DeleteBottomSheetStep.Reauth) {
+            otpCode = ""
+            reauthError = null
+            when {
+                phoneAuthContext == null -> reauthError = onboardingStrings.startVerificationError
+                reauthPhone == null -> reauthError = onboardingStrings.invalidPhoneError
+                else -> phoneAuthPresenter.startVerification(reauthPhone, phoneAuthContext)
+            }
+        }
+    }
+
+    LaunchedEffect(phoneAuthState.isVerificationCompleted) {
+        if (phoneAuthState.isVerificationCompleted && deleteStep == DeleteBottomSheetStep.Reauth) {
+            presenter.clearReauthRequirement()
+            presenter.requestDeleteAccount()
         }
     }
 
@@ -98,7 +194,7 @@ fun AccountSettingsRoute(
         )
     }
 
-    if (activeEdit != EditField.None) {
+    if (activeEdit == EditField.DisplayName || activeEdit == EditField.StatusMessage) {
         AccountEditBottomSheet(
             title = activeEdit.title(strings),
             description = activeEdit.description(strings),
@@ -111,8 +207,9 @@ fun AccountSettingsRoute(
                 when (activeEdit) {
                     EditField.DisplayName -> presenter.updateDisplayName(editValue)
                     EditField.StatusMessage -> presenter.updateStatusMessage(editValue)
-                    EditField.Email -> presenter.updateEmail(editValue)
-                    EditField.None -> Unit
+                    EditField.Email,
+                    EditField.None,
+                    -> Unit
                 }
                 activeEdit = EditField.None
             },
@@ -123,30 +220,98 @@ fun AccountSettingsRoute(
         )
     }
 
-    if (showDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirm = false
-                        presenter.requestDeleteAccount()
-                    },
-                    enabled = !state.isDeleting,
-                ) {
-                    Text(strings.account.deleteConfirmCta)
+    if (activeEdit == EditField.Email) {
+        val verifyDescription =
+            formatTemplate(strings.account.editEmailVerifyDescription, emailValue)
+        AccountEmailBottomSheet(
+            step = emailStep,
+            title = strings.account.editEmailTitle,
+            description = strings.account.editEmailDescription,
+            verifyTitle = strings.account.editEmailVerifyTitle,
+            verifyDescription = verifyDescription,
+            email = emailValue,
+            placeholder = strings.account.emailLabel,
+            sendLabel = strings.account.editEmailSendCta,
+            verifyLabel = strings.account.editEmailVerifyCta,
+            changeLabel = strings.account.editEmailChangeCta,
+            resendLabel = strings.account.editEmailResendCta,
+            onEmailChange = { emailValue = it },
+            onSendVerification = { presenter.sendEmailVerification(emailValue) },
+            onConfirmVerified = { presenter.confirmEmailUpdate(emailValue) },
+            onChangeEmail = {
+                emailStep = EmailBottomSheetStep.Entry
+                presenter.clearEmailUpdateState()
+            },
+            onResend = { presenter.sendEmailVerification(emailValue) },
+            onDismiss = {
+                activeEdit = EditField.None
+                presenter.clearEmailUpdateState()
+            },
+            isLoading = state.isUpdating,
+            confirmEnabled = emailValue.trim().isNotEmpty(),
+            keyboardOptions = EditField.Email.keyboardOptions(),
+        )
+    }
+
+    if (deleteStep != null) {
+        val phoneLabel = state.profile?.phoneNumber ?: sessionPhone.orEmpty()
+        val reauthBody = formatTemplate(strings.account.deleteReauthBody, phoneLabel)
+        val otpError =
+            reauthError
+                ?: phoneAuthState.error?.toMessage(onboardingStrings)
+        val countdownCta = formatCountdown(strings.account.deleteCountdownCta, deleteCountdown)
+        AccountDeleteBottomSheet(
+            step = deleteStep ?: DeleteBottomSheetStep.Confirm,
+            confirmTitle = strings.account.deleteConfirmTitle,
+            confirmBody = strings.account.deleteConfirmBody,
+            confirmCta = strings.account.deleteConfirmCta,
+            cancelLabel = strings.general.cancel,
+            farewellTitle = strings.account.deleteFarewellTitle,
+            farewellBody = strings.account.deleteFarewellBody,
+            countdownCta = countdownCta,
+            countdownReadyCta = strings.account.deleteCountdownReadyCta,
+            countdownSeconds = deleteCountdown,
+            reauthTitle = strings.account.deleteReauthTitle,
+            reauthBody = reauthBody,
+            reauthCodeLabel = strings.account.deleteReauthCodeLabel,
+            reauthCodePlaceholder = strings.account.deleteReauthCodePlaceholder,
+            reauthCta = strings.account.deleteReauthCta,
+            reauthResendLabel = strings.account.deleteReauthResend,
+            reauthError = otpError,
+            otp = otpCode,
+            onOtpChange = { value ->
+                if (value.length <= 6 && value.all(Char::isDigit)) {
+                    otpCode = value
+                    phoneAuthPresenter.dismissError()
                 }
             },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteConfirm = false },
-                    enabled = !state.isDeleting,
-                ) {
-                    Text(strings.general.cancel)
+            canResend = phoneAuthState.canResend,
+            onResend = {
+                if (phoneAuthContext != null) {
+                    phoneAuthPresenter.resendCode(phoneAuthContext)
                 }
             },
-            title = { Text(strings.account.deleteConfirmTitle) },
-            text = { Text(strings.account.deleteConfirmBody) },
+            onConfirmDelete = {
+                deleteStep = DeleteBottomSheetStep.Countdown
+            },
+            onConfirmCountdown = {
+                presenter.requestDeleteAccount()
+            },
+            onConfirmReauth = {
+                if (otpCode.length == 6) {
+                    phoneAuthPresenter.verifyCode(otpCode)
+                }
+            },
+            onCancel = {
+                deleteStep = null
+                presenter.clearReauthRequirement()
+            },
+            onDismiss = {
+                deleteStep = null
+                presenter.clearReauthRequirement()
+            },
+            isDeleting = state.isDeleting,
+            isVerifying = phoneAuthState.isVerifying,
         )
     }
 
@@ -156,11 +321,14 @@ fun AccountSettingsRoute(
         modifier = modifier,
         state = state,
         onBack = onBack,
-        onEditProfile = { if (allowEdits) activeEdit = EditField.DisplayName },
         onEditDisplayName = { if (allowEdits) activeEdit = EditField.DisplayName },
         onEditStatus = { if (allowEdits) activeEdit = EditField.StatusMessage },
         onEditEmail = { if (allowEdits) activeEdit = EditField.Email },
-        onDeleteAccount = { if (!state.isDeleting) showDeleteConfirm = true },
+        onDeleteAccount = {
+            if (!state.isDeleting) {
+                deleteStep = DeleteBottomSheetStep.Confirm
+            }
+        },
     )
 }
 
@@ -226,11 +394,39 @@ private fun EditField.canSave(value: String): Boolean =
         EditField.StatusMessage, EditField.None -> true
     }
 
+private fun formatTemplate(
+    template: String,
+    value: String,
+): String = template.replace("%1\$s", value).replace("%s", value)
+
+private fun formatCountdown(
+    template: String,
+    seconds: Int,
+): String {
+    val value = seconds.toString()
+    return template.replace("%1\$d", value).replace("%d", value)
+}
+
+private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =
+    when (this) {
+        PhoneAuthError.InvalidPhoneNumber -> strings.invalidPhoneError
+        PhoneAuthError.InvalidVerificationCode -> strings.invalidVerificationCode
+        PhoneAuthError.TooManyRequests -> strings.tooManyRequests
+        PhoneAuthError.QuotaExceeded -> strings.quotaExceeded
+        PhoneAuthError.CodeExpired -> strings.codeExpired
+        PhoneAuthError.NetworkError -> strings.networkError
+        PhoneAuthError.ResendNotAvailable -> strings.resendNotAvailable
+        is PhoneAuthError.Configuration -> this.message ?: strings.configurationError
+        is PhoneAuthError.Unknown -> this.message ?: strings.unknownError
+    }
+
 private fun previewState(): AccountUiState =
     AccountUiState(
         isLoading = false,
         profile = null,
     )
+
+private const val DELETE_COUNTDOWN_SECONDS = 15
 
 @DevicePreviews
 @Preview

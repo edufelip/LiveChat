@@ -51,7 +51,23 @@
     <string name="account_edit_status_description">Share a short status with your contacts.</string>
     <string name="account_edit_email_title">Edit email address</string>
     <string name="account_edit_email_description">Use an email for account recovery.</string>
+    <string name="account_edit_email_send_cta">Send verification</string>
+    <string name="account_edit_email_verify_title">Check your email</string>
+    <string name="account_edit_email_verify_description">We sent a verification link to %1$s. Open it to confirm.</string>
+    <string name="account_edit_email_verify_cta">I&apos;ve verified</string>
+    <string name="account_edit_email_change_cta">Change email</string>
+    <string name="account_edit_email_resend_cta">Resend email</string>
     <string name="account_save_cta">Save</string>
+    <string name="account_delete_farewell_title">We&apos;re sorry to see you go</string>
+    <string name="account_delete_farewell_body">Ok, hope we see you back soon.</string>
+    <string name="account_delete_countdown_cta">Delete in %1$ds</string>
+    <string name="account_delete_countdown_ready_cta">Delete account</string>
+    <string name="account_delete_reauth_title">Confirm it&apos;s you</string>
+    <string name="account_delete_reauth_body">Enter the code sent to %1$s to continue.</string>
+    <string name="account_delete_reauth_code_label">Verification code</string>
+    <string name="account_delete_reauth_code_placeholder">6-digit code</string>
+    <string name="account_delete_reauth_cta">Verify and delete</string>
+    <string name="account_delete_reauth_resend">Resend code</string>
 
     <!-- Notifications -->
     <string name="notifications_screen_title">Notifications</string>

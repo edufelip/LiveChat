@@ -12,25 +12,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.ui.theme.spacing
 
 @Composable
-internal fun BottomSheetDragHandle(modifier: Modifier = Modifier) {
+internal fun BottomSheetDragHandle(
+    modifier: Modifier = Modifier,
+    width: Dp = 32.dp,
+    height: Dp = 4.dp,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+    topPadding: Dp = MaterialTheme.spacing.sm,
+    bottomPadding: Dp = MaterialTheme.spacing.md,
+) {
     Box(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(top = MaterialTheme.spacing.sm, bottom = MaterialTheme.spacing.md),
+                .padding(top = topPadding, bottom = bottomPadding),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier =
                 Modifier
-                    .width(32.dp)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
+                    .width(width)
+                    .height(height)
+                    .clip(RoundedCornerShape(height / 2))
+                    .background(color),
         )
     }
 }
