@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.repositories.IAccountRepository
+import com.edufelip.livechat.domain.repositories.IEmailAuthRepository
 import kotlinx.coroutines.flow.Flow
 
 class ObserveAccountProfileUseCase(
@@ -31,6 +32,22 @@ class UpdateAccountEmailUseCase(
 ) {
     suspend operator fun invoke(email: String) {
         repository.updateEmail(email)
+    }
+}
+
+class SendEmailVerificationUseCase(
+    private val repository: IEmailAuthRepository,
+) {
+    suspend operator fun invoke(email: String) {
+        repository.sendVerificationEmail(email)
+    }
+}
+
+class CheckEmailUpdatedUseCase(
+    private val repository: IEmailAuthRepository,
+) {
+    suspend operator fun invoke(expectedEmail: String): Boolean {
+        return repository.isEmailUpdated(expectedEmail)
     }
 }
 

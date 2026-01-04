@@ -1,5 +1,7 @@
 package com.edufelip.livechat.domain.utils
 
+import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
+
 /**
  * Removes any non-digit characters so phone numbers like "+5511987654321" and "5511987654321"
  * can be compared reliably.
@@ -27,4 +29,9 @@ fun canonicalPhoneNumber(
             else -> callingCode + digits
         }
     return "+$digitsWithCode"
+}
+
+fun phoneNumberFromE164(phoneNumber: String): PhoneNumber? {
+    val parts = splitE164PhoneNumber(phoneNumber) ?: return null
+    return PhoneNumber(dialCode = parts.first, nationalNumber = parts.second)
 }

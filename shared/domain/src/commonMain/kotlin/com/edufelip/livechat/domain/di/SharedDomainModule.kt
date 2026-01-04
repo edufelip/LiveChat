@@ -21,6 +21,7 @@ import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BlockContactUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
+import com.edufelip.livechat.domain.useCases.CheckEmailUpdatedUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
@@ -42,6 +43,7 @@ import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
+import com.edufelip.livechat.domain.useCases.SendEmailVerificationUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
@@ -111,6 +113,8 @@ val sharedDomainModule: Module =
         factory { UpdateAccountDisplayNameUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
+        factory { SendEmailVerificationUseCase(get()) }
+        factory { CheckEmailUpdatedUseCase(get()) }
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
         factory { UpdateThemeModeUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateTextScaleUseCase(get<IAppearanceSettingsRepository>()) }
@@ -154,6 +158,8 @@ val sharedDomainModule: Module =
                 updateDisplayName = get(),
                 updateStatusMessage = get(),
                 updateEmail = get(),
+                sendEmailVerification = get(),
+                checkEmailUpdated = get(),
                 deleteAccount = get(),
                 scope = MainScope(),
             )

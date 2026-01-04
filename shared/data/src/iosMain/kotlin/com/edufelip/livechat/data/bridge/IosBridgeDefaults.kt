@@ -81,4 +81,10 @@ private object NoopPhoneAuthBridge : PhoneAuthBridge {
 private object NoopAuthBridge : AuthBridge {
     override fun signOut() {
     }
+
+    override suspend fun sendEmailVerification(email: String): AuthBridgeError? =
+        AuthBridgeError(message = "Auth bridge not configured for iOS")
+
+    override suspend fun reloadCurrentUser(): AuthBridgeUserState =
+        AuthBridgeUserState(error = AuthBridgeError(message = "Auth bridge not configured for iOS"))
 }

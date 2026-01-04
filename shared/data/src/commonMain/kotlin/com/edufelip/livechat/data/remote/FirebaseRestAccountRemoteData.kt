@@ -1,16 +1,19 @@
 package com.edufelip.livechat.data.remote
 
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
+import com.edufelip.livechat.domain.errors.RecentLoginRequiredException
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -74,8 +77,8 @@ class FirebaseRestAccountRemoteData(
     ) {
         withContext(dispatcher) {
             ensureConfigured(idToken)
-            markAccountDeleted(userId, idToken)
             deleteAuthUser(idToken)
+            markAccountDeleted(userId, idToken)
         }
     }
 
@@ -124,10 +127,21 @@ class FirebaseRestAccountRemoteData(
     private suspend fun deleteAuthUser(idToken: String) {
         require(config.apiKey.isNotBlank()) { "Firebase API key is required to delete accounts" }
         val url = AUTH_DELETE_ENDPOINT
-        httpClient.post(url) {
-            parameter("key", config.apiKey)
-            contentType(ContentType.Application.Json)
-            setBody(DeleteAccountRequest(idToken = idToken))
+        try {
+            httpClient.post(url) {
+                parameter("key", config.apiKey)
+                contentType(ContentType.Application.Json)
+                setBody(DeleteAccountRequest(idToken = idToken))
+            }
+        } catch (exception: ClientRequestException) {
+            val responseBody = exception.response.bodyAsText()
+            if (
+                responseBody.contains("CREDENTIAL_TOO_OLD_LOGIN_AGAIN", ignoreCase = true) ||
+                responseBody.contains("REQUIRES_RECENT_LOGIN", ignoreCase = true)
+            ) {
+                throw RecentLoginRequiredException()
+            }
+            throw exception
         }
     }
 
