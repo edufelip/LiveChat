@@ -33,14 +33,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.UUID
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class FirebaseEmulatorMessageFlowTest {
@@ -139,7 +138,7 @@ class FirebaseEmulatorMessageFlowTest {
             val received = messages.first { it.senderId == senderId }
             assertTrue(File(received.body).exists())
             val remoteUrl = received.metadata["remoteUrl"]
-            assertNotNull(remoteUrl)
+            val remoteUrlValue = requireNotNull(remoteUrl) { "Missing remoteUrl for received message" }
 
             receiverRepo.markConversationAsRead(
                 conversationId = senderId,
@@ -153,7 +152,7 @@ class FirebaseEmulatorMessageFlowTest {
 
             val downloadResult =
                 runCatching {
-                    storage.getReferenceFromUrl(remoteUrl).getBytes(1).await()
+                    storage.getReferenceFromUrl(remoteUrlValue).getBytes(1).await()
                 }
             assertTrue(downloadResult.isFailure)
             val exception = downloadResult.exceptionOrNull() as? StorageException

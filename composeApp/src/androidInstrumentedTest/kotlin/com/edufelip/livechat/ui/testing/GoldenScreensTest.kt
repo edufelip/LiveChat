@@ -4,6 +4,8 @@ import android.os.SystemClock
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -148,6 +150,7 @@ class GoldenScreensTest {
             LiveChatTheme {
                 val strings = liveChatStrings()
                 val state = PreviewFixtures.conversationUiState(strings)
+                val snackbarHostState = remember { SnackbarHostState() }
                 ConversationDetailScreen(
                     state = state,
                     contactName = strings.preview.contactPrimaryName,
@@ -162,6 +165,16 @@ class GoldenScreensTest {
                     onTakePhoto = {},
                     onBack = {},
                     onDismissError = {},
+                    onMessageErrorClick = {},
+                    snackbarHostState = snackbarHostState,
+                    selectedMessage = null,
+                    selectedMessageBounds = null,
+                    scrollToBottomSignal = 0,
+                    onMessageLongPress = { _, _ -> },
+                    onDismissMessageActions = {},
+                    onCopyMessage = {},
+                    onDeleteMessage = {},
+                    onRetryMessage = {},
                     permissionHint = null,
                 )
             }
