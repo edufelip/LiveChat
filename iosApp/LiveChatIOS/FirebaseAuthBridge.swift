@@ -4,7 +4,7 @@ import LiveChatCompose
 
 final class FirebaseAuthBridge: NSObject, AuthBridge {
     func signOut() {
-        FirebaseConfig.configureIfNeeded()
+        _ = FirebaseConfig.configureIfNeeded()
         do {
             try Auth.auth().signOut()
         } catch {
@@ -18,7 +18,7 @@ final class FirebaseAuthBridge: NSObject, AuthBridge {
         email: String,
         completionHandler: @escaping (AuthBridgeError?, Error?) -> Void
     ) {
-        FirebaseConfig.configureIfNeeded()
+        _ = FirebaseConfig.configureIfNeeded()
         guard let user = Auth.auth().currentUser else {
             completionHandler(
                 AuthBridgeError(
@@ -42,7 +42,7 @@ final class FirebaseAuthBridge: NSObject, AuthBridge {
     func reloadCurrentUser(
         completionHandler: @escaping (AuthBridgeUserState?, Error?) -> Void
     ) {
-        FirebaseConfig.configureIfNeeded()
+        _ = FirebaseConfig.configureIfNeeded()
         guard let user = Auth.auth().currentUser else {
             completionHandler(
                 AuthBridgeUserState(
