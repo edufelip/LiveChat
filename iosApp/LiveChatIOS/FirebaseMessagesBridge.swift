@@ -102,9 +102,31 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         conversationId: String,
         completionHandler: @escaping @Sendable (Error?) -> Void
     ) {
+        #if canImport(FirebaseAuth)
+        let authUid = Auth.auth().currentUser?.uid
+        if authUid == nil {
+            let error = NSError(
+                domain: "FirebaseMessagesBridge",
+                code: -13,
+                userInfo: [NSLocalizedDescriptionKey: "FirebaseAuth user is not signed in."]
+            )
+            NSLog("FirebaseMessagesBridge: ensureConversation blocked conversation=%@ authUid=nil", conversationId)
+            completionHandler(error)
+            return
+        }
+        NSLog("FirebaseMessagesBridge: ensureConversation conversation=%@ authUid=%@", conversationId, authUid ?? "nil")
+        #endif
         let doc = db.collection(config.conversationsCollection)
             .document(conversationId)
         doc.setData(["created_at": FieldValue.serverTimestamp()], merge: true) { error in
+            if let error = error {
+                #if canImport(FirebaseAuth)
+                let authUid = Auth.auth().currentUser?.uid ?? "nil"
+                NSLog("FirebaseMessagesBridge: ensureConversation error conversation=%@ authUid=%@ error=%@", conversationId, authUid, error.localizedDescription)
+                #else
+                NSLog("FirebaseMessagesBridge: ensureConversation error conversation=%@ authUid=unavailable error=%@", conversationId, error.localizedDescription)
+                #endif
+            }
             completionHandler(error)
         }
     }
