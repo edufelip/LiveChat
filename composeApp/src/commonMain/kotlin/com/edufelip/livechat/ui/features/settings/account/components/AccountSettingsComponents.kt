@@ -111,7 +111,7 @@ internal fun AccountProfileCard(
                         modifier =
                             Modifier
                                 .align(Alignment.BottomEnd)
-                                .size(12.dp)
+                                .size(18.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                                 .border(
