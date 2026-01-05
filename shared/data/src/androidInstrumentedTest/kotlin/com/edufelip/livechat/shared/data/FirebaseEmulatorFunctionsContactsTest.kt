@@ -14,15 +14,14 @@ import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class FirebaseEmulatorFunctionsContactsTest {
@@ -109,8 +108,8 @@ class FirebaseEmulatorFunctionsContactsTest {
             val result = bridge.phoneExistsMany(listOf(phone, "+15550003333"))
             assertTrue(result.registeredPhones.contains(phone))
             val match = result.matches.firstOrNull { it.phone == phone }
-            assertNotNull(match)
-            assertEquals(uid, match.uid)
+            val matchValue = requireNotNull(match) { "Expected match for $phone" }
+            assertEquals(uid, matchValue.uid)
         }
 
     @Test
@@ -124,8 +123,10 @@ class FirebaseEmulatorFunctionsContactsTest {
                         .await()
                 }.exceptionOrNull()
 
-            val functionsError = error as? FirebaseFunctionsException
-            assertNotNull(functionsError)
+            val functionsError =
+                requireNotNull(error as? FirebaseFunctionsException) {
+                    "Expected FirebaseFunctionsException but got: ${error?.javaClass?.simpleName}"
+                }
             assertEquals(FirebaseFunctionsException.Code.INVALID_ARGUMENT, functionsError.code)
         }
 
