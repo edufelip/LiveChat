@@ -28,7 +28,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId && resource.data.is_deleted != true;
+      allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.is_deleted != true;
+      allow update: if request.auth != null && request.auth.uid == userId && resource.data.is_deleted != true;
     }
 
     match /users/{userId}/settings/{settingsId} {
