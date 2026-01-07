@@ -35,6 +35,10 @@ interface IMessagesRepository {
         pinnedAt: Long? = null,
     )
 
+    suspend fun purgeConversation(conversationId: String)
+
+    suspend fun hideReadReceipts()
+
     companion object {
         const val DEFAULT_PAGE_SIZE = 20
     }

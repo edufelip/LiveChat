@@ -14,6 +14,10 @@ actual object MediaFileStore {
 
     actual fun exists(path: String): Boolean = File(path).exists()
 
+    actual fun delete(path: String) {
+        runCatching { File(path).takeIf { it.exists() }?.delete() }
+    }
+
     actual suspend fun readBytes(path: String): ByteArray? =
         withContext(ioDispatcher) {
             runCatching { File(path).takeIf { it.exists() }?.readBytes() }.getOrNull()

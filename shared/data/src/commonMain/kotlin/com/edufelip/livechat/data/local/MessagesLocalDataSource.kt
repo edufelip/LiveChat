@@ -107,6 +107,15 @@ class MessagesLocalDataSource(
             messagesDao.getStatus(messageId)?.let { runCatching { MessageStatus.valueOf(it) }.getOrNull() }
         }
 
+    override suspend fun downgradeReadStatuses() {
+        withContext(dispatcher) {
+            messagesDao.updateStatusByValue(
+                currentStatus = MessageStatus.READ.name,
+                nextStatus = MessageStatus.DELIVERED.name,
+            )
+        }
+    }
+
     override suspend fun updateMessageBodyAndMetadata(
         messageId: String,
         body: String,
@@ -176,6 +185,14 @@ class MessagesLocalDataSource(
             if (messages.isNotEmpty()) {
                 messagesDao.insertAll(messages.map { it.toEntity() })
             }
+        }
+    }
+
+    override suspend fun clearConversationData(conversationId: String) {
+        withContext(dispatcher) {
+            println("$logTag: local clearConversationData conversation=$conversationId")
+            messagesDao.clearConversation(conversationId)
+            conversationStateDao.deleteConversationState(conversationId)
         }
     }
 

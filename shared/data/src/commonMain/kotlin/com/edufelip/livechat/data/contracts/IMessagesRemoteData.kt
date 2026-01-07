@@ -36,4 +36,6 @@ interface IMessagesRemoteData {
         userPhone: String?,
         peer: ConversationPeer?,
     )
+
+    suspend fun purgeInboxMessagesFromSender(senderId: String)
 }

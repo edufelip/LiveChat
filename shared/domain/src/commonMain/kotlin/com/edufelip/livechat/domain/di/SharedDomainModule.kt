@@ -131,12 +131,12 @@ val sharedDomainModule: Module =
         factory { ResetAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateInvitePreferenceUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateLastSeenAudienceUseCase(get<IPrivacySettingsRepository>()) }
-        factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>()) }
+        factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>(), get()) }
         factory { UpdateShareUsageDataUseCase(get<IPrivacySettingsRepository>()) }
         factory { ResetPrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
         factory { ObservePresenceUseCase(get()) }
         factory { UpdateSelfPresenceUseCase(get()) }
-        factory { BlockContactUseCase(get<IBlockedContactsRepository>()) }
+        factory { BlockContactUseCase(get<IBlockedContactsRepository>(), get()) }
         factory { UnblockContactUseCase(get<IBlockedContactsRepository>()) }
         factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateNotificationSoundUseCase(get<INotificationSettingsRepository>()) }

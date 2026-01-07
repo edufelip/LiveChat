@@ -35,6 +35,7 @@ class FirebaseMessagesRemoteData(
     private val storageBridge: MediaStorageBridge,
     private val config: FirebaseRestConfig,
     private val sessionProvider: UserSessionProvider,
+    private val blockedUserIdsProvider: () -> Set<String> = { emptySet() },
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRemoteData {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,9 +62,19 @@ class FirebaseMessagesRemoteData(
             val token = messagesBridge.startListening(currentUserId, listener)
             awaitClose { messagesBridge.stopListening(token) }
         }.mapLatest { messages ->
+            val blockedUserIds = blockedUserIdsProvider()
             val mapped = mutableListOf<InboxItem>()
             messages.forEach { payload ->
                 if (!payload.isAddressedTo(currentUserId)) return@forEach
+                if (blockedUserIds.contains(payload.senderId.orEmpty())) {
+                    deleteRemoteMessage(
+                        recipientId = currentUserId,
+                        documentId = payload.id,
+                        payload = payload,
+                        deleteMedia = true,
+                    )
+                    return@forEach
+                }
 
                 if (payload.isActionPayload()) {
                     val action = payload.toInboxAction(currentUserId)
@@ -205,6 +216,27 @@ class FirebaseMessagesRemoteData(
         withContext(dispatcher) { messagesBridge.ensureConversation(conversationId) }
     }
 
+    override suspend fun purgeInboxMessagesFromSender(senderId: String) {
+        if (!config.isConfigured) return
+        if (senderId.isBlank()) return
+        withContext(dispatcher) {
+            val currentUserId = sessionProvider.currentUserId() ?: return@withContext
+            val payloads =
+                runCatching { messagesBridge.fetchMessages(currentUserId) }
+                    .getOrDefault(emptyList())
+            payloads.forEach { payload ->
+                if (!payload.isAddressedTo(currentUserId)) return@forEach
+                if (payload.senderId.orEmpty() != senderId) return@forEach
+                deleteRemoteMessage(
+                    recipientId = currentUserId,
+                    documentId = payload.id,
+                    payload = payload,
+                    deleteMedia = true,
+                )
+            }
+        }
+    }
+
     override suspend fun pullHistorical(
         conversationId: String,
         sinceEpochMillis: Long?,
@@ -213,6 +245,7 @@ class FirebaseMessagesRemoteData(
             if (!config.isConfigured) return@withContext emptyList()
 
             val currentUserId = sessionProvider.currentUserId() ?: return@withContext emptyList()
+            val blockedUserIds = blockedUserIdsProvider()
             val mapped =
                 runCatching { messagesBridge.fetchMessages(currentUserId) }
                     .onFailure { throwable ->
@@ -222,6 +255,15 @@ class FirebaseMessagesRemoteData(
                     }.getOrDefault(emptyList())
                     .mapNotNull { payload ->
                         if (!payload.isAddressedTo(currentUserId)) return@mapNotNull null
+                        if (blockedUserIds.contains(payload.senderId.orEmpty())) {
+                            deleteRemoteMessage(
+                                recipientId = currentUserId,
+                                documentId = payload.id,
+                                payload = payload,
+                                deleteMedia = true,
+                            )
+                            return@mapNotNull null
+                        }
 
                         if (payload.isActionPayload()) {
                             deleteRemoteMessage(

@@ -9,7 +9,7 @@ import platform.UIKit.UIWindow
 
 actual fun openWebViewUrl(url: String) {
     val target = NSURL(string = url) ?: return
-    val controller = SFSafariViewController(uRL = target)
+    val controller = SFSafariViewController(target)
     topViewController()?.presentViewController(controller, animated = true, completion = null)
 }
 

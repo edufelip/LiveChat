@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -31,6 +32,8 @@ class MessagesRepository(
     private val localData: IMessagesLocalData,
     private val sessionProvider: UserSessionProvider,
     private val participantsRepository: IConversationParticipantsRepository,
+    private val readReceiptsEnabled: () -> Boolean = { true },
+    private val blockedUserIdsProvider: () -> Set<String> = { emptySet() },
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRepository {
     private val logTag = "COMMCHECK"
@@ -48,7 +51,7 @@ class MessagesRepository(
                 launch {
                     localData.observeMessages(conversationId, pageSize).collect { messages ->
                         println("$logTag: repo observeConversation local conv=$conversationId count=${messages.size}")
-                        send(messages)
+                        send(filterReadReceipts(messages))
                         launch { maybeRunMediaCleanup(conversationId) }
                     }
                 }
@@ -67,9 +70,16 @@ class MessagesRepository(
                         }
                         .collect { remoteItems ->
                             val (messages, actions) = splitInboxItems(remoteItems)
-                            if (messages.isNotEmpty()) {
-                                println("$logTag: repo observeConversation remote conv=$conversationId upserting=${messages.size}")
-                                localData.upsertMessages(messages)
+                            val blockedUserIds = blockedUserIdsProvider()
+                            val filteredMessages =
+                                if (blockedUserIds.isEmpty()) {
+                                    messages
+                                } else {
+                                    messages.filterNot { blockedUserIds.contains(it.senderId) }
+                                }
+                            if (filteredMessages.isNotEmpty()) {
+                                println("$logTag: repo observeConversation remote conv=$conversationId upserting=${filteredMessages.size}")
+                                localData.upsertMessages(filteredMessages)
                             }
                             if (actions.isNotEmpty()) {
                                 println("$logTag: repo observeConversation remote conv=$conversationId actions=${actions.size}")
@@ -100,11 +110,18 @@ class MessagesRepository(
                         }
                         .collect { remoteItems ->
                             val (messages, actions) = splitInboxItems(remoteItems)
-                            if (messages.isNotEmpty()) {
-                                println("$logTag: repo observeAllIncomingMessages upserting=${messages.size}")
-                                localData.upsertMessages(messages)
-                                send(messages)
-                                messages.map { it.conversationId }.distinct().forEach { conversationId ->
+                            val blockedUserIds = blockedUserIdsProvider()
+                            val filteredMessages =
+                                if (blockedUserIds.isEmpty()) {
+                                    messages
+                                } else {
+                                    messages.filterNot { blockedUserIds.contains(it.senderId) }
+                                }
+                            if (filteredMessages.isNotEmpty()) {
+                                println("$logTag: repo observeAllIncomingMessages upserting=${filteredMessages.size}")
+                                localData.upsertMessages(filteredMessages)
+                                send(filteredMessages)
+                                filteredMessages.map { it.conversationId }.distinct().forEach { conversationId ->
                                     launch { maybeRunMediaCleanup(conversationId) }
                                 }
                             }
@@ -188,6 +205,9 @@ class MessagesRepository(
 
     override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
         return localData.observeConversationSummaries()
+            .let { flow ->
+                flowOfMaybeReadReceipts(flow)
+            }
     }
 
     override suspend fun markConversationAsRead(
@@ -213,16 +233,20 @@ class MessagesRepository(
             participantsRepository.recordReadState(conversationId, lastReadAt, lastReadSeq)
             val readerId = sessionProvider.currentUserId() ?: return@withContext
             val latestIncoming = localData.latestIncomingMessage(conversationId, readerId) ?: return@withContext
-            val action =
-                InboxAction(
-                    id = buildActionId(latestIncoming.id, InboxActionType.READ, readerId),
-                    messageId = latestIncoming.id,
-                    senderId = readerId,
-                    receiverId = latestIncoming.senderId,
-                    actionType = InboxActionType.READ,
-                    actionAtMillis = lastReadAt.takeIf { it > 0 } ?: currentEpochMillis(),
-                )
-            remoteData.sendAction(action)
+            val readReceiptsOn = readReceiptsEnabled()
+            val isBlocked = blockedUserIdsProvider().contains(latestIncoming.senderId)
+            if (readReceiptsOn && !isBlocked) {
+                val action =
+                    InboxAction(
+                        id = buildActionId(latestIncoming.id, InboxActionType.READ, readerId),
+                        messageId = latestIncoming.id,
+                        senderId = readerId,
+                        receiverId = latestIncoming.senderId,
+                        actionType = InboxActionType.READ,
+                        actionAtMillis = lastReadAt.takeIf { it > 0 } ?: currentEpochMillis(),
+                    )
+                remoteData.sendAction(action)
+            }
             runCatching {
                 deleteMediaForMessageIfNeeded(latestIncoming, currentEpochMillis())
                 maybeRunMediaCleanup(conversationId, force = true)
@@ -251,6 +275,22 @@ class MessagesRepository(
         val userPhone = sessionProvider.currentUserPhone()
         println("$logTag: repo ensureConversation conv=$conversationId peer=$peer")
         remoteData.ensureConversation(conversationId, userId, userPhone, peer)
+    }
+
+    override suspend fun purgeConversation(conversationId: String) {
+        withContext(dispatcher) {
+            if (conversationId.isBlank()) return@withContext
+            val messages = localData.getMessages(conversationId)
+            messages.forEach { deleteLocalMediaIfNeeded(it) }
+            localData.clearConversationData(conversationId)
+            remoteData.purgeInboxMessagesFromSender(conversationId)
+        }
+    }
+
+    override suspend fun hideReadReceipts() {
+        withContext(dispatcher) {
+            localData.downgradeReadStatuses()
+        }
     }
 
     private suspend fun maybeRunMediaCleanup(
@@ -309,9 +349,26 @@ class MessagesRepository(
         return message.copy(body = downloaded, metadata = updatedMetadata)
     }
 
+    private fun deleteLocalMediaIfNeeded(message: Message) {
+        if (!message.contentType.isMedia()) return
+        val localPath = message.localPath() ?: return
+        if (!MediaFileStore.exists(localPath)) return
+        runCatching { MediaFileStore.delete(localPath) }
+    }
+
     private suspend fun applyActions(actions: List<InboxAction>) {
+        val readReceiptsOn = readReceiptsEnabled()
+        val blockedUserIds = blockedUserIdsProvider()
         actions.forEach { action ->
             if (localData.hasProcessedAction(action.id)) {
+                return@forEach
+            }
+            if (blockedUserIds.contains(action.senderId)) {
+                localData.markActionProcessed(action.id)
+                return@forEach
+            }
+            if (!readReceiptsOn && action.actionType == InboxActionType.READ) {
+                localData.markActionProcessed(action.id)
                 return@forEach
             }
             val status = action.actionType.toMessageStatus()
@@ -356,6 +413,30 @@ class MessagesRepository(
     private fun Message.isMediaDeleted(): Boolean = metadata[META_MEDIA_DELETED_AT]?.toLongOrNull()?.let { it > 0 } == true
 
     private fun MessageContentType.isMedia(): Boolean = this == MessageContentType.Image || this == MessageContentType.Audio
+
+    private fun filterReadReceipts(messages: List<Message>): List<Message> {
+        if (readReceiptsEnabled()) return messages
+        return messages.map { message ->
+            if (message.status == MessageStatus.READ) {
+                message.copy(status = MessageStatus.DELIVERED)
+            } else {
+                message
+            }
+        }
+    }
+
+    private fun filterReadReceipts(summary: ConversationSummary): ConversationSummary {
+        if (readReceiptsEnabled()) return summary
+        val lastMessage = summary.lastMessage
+        return if (lastMessage.status == MessageStatus.READ) {
+            summary.copy(lastMessage = lastMessage.copy(status = MessageStatus.DELIVERED))
+        } else {
+            summary
+        }
+    }
+
+    private fun flowOfMaybeReadReceipts(summaries: Flow<List<ConversationSummary>>): Flow<List<ConversationSummary>> =
+        summaries.map { list -> list.map { filterReadReceipts(it) } }
 
     private companion object {
         const val META_REMOTE_URL = "remoteUrl"

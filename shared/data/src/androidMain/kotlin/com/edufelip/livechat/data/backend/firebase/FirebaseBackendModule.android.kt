@@ -24,6 +24,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestPresenceRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPrivacySettingsRemoteData
 import com.edufelip.livechat.data.remote.STORAGE_BUCKET_URL
 import com.edufelip.livechat.data.remote.loadFirebaseEmulatorConfig
+import com.edufelip.livechat.data.store.BlockedContactsStore
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -96,11 +97,13 @@ actual val firebaseBackendModule: Module =
             )
         }
         single<IMessagesRemoteData> {
+            val blockedContactsStore = get<BlockedContactsStore>()
             FirebaseMessagesRemoteData(
                 messagesBridge = get(),
                 storageBridge = get(),
                 config = get(),
                 sessionProvider = get<UserSessionProvider>(),
+                blockedUserIdsProvider = blockedContactsStore::currentBlockedUserIds,
             )
         }
     }

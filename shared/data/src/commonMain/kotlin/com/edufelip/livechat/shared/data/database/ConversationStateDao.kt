@@ -14,6 +14,9 @@ interface ConversationStateDao {
     @Query("SELECT * FROM conversation_state WHERE conversation_id = :conversationId")
     suspend fun getConversationState(conversationId: String): ConversationStateEntity?
 
+    @Query("DELETE FROM conversation_state WHERE conversation_id = :conversationId")
+    suspend fun deleteConversationState(conversationId: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(state: ConversationStateEntity)
 }

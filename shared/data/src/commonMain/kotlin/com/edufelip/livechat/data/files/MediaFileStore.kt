@@ -8,6 +8,8 @@ expect object MediaFileStore {
 
     fun exists(path: String): Boolean
 
+    fun delete(path: String)
+
     suspend fun readBytes(path: String): ByteArray?
 
     suspend fun saveBytes(

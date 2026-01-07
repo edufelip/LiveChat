@@ -19,6 +19,8 @@ import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.repositories.NotificationSettingsRepository
 import com.edufelip.livechat.data.repositories.PresenceRepository
 import com.edufelip.livechat.data.repositories.PrivacySettingsRepository
+import com.edufelip.livechat.data.store.BlockedContactsStore
+import com.edufelip.livechat.data.store.PrivacySettingsStore
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
@@ -42,8 +44,29 @@ val sharedDataModule: Module =
         single<IContactsRepository> { ContactsRepository(get(), get()) }
         single<IMessagesLocalData> { MessagesLocalDataSource(get()) }
         single<IConversationParticipantsRepository> { ConversationParticipantsRepository(get(), get()) }
-        single<IMessagesRepository> { MessagesRepository(get(), get(), get(), get()) }
-        single<IPresenceRepository> { PresenceRepository(get(), get(), get()) }
+        single { PrivacySettingsStore(get()) }
+        single { BlockedContactsStore(get()) }
+        single<IMessagesRepository> {
+            val privacySettingsStore = get<PrivacySettingsStore>()
+            val blockedContactsStore = get<BlockedContactsStore>()
+            MessagesRepository(
+                remoteData = get(),
+                localData = get(),
+                sessionProvider = get(),
+                participantsRepository = get(),
+                readReceiptsEnabled = privacySettingsStore::readReceiptsEnabled,
+                blockedUserIdsProvider = blockedContactsStore::currentBlockedUserIds,
+            )
+        }
+        single<IPresenceRepository> {
+            PresenceRepository(
+                remoteData = get(),
+                sessionProvider = get(),
+                config = get(),
+                privacySettingsStore = get(),
+                contactsRepository = get(),
+            )
+        }
         single<INotificationSettingsRepository> {
             NotificationSettingsRepository(get<INotificationSettingsRemoteData>(), get())
         }

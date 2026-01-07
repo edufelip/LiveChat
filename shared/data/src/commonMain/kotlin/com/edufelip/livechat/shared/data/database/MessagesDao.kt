@@ -82,6 +82,18 @@ interface MessagesDao {
         status: String,
     )
 
+    @Query(
+        """
+        UPDATE messages
+        SET status = :nextStatus
+        WHERE status = :currentStatus
+        """,
+    )
+    suspend fun updateStatusByValue(
+        currentStatus: String,
+        nextStatus: String,
+    )
+
     @Query("SELECT status FROM messages WHERE id = :messageId LIMIT 1")
     suspend fun getStatus(messageId: String): String?
 
