@@ -158,6 +158,12 @@
     <string name="home_conversation_title">Conversation</string>
     <string name="home_chats_tab">Chats</string>
     <string name="home_calls_tab">Calls</string>
+    <string name="calls_screen_title">Calls</string>
+    <string name="calls_search_placeholder">Search</string>
+    <string name="calls_filter_all">All</string>
+    <string name="calls_filter_missed">Missed</string>
+    <string name="calls_empty_title">No calls yet</string>
+    <string name="calls_empty_subtitle">When you start calling, your recent calls will appear here.</string>
     <string name="home_settings_tab">Settings</string>
     <string name="home_back_cta">Back</string>
 
