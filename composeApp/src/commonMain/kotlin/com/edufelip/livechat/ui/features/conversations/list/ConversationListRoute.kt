@@ -23,6 +23,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ConversationListRoute(
     onConversationSelected: (String, String?) -> Unit,
+    onCompose: () -> Unit,
+    onEmptyStateAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
@@ -37,6 +39,8 @@ fun ConversationListRoute(
             onToggleMute = { _, _ -> },
             onToggleArchive = { _, _ -> },
             onFilterSelected = {},
+            onCompose = {},
+            onEmptyStateAction = {},
         )
         return
     }
@@ -86,6 +90,8 @@ fun ConversationListRoute(
             presenter.toggleArchived(summary.conversationId, archived)
         },
         onFilterSelected = { presenter.setFilter(it) },
+        onCompose = onCompose,
+        onEmptyStateAction = onEmptyStateAction,
     )
 }
 
@@ -94,6 +100,10 @@ fun ConversationListRoute(
 @Composable
 private fun ConversationListRoutePreview() {
     LiveChatPreviewContainer {
-        ConversationListRoute(onConversationSelected = { _, _ -> })
+        ConversationListRoute(
+            onConversationSelected = { _, _ -> },
+            onCompose = {},
+            onEmptyStateAction = {},
+        )
     }
 }

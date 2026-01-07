@@ -25,7 +25,9 @@ import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.home.view.HomeScreen
 import com.edufelip.livechat.ui.features.onboarding.OnboardingFlowScreen
+import com.edufelip.livechat.ui.features.onboarding.WelcomeScreen
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.platform.AppLifecycleObserver
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
@@ -75,6 +77,8 @@ fun LiveChatApp(
                     onSelectTab = {},
                     onOpenConversation = { _, _ -> },
                     onStartConversationWithContact = { _, _ -> },
+                    onOpenContacts = {},
+                    onCloseContacts = {},
                     onShareInvite = onShareInvite,
                     onBackFromConversation = {},
                     phoneContactsProvider = phoneContactsProvider,
@@ -89,6 +93,15 @@ fun LiveChatApp(
             val isUiTest = isUiTestMode()
             val isE2e = isE2eMode()
 
+            AppLifecycleObserver(
+                onForeground = presenter::onAppForeground,
+                onBackground = presenter::onAppBackground,
+            )
+
+            LaunchedEffect(presenter) {
+                presenter.onAppForeground()
+            }
+
             LaunchedEffect(isUiTest, isE2e, uiTestOverrides.resetOnboarding) {
                 if ((isUiTest || isE2e) && uiTestOverrides.resetOnboarding) {
                     presenter.resetOnboarding()
@@ -96,6 +109,11 @@ fun LiveChatApp(
             }
 
             when (state.destination) {
+                AppDestination.Welcome ->
+                    WelcomeScreen(
+                        modifier = contentModifier,
+                        onContinue = presenter::onWelcomeFinished,
+                    )
                 AppDestination.Onboarding ->
                     OnboardingFlowScreen(
                         modifier = contentModifier,
@@ -109,6 +127,8 @@ fun LiveChatApp(
                         onSelectTab = presenter::selectTab,
                         onOpenConversation = presenter::openConversation,
                         onStartConversationWithContact = presenter::startConversationWith,
+                        onOpenContacts = presenter::openContacts,
+                        onCloseContacts = presenter::closeContacts,
                         onShareInvite = onShareInvite,
                         onBackFromConversation = presenter::closeConversation,
                         phoneContactsProvider = phoneContactsProvider,
@@ -131,6 +151,8 @@ private fun LiveChatAppPreview() {
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
+            onOpenContacts = {},
+            onCloseContacts = {},
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { previewContacts },
@@ -151,6 +173,8 @@ private fun HomeScreenConversationsPreview() {
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
+            onOpenContacts = {},
+            onCloseContacts = {},
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { previewContacts },
@@ -172,6 +196,8 @@ private fun HomeScreenDetailPreview() {
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
             onStartConversationWithContact = { _, _ -> },
+            onOpenContacts = {},
+            onCloseContacts = {},
             onShareInvite = {},
             onBackFromConversation = {},
             phoneContactsProvider = { previewContacts },

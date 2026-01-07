@@ -1,29 +1,47 @@
 package com.edufelip.livechat.ui.features.onboarding.steps
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.disabled
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,7 +65,7 @@ internal fun OTPStep(
     onOtpChanged: (String) -> Unit,
     onResend: () -> Unit,
     onVerify: () -> Unit,
-    verifyEnabled: Boolean = otp.length == 6 && !isVerifying,
+    verifyEnabled: Boolean = otp.length == OTP_DIGIT_COUNT && !isVerifying,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
@@ -55,98 +73,199 @@ internal fun OTPStep(
         modifier =
             modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .testTag(OnboardingTestTags.OTP_STEP)
-                .padding(horizontal = MaterialTheme.spacing.xl, vertical = MaterialTheme.spacing.xxxl),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.CenterVertically),
+                .padding(horizontal = MaterialTheme.spacing.xl)
+                .padding(top = MaterialTheme.spacing.xxxl, bottom = MaterialTheme.spacing.xxl),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
-            Text(
-                text = strings.otpTitle,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = strings.otpSubtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
-            OutlinedTextField(
-                value = otp,
-                onValueChange = onOtpChanged,
-                label = { Text(strings.otpFieldLabel) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .testTag(OnboardingTestTags.OTP_INPUT),
-            )
-            if (errorMessage != null) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xl),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    modifier = Modifier.size(64.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Rounded.Lock,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                }
                 Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.testTag(OnboardingTestTags.OTP_ERROR),
+                    text = strings.otpTitle,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    text = strings.otpSubtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 )
             }
-            if (canResend) {
-                TextButton(
-                    onClick = onResend,
-                    enabled = !isRequesting,
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            ) {
+                OtpCodeField(
+                    value = otp,
+                    enabled = !isVerifying,
+                    label = strings.otpFieldLabel,
+                    onValueChange = onOtpChanged,
                     modifier =
                         Modifier
-                            .heightIn(min = 48.dp)
-                            .testTag(OnboardingTestTags.OTP_RESEND_BUTTON),
-                ) {
-                    Text(strings.resendCta)
-                }
-            } else {
-                Text(
-                    text = strings.resendCountdownLabel(countdown),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            .fillMaxWidth()
+                            .testTag(OnboardingTestTags.OTP_INPUT),
                 )
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.testTag(OnboardingTestTags.OTP_ERROR),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                if (canResend) {
+                    TextButton(
+                        onClick = onResend,
+                        enabled = !isRequesting,
+                        modifier = Modifier.testTag(OnboardingTestTags.OTP_RESEND_BUTTON),
+                    ) {
+                        Text(strings.resendCta)
+                    }
+                } else {
+                    Text(
+                        text = strings.resendCountdownLabel(countdown),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
 
-        Box(
+        Button(
+            onClick = onVerify,
+            enabled = verifyEnabled,
             modifier =
                 Modifier
-                    .heightIn(min = 48.dp)
-                    .testTag(OnboardingTestTags.OTP_VERIFY_BUTTON)
-                    .clickable(enabled = verifyEnabled, onClick = onVerify)
-                    .semantics {
-                        role = Role.Button
-                        if (!verifyEnabled) {
-                            disabled()
-                        }
-                        onClick {
-                            if (verifyEnabled) {
-                                onVerify()
-                                true
-                            } else {
-                                false
-                            }
-                        }
-                    },
+                    .fillMaxWidth()
+                    .heightIn(min = 52.dp)
+                    .testTag(OnboardingTestTags.OTP_VERIFY_BUTTON),
+            shape = RoundedCornerShape(20.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
         ) {
-            Button(
-                onClick = onVerify,
-                enabled = verifyEnabled,
-                modifier = Modifier.heightIn(min = 48.dp),
-            ) {
-                if (isVerifying) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.OTP_VERIFY_LOADING),
-                    )
+            if (isVerifying) {
+                CircularProgressIndicator(
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.OTP_VERIFY_LOADING),
+                )
+            } else {
+                Text(strings.verifyCta)
+            }
+        }
+    }
+}
+
+@Composable
+private fun OtpCodeField(
+    value: String,
+    enabled: Boolean,
+    label: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    digitCount: Int = OTP_DIGIT_COUNT,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    BasicTextField(
+        value = value,
+        onValueChange = { input ->
+            val filtered = input.filter(Char::isDigit).take(digitCount)
+            onValueChange(filtered)
+        },
+        enabled = enabled,
+        modifier =
+            modifier
+                .focusRequester(focusRequester)
+                .semantics { contentDescription = label }
+                .clickable { focusRequester.requestFocus() },
+        interactionSource = interactionSource,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.Transparent),
+        cursorBrush = SolidColor(Color.Transparent),
+        decorationBox = { innerTextField ->
+            Box(modifier = Modifier.fillMaxWidth()) {
+                innerTextField()
+                OtpDigitRow(
+                    value = value,
+                    isFocused = isFocused,
+                    digitCount = digitCount,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun OtpDigitRow(
+    value: String,
+    isFocused: Boolean,
+    digitCount: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(digitCount) { index ->
+            val char = value.getOrNull(index)?.toString().orEmpty()
+            val isActive =
+                isFocused &&
+                    (index == value.length || (value.length == digitCount && index == digitCount - 1))
+            val borderColor =
+                if (isActive) {
+                    MaterialTheme.colorScheme.primary
                 } else {
-                    Text(strings.verifyCta)
+                    MaterialTheme.colorScheme.outlineVariant
+                }
+            Surface(
+                modifier = Modifier.size(52.dp),
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, borderColor),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = char,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -171,3 +290,5 @@ private fun OtpStepPreview() {
         )
     }
 }
+
+private const val OTP_DIGIT_COUNT = 6

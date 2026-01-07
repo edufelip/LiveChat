@@ -94,6 +94,7 @@ object PreviewFixtures {
                     isPinned = true,
                     pinnedAt = TIMESTAMP,
                     lastReadAt = TIMESTAMP - 5_000,
+                    isOnline = true,
                 ),
                 ConversationSummary(
                     conversationId = CONVERSATION_SECONDARY_ID,
@@ -112,6 +113,7 @@ object PreviewFixtures {
             isLoading = false,
             errorMessage = null,
             selectedFilter = ConversationFilter.All,
+            currentUserId = PREVIEW_USER_ID,
         )
     }
 

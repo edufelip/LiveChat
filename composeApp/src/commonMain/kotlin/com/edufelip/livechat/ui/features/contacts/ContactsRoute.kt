@@ -33,6 +33,7 @@ fun ContactsRoute(
     phoneContactsProvider: () -> List<Contact>,
     onContactSelected: (Contact, String) -> Unit,
     onShareInvite: (InviteShareRequest) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings()
@@ -44,7 +45,9 @@ fun ContactsRoute(
             onInvite = {},
             onContactSelected = {},
             onSync = {},
+            onSearchQueryChange = {},
             onDismissError = {},
+            onBack = onBack,
         )
         return
     }
@@ -170,6 +173,8 @@ fun ContactsRoute(
                 permissionError.value = null
                 presenter.clearError()
             },
+            onSearchQueryChange = { presenter.setSearchQuery(it) },
+            onBack = onBack,
         )
     }
 }
@@ -185,6 +190,7 @@ private fun ContactsRoutePreview() {
             phoneContactsProvider = { previewContacts },
             onContactSelected = { _, _ -> },
             onShareInvite = {},
+            onBack = {},
         )
     }
 }

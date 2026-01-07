@@ -19,9 +19,9 @@ val defaultHomeTabs =
             icon = AppIcons.conversations,
         ),
         HomeTabItem(
-            tab = HomeTab.Contacts,
-            labelSelector = { it.contactsTab },
-            icon = AppIcons.contacts,
+            tab = HomeTab.Calls,
+            labelSelector = { it.callsTab },
+            icon = AppIcons.calls,
         ),
         HomeTabItem(
             tab = HomeTab.Settings,

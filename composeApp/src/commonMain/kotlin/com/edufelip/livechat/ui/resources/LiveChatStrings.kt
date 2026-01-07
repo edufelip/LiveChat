@@ -20,13 +20,17 @@ data class ContactsStrings(
     val inviteShareTitle: String = "Share LiveChat invite",
     val inviteShareUnavailable: String = "No apps available to share",
     val permissionDeniedMessage: String = "Enable contacts permission to sync your phonebook.",
+    val screenTitle: String = "Contacts",
     val registeredSectionTitle: String = "On LiveChat",
     val inviteSectionTitle: String = "Invite to LiveChat",
     val validatingSectionMessage: String = "Validating contacts...",
+    val searchPlaceholder: String = "Search name or number",
+    val searchEmptyState: String = "No contacts match your search.",
 )
 
 data class SettingsStrings(
-    val screenTitle: String = "Make LiveChat yours",
+    val screenTitle: String = "Settings",
+    val searchPlaceholder: String = "Search",
     val accountTitle: String = "Account",
     val accountDescription: String = "Profile, status, and linked phone number",
     val notificationsTitle: String = "Notifications",
@@ -35,6 +39,11 @@ data class SettingsStrings(
     val appearanceDescription: String = "Themes, typography scale, accessibility",
     val privacyTitle: String = "Privacy",
     val privacyDescription: String = "Blocked contacts, invite preferences",
+    val privacyPolicyTitle: String = "Privacy Policy",
+    val privacyPolicyUrl: String = "https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf",
+    val footerAppNameIos: String = "LiveChat for iOS",
+    val footerAppNameAndroid: String = "LiveChat for Android",
+    val versionFormat: String = "Version %1\$s (%2\$s)",
     val openingSectionTemplate: String = "Opening %1\$s settings soon",
 )
 
@@ -171,16 +180,32 @@ data class PrivacyStrings(
 data class HomeStrings(
     val conversationTitle: String = "Conversation",
     val chatsTab: String = "Chats",
-    val contactsTab: String = "Contacts",
+    val callsTab: String = "Calls",
     val settingsTab: String = "Settings",
     val backCta: String = "Back",
 )
 
 data class OnboardingStrings(
+    val welcomeTitle: String = "Connect instantly with friends.",
+    val welcomeSubtitle: String =
+        "The simplest way to text, call, and share moments with the people who matter most.",
+    val welcomeCta: String = "Start Messaging",
+    val welcomeHelpCta: String = "Help",
+    val welcomeHelpUrl: String = "https://www.portfolio.eduwaldo.com",
+    val welcomeTermsMessage: String =
+        "By continuing, you agree to our Terms of Service and Privacy Policy.",
+    val welcomeTermsUrl: String =
+        "https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf",
+    val welcomePrivacyUrl: String =
+        "https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf",
+    val welcomeBrandName: String = "LiveChat",
     val phoneTitle: String = "Enter your phone number",
     val phoneSubtitle: String = "We'll send a verification code to confirm it's you.",
     val phoneFieldLabel: String = "Phone number",
     val phoneFieldPlaceholder: String = "Digits only",
+    val phoneCountryLabel: String = "Country",
+    val phoneTermsMessage: String =
+        "By tapping \"Continue\", you agree to our Terms of Service and Privacy Policy.",
     val continueCta: String = "Continue",
     val defaultPhoneSample: String = "5550100",
     val invalidPhoneError: String = "Please enter a valid phone number",
@@ -196,6 +221,10 @@ data class OnboardingStrings(
     val successTitle: String = "You're all set!",
     val successSubtitle: String = "Your account is ready. Start chatting with your contacts now.",
     val successCta: String = "Start chatting",
+    val successChecklistSyncTitle: String = "Sync Contacts",
+    val successChecklistSyncSubtitle: String = "Find friends who are already here.",
+    val successChecklistNotifyTitle: String = "Enable Notifications",
+    val successChecklistNotifySubtitle: String = "Don't miss a message.",
     val countryPickerTitle: String = "Select your country",
     val countryPickerSearchPlaceholder: String = "Search by country or code",
     val countryPickerEmpty: String = "No countries found",
@@ -220,8 +249,12 @@ data class ConversationStrings(
     val searchPlaceholder: String = "Search conversations",
     val loadingList: String = "Loading conversations…",
     val emptyList: String = "No conversations yet",
+    val emptyListSubtitle: String = "Tap the compose button to start chatting with your contacts.",
+    val emptyListCta: String = "Find Contacts",
     val pinnedSectionTitle: String = "Pinned",
     val othersSectionTitle: String = "Others",
+    val composeAction: String = "New chat",
+    val youPrefix: String = "You:",
     val filterAll: String = "All",
     val filterUnread: String = "Unread",
     val filterPinned: String = "Pinned",
@@ -275,6 +308,7 @@ data class GeneralStrings(
     val openSettings: String = "Open Settings",
     val dismiss: String = "Dismiss",
     val errorTitle: String = "Something went wrong",
+    val comingSoon: String = "Coming soon",
     val timePeriodAm: String = "AM",
     val timePeriodPm: String = "PM",
     val homeDestinationTransitionLabel: String = "homeDestinationTransition",
@@ -326,14 +360,18 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             inviteShareTitle = stringResource(Res.string.contacts_invite_share_title),
             inviteShareUnavailable = stringResource(Res.string.contacts_invite_share_unavailable),
             permissionDeniedMessage = stringResource(Res.string.contacts_permission_denied_message),
+            screenTitle = stringResource(Res.string.contacts_screen_title),
             registeredSectionTitle = stringResource(Res.string.contacts_registered_section_title),
             inviteSectionTitle = stringResource(Res.string.contacts_invite_section_title),
             validatingSectionMessage = stringResource(Res.string.contacts_validating_section_label),
+            searchPlaceholder = stringResource(Res.string.contacts_search_placeholder),
+            searchEmptyState = stringResource(Res.string.contacts_search_empty_state),
         )
 
     val settings =
         SettingsStrings(
             screenTitle = stringResource(Res.string.settings_screen_title),
+            searchPlaceholder = stringResource(Res.string.settings_search_placeholder),
             accountTitle = stringResource(Res.string.settings_account_title),
             accountDescription = stringResource(Res.string.settings_account_description),
             notificationsTitle = stringResource(Res.string.settings_notifications_title),
@@ -342,6 +380,11 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             appearanceDescription = stringResource(Res.string.settings_appearance_description),
             privacyTitle = stringResource(Res.string.settings_privacy_title),
             privacyDescription = stringResource(Res.string.settings_privacy_description),
+            privacyPolicyTitle = stringResource(Res.string.settings_privacy_policy_title),
+            privacyPolicyUrl = stringResource(Res.string.settings_privacy_policy_url),
+            footerAppNameIos = stringResource(Res.string.settings_footer_app_name_ios),
+            footerAppNameAndroid = stringResource(Res.string.settings_footer_app_name_android),
+            versionFormat = stringResource(Res.string.settings_version_format),
             openingSectionTemplate = stringResource(Res.string.settings_opening_section_toast),
         )
 
@@ -476,7 +519,7 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         HomeStrings(
             conversationTitle = stringResource(Res.string.home_conversation_title),
             chatsTab = stringResource(Res.string.home_chats_tab),
-            contactsTab = stringResource(Res.string.home_contacts_tab),
+            callsTab = stringResource(Res.string.home_calls_tab),
             settingsTab = stringResource(Res.string.home_settings_tab),
             backCta = stringResource(Res.string.home_back_cta),
         )
@@ -490,8 +533,12 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             searchPlaceholder = stringResource(Res.string.conversation_search_placeholder),
             loadingList = stringResource(Res.string.conversation_loading_list),
             emptyList = stringResource(Res.string.conversation_empty_list),
+            emptyListSubtitle = stringResource(Res.string.conversation_empty_list_subtitle),
+            emptyListCta = stringResource(Res.string.conversation_empty_list_cta),
             pinnedSectionTitle = stringResource(Res.string.conversation_section_pinned),
             othersSectionTitle = stringResource(Res.string.conversation_section_others),
+            composeAction = stringResource(Res.string.conversation_compose_action),
+            youPrefix = stringResource(Res.string.conversation_you_prefix),
             filterAll = stringResource(Res.string.conversation_filter_all),
             filterUnread = stringResource(Res.string.conversation_filter_unread),
             filterPinned = stringResource(Res.string.conversation_filter_pinned),
@@ -560,10 +607,21 @@ fun rememberLiveChatStrings(): LiveChatStrings {
 
     val onboarding =
         OnboardingStrings(
+            welcomeTitle = stringResource(Res.string.welcome_title),
+            welcomeSubtitle = stringResource(Res.string.welcome_subtitle),
+            welcomeCta = stringResource(Res.string.welcome_cta),
+            welcomeHelpCta = stringResource(Res.string.welcome_help_cta),
+            welcomeHelpUrl = stringResource(Res.string.welcome_help_url),
+            welcomeTermsMessage = stringResource(Res.string.welcome_terms_message),
+            welcomeTermsUrl = stringResource(Res.string.welcome_terms_url),
+            welcomePrivacyUrl = stringResource(Res.string.welcome_privacy_url),
+            welcomeBrandName = stringResource(Res.string.welcome_brand_name),
             phoneTitle = stringResource(Res.string.onboarding_phone_title),
             phoneSubtitle = stringResource(Res.string.onboarding_phone_subtitle),
             phoneFieldLabel = stringResource(Res.string.onboarding_phone_field_label),
             phoneFieldPlaceholder = stringResource(Res.string.onboarding_phone_field_placeholder),
+            phoneCountryLabel = stringResource(Res.string.onboarding_phone_country_label),
+            phoneTermsMessage = stringResource(Res.string.onboarding_phone_terms_message),
             continueCta = stringResource(Res.string.onboarding_continue_cta),
             defaultPhoneSample = stringResource(Res.string.onboarding_default_phone_sample),
             invalidPhoneError = stringResource(Res.string.onboarding_invalid_phone_error),
@@ -582,6 +640,10 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             successTitle = stringResource(Res.string.onboarding_success_title),
             successSubtitle = stringResource(Res.string.onboarding_success_subtitle),
             successCta = stringResource(Res.string.onboarding_success_cta),
+            successChecklistSyncTitle = stringResource(Res.string.onboarding_success_checklist_sync_title),
+            successChecklistSyncSubtitle = stringResource(Res.string.onboarding_success_checklist_sync_subtitle),
+            successChecklistNotifyTitle = stringResource(Res.string.onboarding_success_checklist_notify_title),
+            successChecklistNotifySubtitle = stringResource(Res.string.onboarding_success_checklist_notify_subtitle),
             countryPickerTitle = stringResource(Res.string.onboarding_country_picker_title),
             countryPickerSearchPlaceholder = stringResource(Res.string.onboarding_country_picker_search_placeholder),
             countryPickerEmpty = stringResource(Res.string.onboarding_country_picker_empty),
@@ -605,6 +667,7 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             openSettings = stringResource(Res.string.general_open_settings),
             dismiss = stringResource(Res.string.general_dismiss),
             errorTitle = stringResource(Res.string.general_error_title),
+            comingSoon = stringResource(Res.string.general_coming_soon),
             timePeriodAm = stringResource(Res.string.general_time_period_am),
             timePeriodPm = stringResource(Res.string.general_time_period_pm),
             homeDestinationTransitionLabel = stringResource(Res.string.general_home_destination_transition_label),

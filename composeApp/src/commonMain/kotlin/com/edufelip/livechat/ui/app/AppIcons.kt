@@ -5,7 +5,9 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.Image
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.PhotoCamera
+import androidx.compose.material.icons.rounded.PostAdd
 import androidx.compose.material.icons.rounded.PushPin
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Stop
@@ -23,8 +26,11 @@ object AppIcons {
     val back: ImageVector = Icons.AutoMirrored.Rounded.ArrowBack
     val conversations: ImageVector = Icons.AutoMirrored.Rounded.Chat
     val contacts: ImageVector = Icons.Rounded.Group
+    val calls: ImageVector = Icons.Rounded.Call
     val pin: ImageVector = Icons.Outlined.PushPin
     val pinFilled: ImageVector = Icons.Rounded.PushPin
+    val chevron: ImageVector = Icons.Rounded.ChevronRight
+    val compose: ImageVector = Icons.Rounded.PostAdd
     val settings: ImageVector = Icons.Rounded.Settings
     val mute: ImageVector = Icons.Rounded.Notifications
     val muted: ImageVector = Icons.Rounded.NotificationsOff
