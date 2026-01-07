@@ -124,7 +124,12 @@ fun ConversationListScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.md),
+                    .padding(
+                        start = MaterialTheme.spacing.gutter,
+                        end = MaterialTheme.spacing.gutter,
+                        top = MaterialTheme.spacing.xs,
+                        bottom = MaterialTheme.spacing.sm,
+                    ),
         )
 
         Box(
@@ -264,7 +269,7 @@ private fun ConversationFilterChips(
 ) {
     LazyRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm / 2),
         contentPadding = PaddingValues(vertical = MaterialTheme.spacing.xs),
     ) {
         items(options, key = { it.filter.name }) { option ->
