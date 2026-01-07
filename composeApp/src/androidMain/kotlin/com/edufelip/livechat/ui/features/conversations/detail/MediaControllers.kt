@@ -11,11 +11,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -39,11 +37,12 @@ actual fun rememberConversationMediaController(): ConversationMediaController {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var pendingPermission by remember { mutableStateOf<String?>(null) }
-    var permissionContinuation by remember { mutableStateOf<CompletableDeferred<PermissionStatus>?>(null) }
+    val pendingPermissionState = remember { mutableStateOf<String?>(null) }
+    val permissionContinuationState =
+        remember { mutableStateOf<CompletableDeferred<PermissionStatus>?>(null) }
     val permissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            val permission = pendingPermission
+            val permission = pendingPermissionState.value
             val activity = context.findActivity()
             val blocked =
                 !granted &&
@@ -57,30 +56,31 @@ actual fun rememberConversationMediaController(): ConversationMediaController {
                     blocked -> PermissionStatus.BLOCKED
                     else -> PermissionStatus.DENIED
                 }
-            permissionContinuation?.complete(status)
-            permissionContinuation = null
-            pendingPermission = null
+            permissionContinuationState.value?.complete(status)
+            permissionContinuationState.value = null
+            pendingPermissionState.value = null
         }
 
-    var imageContinuation by remember { mutableStateOf<CompletableDeferred<String?>?>(null) }
+    val imageContinuationState = remember { mutableStateOf<CompletableDeferred<String?>?>(null) }
     val pickImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             scope.launch {
                 val path = uri?.let { copyUriToCache(context, it, "img_", "jpg") }
-                imageContinuation?.complete(path)
-                imageContinuation = null
+                imageContinuationState.value?.complete(path)
+                imageContinuationState.value = null
             }
         }
 
-    var cameraContinuation by remember { mutableStateOf<CompletableDeferred<String?>?>(null) }
-    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraContinuationState = remember { mutableStateOf<CompletableDeferred<String?>?>(null) }
+    val pendingCameraUriState = remember { mutableStateOf<Uri?>(null) }
     val takePhotoLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             scope.launch {
-                val path = if (success) pendingCameraUri?.let { uri -> uri.toFilePath(context) } else null
-                cameraContinuation?.complete(path)
-                cameraContinuation = null
-                pendingCameraUri = null
+                val path =
+                    if (success) pendingCameraUriState.value?.let { uri -> uri.toFilePath(context) } else null
+                cameraContinuationState.value?.complete(path)
+                cameraContinuationState.value = null
+                pendingCameraUriState.value = null
             }
         }
 
@@ -93,22 +93,22 @@ actual fun rememberConversationMediaController(): ConversationMediaController {
                         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
                     if (alreadyGranted) return@AndroidConversationMediaController CompletableDeferred(PermissionStatus.GRANTED)
                     val deferred = CompletableDeferred<PermissionStatus>()
-                    permissionContinuation = deferred
-                    pendingPermission = permission
+                    permissionContinuationState.value = deferred
+                    pendingPermissionState.value = permission
                     permissionLauncher.launch(permission)
                     deferred
                 },
                 pickImageAction = {
                     val deferred = CompletableDeferred<String?>()
-                    imageContinuation = deferred
+                    imageContinuationState.value = deferred
                     pickImageLauncher.launch("image/*")
                     deferred
                 },
                 capturePhotoAction = {
                     val deferred = CompletableDeferred<String?>()
-                    cameraContinuation = deferred
+                    cameraContinuationState.value = deferred
                     val outputFile = createTempImageFile(context)
-                    pendingCameraUri = outputFile.second
+                    pendingCameraUriState.value = outputFile.second
                     takePhotoLauncher.launch(outputFile.second)
                     deferred
                 },

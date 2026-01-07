@@ -3,6 +3,7 @@ package com.edufelip.livechat.ui.features.onboarding
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -27,7 +28,7 @@ class OTPStepTest {
     fun verifyDisabledUntilSixDigits() {
         var verifyTapped = 0
         composeRule.setContent {
-            var otp by mutableStateOf("")
+            var otp by remember { mutableStateOf("") }
             LiveChatTheme {
                 OTPStep(
                     otp = otp,
