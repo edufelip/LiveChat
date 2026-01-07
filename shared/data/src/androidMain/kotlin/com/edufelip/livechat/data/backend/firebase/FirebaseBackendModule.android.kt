@@ -12,6 +12,7 @@ import com.edufelip.livechat.data.contracts.IBlockedContactsRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
+import com.edufelip.livechat.data.contracts.IPresenceRemoteData
 import com.edufelip.livechat.data.contracts.IPrivacySettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestAccountRemoteData
@@ -19,6 +20,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestAppearanceSettingsRemoteDat
 import com.edufelip.livechat.data.remote.FirebaseRestBlockedContactsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestNotificationSettingsRemoteData
+import com.edufelip.livechat.data.remote.FirebaseRestPresenceRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPrivacySettingsRemoteData
 import com.edufelip.livechat.data.remote.STORAGE_BUCKET_URL
 import com.edufelip.livechat.data.remote.loadFirebaseEmulatorConfig
@@ -77,6 +79,12 @@ actual val firebaseBackendModule: Module =
         }
         single<IPrivacySettingsRemoteData> {
             FirebaseRestPrivacySettingsRemoteData(
+                config = get(),
+                httpClient = get(),
+            )
+        }
+        single<IPresenceRemoteData> {
+            FirebaseRestPresenceRemoteData(
                 config = get(),
                 httpClient = get(),
             )

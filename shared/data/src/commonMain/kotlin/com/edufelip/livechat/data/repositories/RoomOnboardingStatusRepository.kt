@@ -11,13 +11,35 @@ class RoomOnboardingStatusRepository(
     private val database: LiveChatDatabase,
 ) : IOnboardingStatusRepository {
     private val dao = database.onboardingStatusDao()
+    private val statusFlow = dao.observe().map { it ?: OnboardingStatusEntity() }
 
     override val onboardingComplete: Flow<Boolean> =
-        dao.observe().map { it ?: false }
+        statusFlow.map { it.complete }
+
+    override val welcomeSeen: Flow<Boolean> =
+        statusFlow.map { it.welcomeSeen }
 
     override suspend fun setOnboardingComplete(complete: Boolean) {
-        dao.upsert(OnboardingStatusEntity(complete = complete))
+        val current = dao.current()
+        dao.upsert(
+            OnboardingStatusEntity(
+                complete = complete,
+                welcomeSeen = current?.welcomeSeen ?: false,
+            ),
+        )
     }
 
-    override fun currentStatus(): Boolean = runBlocking { dao.current() ?: false }
+    override suspend fun setWelcomeSeen(seen: Boolean) {
+        val current = dao.current()
+        dao.upsert(
+            OnboardingStatusEntity(
+                complete = current?.complete ?: false,
+                welcomeSeen = seen,
+            ),
+        )
+    }
+
+    override fun currentStatus(): Boolean = runBlocking { dao.current()?.complete ?: false }
+
+    override fun currentWelcomeSeen(): Boolean = runBlocking { dao.current()?.welcomeSeen ?: false }
 }

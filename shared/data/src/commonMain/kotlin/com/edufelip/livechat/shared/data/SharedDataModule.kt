@@ -1,5 +1,6 @@
 package com.edufelip.livechat.shared.data
 
+import com.edufelip.livechat.data.bootstrap.UserDocumentBootstrapper
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IBlockedContactsRemoteData
@@ -16,6 +17,7 @@ import com.edufelip.livechat.data.repositories.ContactsRepository
 import com.edufelip.livechat.data.repositories.ConversationParticipantsRepository
 import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.repositories.NotificationSettingsRepository
+import com.edufelip.livechat.data.repositories.PresenceRepository
 import com.edufelip.livechat.data.repositories.PrivacySettingsRepository
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
@@ -24,12 +26,14 @@ import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
+import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val sharedDataModule: Module =
     module {
+        single(createdAtStart = true) { UserDocumentBootstrapper(get(), get()) }
         single<IAccountRepository> { AccountRepository(get<IAccountRemoteData>(), get()) }
         single<IAppearanceSettingsRepository> {
             AppearanceSettingsRepository(get<IAppearanceSettingsRemoteData>(), get())
@@ -39,6 +43,7 @@ val sharedDataModule: Module =
         single<IMessagesLocalData> { MessagesLocalDataSource(get()) }
         single<IConversationParticipantsRepository> { ConversationParticipantsRepository(get(), get()) }
         single<IMessagesRepository> { MessagesRepository(get(), get(), get(), get()) }
+        single<IPresenceRepository> { PresenceRepository(get(), get(), get()) }
         single<INotificationSettingsRepository> {
             NotificationSettingsRepository(get<INotificationSettingsRemoteData>(), get())
         }

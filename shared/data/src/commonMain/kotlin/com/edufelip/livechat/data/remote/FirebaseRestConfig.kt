@@ -11,6 +11,7 @@ data class FirebaseRestConfig(
     val usersCollection: String = "users",
     val messagesCollection: String = "messages",
     val conversationsCollection: String = "conversations",
+    val presenceCollection: String = "presence",
     val invitesCollection: String = "invites",
     val websocketEndpoint: String = "",
     val pollingIntervalMs: Long = 5_000L,
