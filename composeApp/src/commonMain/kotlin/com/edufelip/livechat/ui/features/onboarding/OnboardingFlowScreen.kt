@@ -1,5 +1,13 @@
 package com.edufelip.livechat.ui.features.onboarding
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,11 +43,13 @@ import com.edufelip.livechat.ui.resources.OnboardingStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
+import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import com.edufelip.livechat.ui.util.isDigitsOnly
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun OnboardingFlowScreen(
     onFinished: () -> Unit,
@@ -68,6 +78,7 @@ internal fun OnboardingFlowScreen(
     val inspectionMode = LocalInspectionMode.current
     val context = rememberPlatformContext()
     val allowVerification = !inspectionMode
+    val reduceMotion = LocalReduceMotion.current
     val onFinishedAction = rememberStableAction(onFinished)
     val onPickCountryAction = rememberStableAction { showCountryPicker = true }
     val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
@@ -162,34 +173,65 @@ internal fun OnboardingFlowScreen(
                         baseModifier
                     }
                 }
-        when (currentStep) {
-            OnboardingStep.PhoneEntry ->
-                PhoneStep(
-                    modifier = contentModifier,
-                    selectedCountry = selectedCountry,
-                    phoneNumber = phoneNumber,
-                    phoneError = phoneErrorMessage,
-                    isLoading = phoneAuthState.isRequesting,
-                    onPickCountry = onPickCountryAction,
-                    onPhoneChanged = onPhoneChangedAction,
-                    onContinue = onContinueAction,
-                )
+        AnimatedContent(
+            targetState = currentStep,
+            transitionSpec = {
+                if (reduceMotion) {
+                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                } else {
+                    val direction =
+                        when {
+                            targetState.animationOrder() > initialState.animationOrder() -> 1
+                            targetState.animationOrder() < initialState.animationOrder() -> -1
+                            else -> 0
+                        }
+                    if (direction == 0) {
+                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                    } else {
+                        (
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                        ) togetherWith
+                            (
+                                slideOutHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                            )
+                    }
+                }
+            },
+            label = strings.general.homeDestinationTransitionLabel,
+        ) { step ->
+            when (step) {
+                OnboardingStep.PhoneEntry ->
+                    PhoneStep(
+                        modifier = contentModifier,
+                        selectedCountry = selectedCountry,
+                        phoneNumber = phoneNumber,
+                        phoneError = phoneErrorMessage,
+                        isLoading = phoneAuthState.isRequesting,
+                        onPickCountry = onPickCountryAction,
+                        onPhoneChanged = onPhoneChangedAction,
+                        onContinue = onContinueAction,
+                    )
 
-            OnboardingStep.OTP ->
-                OTPStep(
-                    modifier = contentModifier,
-                    otp = otp,
-                    countdown = phoneAuthState.countdownSeconds,
-                    canResend = phoneAuthState.canResend,
-                    isRequesting = phoneAuthState.isRequesting,
-                    isVerifying = phoneAuthState.isVerifying,
-                    errorMessage = otpErrorMessage,
-                    onOtpChanged = onOtpChangedAction,
-                    onResend = onResendAction,
-                    onVerify = onVerifyAction,
-                )
+                OnboardingStep.OTP ->
+                    OTPStep(
+                        modifier = contentModifier,
+                        otp = otp,
+                        countdown = phoneAuthState.countdownSeconds,
+                        canResend = phoneAuthState.canResend,
+                        isRequesting = phoneAuthState.isRequesting,
+                        isVerifying = phoneAuthState.isVerifying,
+                        errorMessage = otpErrorMessage,
+                        onOtpChanged = onOtpChangedAction,
+                        onResend = onResendAction,
+                        onVerify = onVerifyAction,
+                    )
 
-            OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
+                OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
+            }
         }
     }
 
@@ -202,6 +244,7 @@ internal fun OnboardingFlowScreen(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun UiTestOnboardingFlow(
     onFinished: () -> Unit,
@@ -225,6 +268,7 @@ internal fun UiTestOnboardingFlow(
     var otpError by remember { mutableStateOf<String?>(null) }
     var showCountryPicker by remember { mutableStateOf(false) }
     var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
+    val reduceMotion = LocalReduceMotion.current
     val onFinishedAction = rememberStableAction(onFinished)
     val onPickCountryAction = rememberStableAction { showCountryPicker = true }
     val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
@@ -289,36 +333,67 @@ internal fun UiTestOnboardingFlow(
                         baseModifier
                     }
                 }
-        when (step) {
-            OnboardingStep.PhoneEntry ->
-                PhoneStep(
-                    modifier = contentModifier,
-                    selectedCountry = selectedCountry,
-                    phoneNumber = phoneNumber,
-                    phoneError = phoneInputError,
-                    isLoading = false,
-                    onPickCountry = onPickCountryAction,
-                    onPhoneChanged = onPhoneChangedAction,
-                    onContinue = onContinueAction,
-                    continueEnabled = true,
-                )
+        AnimatedContent(
+            targetState = step,
+            transitionSpec = {
+                if (reduceMotion) {
+                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                } else {
+                    val direction =
+                        when {
+                            targetState.animationOrder() > initialState.animationOrder() -> 1
+                            targetState.animationOrder() < initialState.animationOrder() -> -1
+                            else -> 0
+                        }
+                    if (direction == 0) {
+                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                    } else {
+                        (
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                        ) togetherWith
+                            (
+                                slideOutHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                            )
+                    }
+                }
+            },
+            label = strings.general.homeDestinationTransitionLabel,
+        ) { target ->
+            when (target) {
+                OnboardingStep.PhoneEntry ->
+                    PhoneStep(
+                        modifier = contentModifier,
+                        selectedCountry = selectedCountry,
+                        phoneNumber = phoneNumber,
+                        phoneError = phoneInputError,
+                        isLoading = false,
+                        onPickCountry = onPickCountryAction,
+                        onPhoneChanged = onPhoneChangedAction,
+                        onContinue = onContinueAction,
+                        continueEnabled = true,
+                    )
 
-            OnboardingStep.OTP ->
-                OTPStep(
-                    modifier = contentModifier,
-                    otp = otp,
-                    countdown = 0,
-                    canResend = false,
-                    isRequesting = false,
-                    isVerifying = false,
-                    errorMessage = otpError,
-                    onOtpChanged = onOtpChangedAction,
-                    onResend = {},
-                    onVerify = onVerifyAction,
-                    verifyEnabled = true,
-                )
+                OnboardingStep.OTP ->
+                    OTPStep(
+                        modifier = contentModifier,
+                        otp = otp,
+                        countdown = 0,
+                        canResend = false,
+                        isRequesting = false,
+                        isVerifying = false,
+                        errorMessage = otpError,
+                        onOtpChanged = onOtpChangedAction,
+                        onResend = {},
+                        onVerify = onVerifyAction,
+                        verifyEnabled = true,
+                    )
 
-            OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
+                OnboardingStep.Success -> SuccessStep(onFinished = onFinishedAction)
+            }
         }
     }
 
@@ -364,5 +439,12 @@ private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
     val actionState = rememberUpdatedState(action)
     return remember { { value -> actionState.value(value) } }
 }
+
+private fun OnboardingStep.animationOrder(): Int =
+    when (this) {
+        OnboardingStep.PhoneEntry -> 0
+        OnboardingStep.OTP -> 1
+        OnboardingStep.Success -> 2
+    }
 
 private const val UI_TEST_OTP = "123123"

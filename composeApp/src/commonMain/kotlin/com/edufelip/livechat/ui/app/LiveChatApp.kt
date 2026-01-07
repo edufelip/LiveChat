@@ -1,5 +1,13 @@
 package com.edufelip.livechat.ui.app
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,11 +41,13 @@ import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
+import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun LiveChatApp(
     modifier: Modifier = Modifier,
@@ -92,6 +102,8 @@ fun LiveChatApp(
             val uiTestOverrides = uiTestOverrides()
             val isUiTest = isUiTestMode()
             val isE2e = isE2eMode()
+            val reduceMotion = LocalReduceMotion.current
+            val strings = liveChatStrings()
 
             AppLifecycleObserver(
                 onForeground = presenter::onAppForeground,
@@ -108,32 +120,64 @@ fun LiveChatApp(
                 }
             }
 
-            when (state.destination) {
-                AppDestination.Welcome ->
-                    WelcomeScreen(
-                        modifier = contentModifier,
-                        onContinue = presenter::onWelcomeFinished,
-                    )
-                AppDestination.Onboarding ->
-                    OnboardingFlowScreen(
-                        modifier = contentModifier,
-                        onFinished = { presenter.onOnboardingFinished() },
-                    )
+            AnimatedContent(
+                targetState = state.destination,
+                transitionSpec = {
+                    if (reduceMotion) {
+                        fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                    } else {
+                        val direction =
+                            when {
+                                targetState.animationOrder() > initialState.animationOrder() -> 1
+                                targetState.animationOrder() < initialState.animationOrder() -> -1
+                                else -> 0
+                            }
+                        if (direction == 0) {
+                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                        } else {
+                            (
+                                slideInHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                            ) togetherWith
+                                (
+                                    slideOutHorizontally(
+                                        animationSpec = tween(300),
+                                    ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                                )
+                        }
+                    }
+                },
+                contentKey = { it.navigationKey() },
+                label = strings.general.homeDestinationTransitionLabel,
+            ) { destination ->
+                when (destination) {
+                    AppDestination.Welcome ->
+                        WelcomeScreen(
+                            modifier = contentModifier,
+                            onContinue = presenter::onWelcomeFinished,
+                        )
+                    AppDestination.Onboarding ->
+                        OnboardingFlowScreen(
+                            modifier = contentModifier,
+                            onFinished = { presenter.onOnboardingFinished() },
+                        )
 
-                is AppDestination.Home ->
-                    HomeScreen(
-                        modifier = contentModifier,
-                        state = state.home,
-                        onSelectTab = presenter::selectTab,
-                        onOpenConversation = presenter::openConversation,
-                        onStartConversationWithContact = presenter::startConversationWith,
-                        onOpenContacts = presenter::openContacts,
-                        onCloseContacts = presenter::closeContacts,
-                        onShareInvite = onShareInvite,
-                        onBackFromConversation = presenter::closeConversation,
-                        phoneContactsProvider = phoneContactsProvider,
-                        onOpenSettingsSection = onOpenSettingsSection,
-                    )
+                    is AppDestination.Home ->
+                        HomeScreen(
+                            modifier = contentModifier,
+                            state = state.home,
+                            onSelectTab = presenter::selectTab,
+                            onOpenConversation = presenter::openConversation,
+                            onStartConversationWithContact = presenter::startConversationWith,
+                            onOpenContacts = presenter::openContacts,
+                            onCloseContacts = presenter::closeContacts,
+                            onShareInvite = onShareInvite,
+                            onBackFromConversation = presenter::closeConversation,
+                            phoneContactsProvider = phoneContactsProvider,
+                            onOpenSettingsSection = onOpenSettingsSection,
+                        )
+                }
             }
         }
     }
@@ -205,3 +249,17 @@ private fun HomeScreenDetailPreview() {
         )
     }
 }
+
+private fun AppDestination.animationOrder(): Int =
+    when (this) {
+        AppDestination.Welcome -> 0
+        AppDestination.Onboarding -> 1
+        is AppDestination.Home -> 2
+    }
+
+private fun AppDestination.navigationKey(): String =
+    when (this) {
+        AppDestination.Welcome -> "welcome"
+        AppDestination.Onboarding -> "onboarding"
+        is AppDestination.Home -> "home"
+    }
