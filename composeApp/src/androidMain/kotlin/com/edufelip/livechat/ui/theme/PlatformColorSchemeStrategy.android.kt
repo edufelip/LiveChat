@@ -32,6 +32,6 @@ private class AndroidColorSchemeStrategy(
 @Composable
 actual fun rememberPlatformColorSchemeStrategy(): PlatformColorSchemeStrategy {
     val context = LocalContext.current.applicationContext
-    val fallback = remember { PastelColorSchemeStrategy() }
+    val fallback = PastelColorSchemeStrategy()
     return remember(context, fallback) { AndroidColorSchemeStrategy(context, fallback) }
 }

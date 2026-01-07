@@ -3,6 +3,7 @@ package com.edufelip.livechat.ui.features.onboarding
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -27,7 +28,7 @@ class PhoneStepTest {
     fun continueDisabledUntilPhoneProvided() {
         var continueTapped = 0
         composeRule.setContent {
-            var phoneNumber by mutableStateOf("")
+            var phoneNumber by remember { mutableStateOf("") }
             LiveChatTheme {
                 val strings = liveChatStrings()
                 PhoneStep(
