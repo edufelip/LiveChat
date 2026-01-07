@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -237,35 +238,42 @@ private fun OtpDigitRow(
     digitCount: Int,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        repeat(digitCount) { index ->
-            val char = value.getOrNull(index)?.toString().orEmpty()
-            val isActive =
-                isFocused &&
-                    (index == value.length || (value.length == digitCount && index == digitCount - 1))
-            val borderColor =
-                if (isActive) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant
-                }
-            Surface(
-                modifier = Modifier.size(52.dp),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, borderColor),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = char,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                    )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val cellSize = 52.dp
+        val totalCellWidth = cellSize * digitCount
+        val maxGap = (maxWidth - totalCellWidth) / (digitCount - 1)
+        val spacing = minOf(maxGap, 24.dp).coerceAtLeast(0.dp)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            repeat(digitCount) { index ->
+                val char = value.getOrNull(index)?.toString().orEmpty()
+                val isActive =
+                    isFocused &&
+                        (index == value.length || (value.length == digitCount && index == digitCount - 1))
+                val borderColor =
+                    if (isActive) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
+                    }
+                Surface(
+                    modifier = Modifier.size(cellSize),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, borderColor),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = char,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }

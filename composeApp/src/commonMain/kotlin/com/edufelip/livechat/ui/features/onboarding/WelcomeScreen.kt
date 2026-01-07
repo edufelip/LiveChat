@@ -2,7 +2,6 @@ package com.edufelip.livechat.ui.features.onboarding
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -22,11 +22,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,7 +47,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.resources.Res
 import com.edufelip.livechat.resources.livechat_logo
-import com.edufelip.livechat.ui.platform.openExternalUrl
+import com.edufelip.livechat.ui.platform.openWebViewUrl
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -60,16 +57,9 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 internal fun WelcomeScreen(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
-    onHelp: (() -> Unit)? = null,
 ) {
     val strings = liveChatStrings().onboarding
     val colors = MaterialTheme.colorScheme
-    val helpAction =
-        onHelp ?: {
-            if (strings.welcomeHelpUrl.isNotBlank()) {
-                openExternalUrl(strings.welcomeHelpUrl)
-            }
-        }
     val termsStyle =
         MaterialTheme.typography.bodySmall.copy(
             color = colors.onSurfaceVariant.copy(alpha = 0.7f),
@@ -119,36 +109,7 @@ internal fun WelcomeScreen(
                 .testTag(OnboardingTestTags.WELCOME_STEP),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(onClick = helpAction)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = strings.welcomeHelpCta,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = colors.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.size(6.dp))
-                Icon(
-                    imageVector = Icons.Outlined.HelpOutline,
-                    contentDescription = null,
-                    tint = colors.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(24.dp))
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -210,14 +171,14 @@ internal fun WelcomeScreen(
                         .firstOrNull()
                         ?.let {
                             if (strings.welcomeTermsUrl.isNotBlank()) {
-                                openExternalUrl(strings.welcomeTermsUrl)
+                                openWebViewUrl(strings.welcomeTermsUrl)
                             }
                         }
                     termsAnnotated.getStringAnnotations(tag = "privacy", start = offset, end = offset)
                         .firstOrNull()
                         ?.let {
                             if (strings.welcomePrivacyUrl.isNotBlank()) {
-                                openExternalUrl(strings.welcomePrivacyUrl)
+                                openWebViewUrl(strings.welcomePrivacyUrl)
                             }
                         }
                 },
@@ -376,6 +337,7 @@ private fun WelcomeHeroIllustration(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
+                    .offset(y = (-48).dp)
                     .padding(top = 8.dp)
                     .background(brandScrim, RoundedCornerShape(24.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp),

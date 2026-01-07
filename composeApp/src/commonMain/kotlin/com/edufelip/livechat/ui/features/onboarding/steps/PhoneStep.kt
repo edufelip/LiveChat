@@ -271,7 +271,7 @@ internal fun PhoneStep(
                                     focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                     unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 ),
-                            textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                            textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                         )
                     }
                 }
