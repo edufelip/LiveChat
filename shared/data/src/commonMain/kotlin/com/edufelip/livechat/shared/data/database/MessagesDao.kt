@@ -159,6 +159,7 @@ interface MessagesDao {
             cs.archived AS archived,
             c.name AS contactName,
             c.photo AS contactPhoto,
+            c.firebase_uid AS contactFirebaseUid,
             (
                 SELECT COUNT(*)
                 FROM messages AS unread
@@ -192,5 +193,6 @@ data class ConversationSummaryRow(
     val archived: Boolean?,
     val contactName: String?,
     val contactPhoto: String?,
+    val contactFirebaseUid: String?,
     val unreadCount: Long?,
 )

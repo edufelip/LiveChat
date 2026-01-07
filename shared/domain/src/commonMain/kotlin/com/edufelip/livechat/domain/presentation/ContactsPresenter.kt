@@ -101,6 +101,17 @@ class ContactsPresenter(
         // No-op: invite flow handled on the platform layer. Presenter intentionally left empty.
     }
 
+    fun setSearchQuery(query: String) {
+        mutableState.update { state ->
+            val trimmed = query.trim()
+            if (state.searchQuery == trimmed) {
+                state
+            } else {
+                state.copy(searchQuery = trimmed)
+            }
+        }
+    }
+
     fun onContactSelected(contact: Contact) {
         scope.launch {
             if (!contact.isRegistered || contact.firebaseUid.isNullOrBlank()) {

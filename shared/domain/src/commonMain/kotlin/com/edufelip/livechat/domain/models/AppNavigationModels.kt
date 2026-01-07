@@ -1,6 +1,8 @@
 package com.edufelip.livechat.domain.models
 
 sealed class AppDestination {
+    data object Welcome : AppDestination()
+
     data object Onboarding : AppDestination()
 
     data class Home(val destination: HomeDestination) : AppDestination()
@@ -10,6 +12,8 @@ sealed class HomeDestination {
     data object ConversationList : HomeDestination()
 
     data object Contacts : HomeDestination()
+
+    data object Calls : HomeDestination()
 
     data object Settings : HomeDestination()
 
@@ -21,6 +25,6 @@ sealed class HomeDestination {
 
 enum class HomeTab {
     Conversations,
-    Contacts,
+    Calls,
     Settings,
 }

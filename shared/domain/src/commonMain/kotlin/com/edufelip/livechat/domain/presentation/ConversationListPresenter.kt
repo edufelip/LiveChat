@@ -3,8 +3,11 @@ package com.edufelip.livechat.domain.presentation
 import com.edufelip.livechat.domain.models.ConversationFilter
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationSummary
+import com.edufelip.livechat.domain.models.PresenceState
+import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
+import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
@@ -18,6 +21,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,6 +33,8 @@ class ConversationListPresenter(
     private val setConversationPinned: SetConversationPinnedUseCase,
     private val setConversationMuted: SetConversationMutedUseCase,
     private val setConversationArchived: SetConversationArchivedUseCase,
+    private val observePresence: ObservePresenceUseCase,
+    private val sessionProvider: UserSessionProvider,
     private val scope: CoroutineScope = MainScope(),
 ) {
     private val _uiState = MutableStateFlow(ConversationListUiState(isLoading = true))
@@ -34,6 +42,8 @@ class ConversationListPresenter(
     val cState: CStateFlow<ConversationListUiState> = uiState.asCStateFlow()
 
     private var cachedSummaries: List<ConversationSummary> = emptyList()
+    private var cachedPresence: Map<String, PresenceState> = emptyMap()
+    private val presenceTargets = MutableStateFlow<List<String>>(emptyList())
 
     init {
         scope.launch {
@@ -43,12 +53,28 @@ class ConversationListPresenter(
                 }
                 .collectLatest { summaries ->
                     cachedSummaries = summaries
+                    presenceTargets.value = summaries.mapNotNull { presenceKey(it) }
                     _uiState.update { state ->
                         state.copy(
-                            conversations = filterSummaries(state.searchQuery, state.selectedFilter, summaries),
+                            conversations = applyPresence(filterSummaries(state.searchQuery, state.selectedFilter, summaries)),
                             isLoading = false,
                             errorMessage = null,
+                            currentUserId = sessionProvider.currentUserId(),
                         )
+                    }
+                }
+        }
+        scope.launch {
+            presenceTargets
+                .map { targets -> targets.distinct().filter { it.isNotBlank() } }
+                .distinctUntilChanged()
+                .flatMapLatest { targets -> observePresence(targets) }
+                .collectLatest { presence ->
+                    cachedPresence = presence
+                    val state = _uiState.value
+                    val filtered = filterSummaries(state.searchQuery, state.selectedFilter, cachedSummaries)
+                    _uiState.update { current ->
+                        current.copy(conversations = applyPresence(filtered))
                     }
                 }
         }
@@ -59,7 +85,7 @@ class ConversationListPresenter(
             val trimmed = query.trim()
             state.copy(
                 searchQuery = trimmed,
-                conversations = filterSummaries(trimmed, state.selectedFilter, cachedSummaries),
+                conversations = applyPresence(filterSummaries(trimmed, state.selectedFilter, cachedSummaries)),
             )
         }
     }
@@ -71,7 +97,7 @@ class ConversationListPresenter(
             } else {
                 state.copy(
                     selectedFilter = filter,
-                    conversations = filterSummaries(state.searchQuery, filter, cachedSummaries),
+                    conversations = applyPresence(filterSummaries(state.searchQuery, filter, cachedSummaries)),
                 )
             }
         }
@@ -171,5 +197,33 @@ class ConversationListPresenter(
 
     fun close() {
         scope.cancel()
+    }
+
+    private fun applyPresence(summaries: List<ConversationSummary>): List<ConversationSummary> {
+        if (summaries.isEmpty() || cachedPresence.isEmpty()) return summaries
+        return summaries.map { summary ->
+            val key = presenceKey(summary)
+            val presence = key?.let { cachedPresence[it] }
+            if (presence == null) {
+                summary
+            } else {
+                summary.copy(isOnline = presence.isOnline)
+            }
+        }
+    }
+
+    private fun presenceKey(summary: ConversationSummary): String? {
+        val candidate = summary.contactUserId?.takeIf { it.isNotBlank() } ?: summary.conversationId
+        if (candidate.isBlank()) return null
+        return if (candidate.isLikelyPhoneNumber()) null else candidate
+    }
+
+    private fun String.isLikelyPhoneNumber(): Boolean {
+        if (isBlank()) return true
+        if (any { it.isLetter() }) return false
+        val digits = filter { it.isDigit() }
+        if (digits.length < 7) return false
+        val allowedSymbols = setOf('+', '(', ')', '-', ' ')
+        return all { it.isDigit() || it in allowedSymbols }
     }
 }

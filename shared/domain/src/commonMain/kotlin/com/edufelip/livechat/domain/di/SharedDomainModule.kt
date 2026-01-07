@@ -28,6 +28,7 @@ import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
+import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
@@ -38,7 +39,9 @@ import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
+import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
+import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
@@ -49,6 +52,7 @@ import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
+import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
 import com.edufelip.livechat.domain.useCases.UnblockContactUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
@@ -65,6 +69,7 @@ import com.edufelip.livechat.domain.useCases.UpdateQuietHoursEnabledUseCase
 import com.edufelip.livechat.domain.useCases.UpdateQuietHoursWindowUseCase
 import com.edufelip.livechat.domain.useCases.UpdateReadReceiptsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateReduceMotionUseCase
+import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateShareUsageDataUseCase
 import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
@@ -99,7 +104,9 @@ val sharedDomainModule: Module =
         factory { ObservePrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
         factory { ObserveBlockedContactsUseCase(get<IBlockedContactsRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
+        factory { ObserveWelcomeSeenUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
+        factory { GetWelcomeSeenSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
         factory { EnsureConversationUseCase(get()) }
         factory { SendMessageUseCase(get()) }
@@ -110,6 +117,7 @@ val sharedDomainModule: Module =
         factory { SetConversationMutedUseCase(get()) }
         factory { SetConversationArchivedUseCase(get()) }
         factory { SetOnboardingCompleteUseCase(get()) }
+        factory { SetWelcomeSeenUseCase(get()) }
         factory { UpdateAccountDisplayNameUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
@@ -126,6 +134,8 @@ val sharedDomainModule: Module =
         factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateShareUsageDataUseCase(get<IPrivacySettingsRepository>()) }
         factory { ResetPrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
+        factory { ObservePresenceUseCase(get()) }
+        factory { UpdateSelfPresenceUseCase(get()) }
         factory { BlockContactUseCase(get<IBlockedContactsRepository>()) }
         factory { UnblockContactUseCase(get<IBlockedContactsRepository>()) }
         factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
@@ -140,7 +150,7 @@ val sharedDomainModule: Module =
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
         factory { ClearPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ConversationPresenter(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-        factory { ConversationListPresenter(get(), get(), get(), get(), get()) }
+        factory { ConversationListPresenter(get(), get(), get(), get(), get(), get(), get()) }
         single {
             ContactsPresenter(
                 getLocalContactsUseCase = get(),
@@ -210,9 +220,13 @@ val sharedDomainModule: Module =
         factory {
             AppPresenter(
                 observeOnboardingStatus = get<ObserveOnboardingStatusUseCase>(),
+                observeWelcomeSeen = get<ObserveWelcomeSeenUseCase>(),
                 observeConversationUseCase = get<ObserveConversationUseCase>(),
                 setOnboardingComplete = get<SetOnboardingCompleteUseCase>(),
+                setWelcomeSeen = get<SetWelcomeSeenUseCase>(),
                 getOnboardingStatusSnapshot = get<GetOnboardingStatusSnapshotUseCase>(),
+                getWelcomeSeenSnapshot = get<GetWelcomeSeenSnapshotUseCase>(),
+                updateSelfPresence = get<UpdateSelfPresenceUseCase>(),
                 scope = MainScope(),
             )
         }

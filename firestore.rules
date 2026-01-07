@@ -6,7 +6,8 @@ service cloud.firestore {
     }
 
     function isDeleted(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
+      return exists(/databases/$(database)/documents/users/$(uid)) &&
+        get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
     }
 
     function isActiveUser(uid) {
@@ -39,6 +40,11 @@ service cloud.firestore {
 
     match /users/{userId}/blockedContacts/{blockedUserId} {
       allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
+    }
+
+    match /presence/{userId} {
+      allow read: if isActiveUser(request.auth.uid);
+      allow create, update: if isActiveUser(userId) && request.auth.uid == userId;
     }
 
     match /conversations/{conversationId} {

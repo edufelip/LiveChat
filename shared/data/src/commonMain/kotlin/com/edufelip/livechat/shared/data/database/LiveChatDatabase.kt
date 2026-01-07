@@ -4,6 +4,8 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 
@@ -15,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
         ProcessedInboxActionEntity::class,
         OnboardingStatusEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @ConstructedBy(LiveChatDatabaseConstructor::class)
@@ -36,8 +38,18 @@ expect object LiveChatDatabaseConstructor : RoomDatabaseConstructor<LiveChatData
 fun RoomDatabase.Builder<LiveChatDatabase>.configureDefaults(): RoomDatabase.Builder<LiveChatDatabase> =
     this.setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
+        .addMigrations(MIGRATION_3_4)
         .fallbackToDestructiveMigration(dropAllTables = false)
 
 fun buildLiveChatDatabase(builder: RoomDatabase.Builder<LiveChatDatabase>): LiveChatDatabase = builder.configureDefaults().build()
 
 const val LIVE_CHAT_DB_NAME = "livechat.db"
+
+private val MIGRATION_3_4 =
+    object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE onboarding_status ADD COLUMN welcome_seen INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+    }

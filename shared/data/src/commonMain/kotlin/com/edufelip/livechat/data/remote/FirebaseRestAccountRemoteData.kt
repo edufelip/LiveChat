@@ -71,6 +71,43 @@ class FirebaseRestAccountRemoteData(
         updateFields(userId, idToken, mapOf(FIELD_EMAIL to Value(stringValue = email)))
     }
 
+    override suspend fun ensureUserDocument(
+        userId: String,
+        idToken: String,
+        phoneNumber: String?,
+    ) {
+        withContext(dispatcher) {
+            if (!config.isConfigured || idToken.isBlank()) return@withContext
+            val url = "${config.documentsEndpoint}/${config.usersCollection}"
+            val fields =
+                buildMap {
+                    put(FIELD_DISPLAY_NAME, Value(stringValue = ""))
+                    put(FIELD_STATUS_MESSAGE, Value(stringValue = ""))
+                    phoneNumber
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { put(FIELD_PHONE_NUMBER, Value(stringValue = it)) }
+                }
+            val request = CreateDocumentRequest(fields = fields)
+            runCatching {
+                httpClient.post(url) {
+                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                    if (config.apiKey.isNotBlank()) {
+                        parameter("key", config.apiKey)
+                    }
+                    parameter("documentId", userId)
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
+            }.onFailure { throwable ->
+                if (throwable is ClientRequestException) {
+                    val responseBody = throwable.response.bodyAsText()
+                    if (responseBody.contains("ALREADY_EXISTS", ignoreCase = true)) return@onFailure
+                }
+                println("FirebaseRestAccountRemoteData: ensureUserDocument failed userId=$userId error=${throwable.message}")
+            }
+        }
+    }
+
     override suspend fun deleteAccount(
         userId: String,
         idToken: String,
@@ -165,6 +202,11 @@ class FirebaseRestAccountRemoteData(
     @Serializable
     private data class FirestoreDocument(
         val fields: Map<String, Value> = emptyMap(),
+    )
+
+    @Serializable
+    private data class CreateDocumentRequest(
+        val fields: Map<String, Value>,
     )
 
     @Serializable

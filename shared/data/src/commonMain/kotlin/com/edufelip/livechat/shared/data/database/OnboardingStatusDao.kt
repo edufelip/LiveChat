@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OnboardingStatusDao {
-    @Query("SELECT complete FROM onboarding_status WHERE id = 0")
-    fun observe(): Flow<Boolean?>
+    @Query("SELECT * FROM onboarding_status WHERE id = 0")
+    fun observe(): Flow<OnboardingStatusEntity?>
 
-    @Query("SELECT complete FROM onboarding_status WHERE id = 0")
-    suspend fun current(): Boolean?
+    @Query("SELECT * FROM onboarding_status WHERE id = 0")
+    suspend fun current(): OnboardingStatusEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(status: OnboardingStatusEntity)

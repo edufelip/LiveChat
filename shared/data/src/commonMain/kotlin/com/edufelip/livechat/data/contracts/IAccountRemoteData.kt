@@ -26,6 +26,12 @@ interface IAccountRemoteData {
         email: String,
     )
 
+    suspend fun ensureUserDocument(
+        userId: String,
+        idToken: String,
+        phoneNumber: String?,
+    )
+
     suspend fun deleteAccount(
         userId: String,
         idToken: String,
