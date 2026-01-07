@@ -22,7 +22,7 @@ class GetOnboardingStatusSnapshotUseCaseTest {
         initiallyComplete: Boolean,
     ) : IOnboardingStatusRepository {
         var state: Boolean = initiallyComplete
-        var welcomeSeen: Boolean = false
+        var welcomeSeenState: Boolean = false
 
         override val onboardingComplete: Flow<Boolean> = emptyFlow()
         override val welcomeSeen: Flow<Boolean> = emptyFlow()
@@ -32,11 +32,11 @@ class GetOnboardingStatusSnapshotUseCaseTest {
         }
 
         override suspend fun setWelcomeSeen(seen: Boolean) {
-            welcomeSeen = seen
+            welcomeSeenState = seen
         }
 
         override fun currentStatus(): Boolean = state
 
-        override fun currentWelcomeSeen(): Boolean = welcomeSeen
+        override fun currentWelcomeSeen(): Boolean = welcomeSeenState
     }
 }
