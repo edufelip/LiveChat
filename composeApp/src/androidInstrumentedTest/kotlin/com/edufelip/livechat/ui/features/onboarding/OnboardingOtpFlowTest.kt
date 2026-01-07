@@ -57,6 +57,8 @@ class OnboardingOtpFlowTest {
                                 onToggleMute = { _, _ -> },
                                 onToggleArchive = { _, _ -> },
                                 onFilterSelected = {},
+                                onCompose = {},
+                                onEmptyStateAction = {},
                             )
                         }
                 }

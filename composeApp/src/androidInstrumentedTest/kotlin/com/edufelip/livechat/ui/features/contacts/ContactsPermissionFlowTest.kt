@@ -6,10 +6,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.ContactsUiState
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -68,7 +71,11 @@ class ContactsPermissionFlowTest {
                     onSync = {
                         setState?.invoke(currentState.copy(isSyncing = true))
                     },
+                    onSearchQueryChange = { query ->
+                        setState?.invoke(currentState.copy(searchQuery = query))
+                    },
                     onDismissError = {},
+                    onBack = {},
                 )
             }
         }
@@ -92,5 +99,53 @@ class ContactsPermissionFlowTest {
 
         composeRule.onNodeWithText(primaryName).assertIsDisplayed()
         composeRule.onNodeWithText(tertiaryName).assertIsDisplayed()
+    }
+
+    @Test
+    fun searchFiltersContacts() {
+        var primaryName = ""
+        var tertiaryName = ""
+
+        composeRule.setContent {
+            LiveChatTheme {
+                val strings = liveChatStrings()
+                val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
+                val validatedContacts = remember(previewContacts) { previewContacts.filter { it.isRegistered } }
+                var state by remember(previewContacts) {
+                    mutableStateOf(
+                        ContactsUiState(
+                            localContacts = previewContacts,
+                            validatedContacts = validatedContacts,
+                            isLoading = false,
+                            isSyncing = false,
+                            errorMessage = null,
+                        ),
+                    )
+                }
+                SideEffect {
+                    primaryName = strings.preview.contactPrimaryName
+                    tertiaryName = strings.preview.contactTertiaryName
+                }
+                ContactsScreen(
+                    state = state,
+                    showSyncButton = false,
+                    onInvite = {},
+                    onContactSelected = {},
+                    onSync = {},
+                    onSearchQueryChange = { query ->
+                        state = state.copy(searchQuery = query)
+                    },
+                    onDismissError = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText(primaryName).assertIsDisplayed()
+        composeRule.onNodeWithText(tertiaryName).assertIsDisplayed()
+
+        composeRule.onNodeWithTag(ContactsTestTags.SEARCH_FIELD).performTextInput(primaryName.take(2))
+        composeRule.onNodeWithText(primaryName).assertIsDisplayed()
+        composeRule.onNodeWithText(tertiaryName).assertDoesNotExist()
     }
 }
