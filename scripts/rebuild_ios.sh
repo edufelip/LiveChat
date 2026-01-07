@@ -23,13 +23,11 @@ else
   SDK_NAME_SHORT="iphonesimulator"
 fi
 
-# Ensure SwiftPM frameworks (Firebase, etc.) exist in DerivedData
+# Resolve SwiftPM packages before building (does not require XCFrameworks to exist yet)
 xcodebuild -project "$PROJECT_PATH" \
            -scheme "$SCHEME" \
            -configuration "$CONFIG" \
-           -destination "$DEST" \
-           CODE_SIGNING_ALLOWED=NO \
-           build >/dev/null
+           -resolvePackageDependencies
 
 # Resolve CONFIGURATION_BUILD_DIR and expand '~'
 RAW_BUILD_DIR=$(
