@@ -10,12 +10,16 @@
     <string name="contacts_invite_share_title">Share LiveChat invite</string>
     <string name="contacts_invite_share_unavailable">No apps available to share</string>
     <string name="contacts_permission_denied_message">Enable contacts permission to sync your phonebook.</string>
+    <string name="contacts_screen_title">Contacts</string>
     <string name="contacts_registered_section_title">On LiveChat</string>
     <string name="contacts_invite_section_title">Invite to LiveChat</string>
     <string name="contacts_validating_section_label">Validating contacts...</string>
+    <string name="contacts_search_placeholder">Search name or number</string>
+    <string name="contacts_search_empty_state">No contacts match your search.</string>
 
     <!-- Settings -->
-    <string name="settings_screen_title">Make LiveChat yours</string>
+    <string name="settings_screen_title">Settings</string>
+    <string name="settings_search_placeholder">Search</string>
     <string name="settings_account_title">Account</string>
     <string name="settings_account_description">Profile, status, and linked phone number</string>
     <string name="settings_notifications_title">Notifications</string>
@@ -24,6 +28,11 @@
     <string name="settings_appearance_description">Themes, typography scale, accessibility</string>
     <string name="settings_privacy_title">Privacy</string>
     <string name="settings_privacy_description">Blocked contacts, invite preferences</string>
+    <string name="settings_privacy_policy_title">Privacy Policy</string>
+    <string name="settings_privacy_policy_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="settings_footer_app_name_ios">LiveChat for iOS</string>
+    <string name="settings_footer_app_name_android">LiveChat for Android</string>
+    <string name="settings_version_format">Version %1$s (%2$s)</string>
     <string name="settings_opening_section_toast">Opening %1$s settings soon</string>
 
     <!-- Account -->
@@ -148,7 +157,7 @@
     <!-- Home -->
     <string name="home_conversation_title">Conversation</string>
     <string name="home_chats_tab">Chats</string>
-    <string name="home_contacts_tab">Contacts</string>
+    <string name="home_calls_tab">Calls</string>
     <string name="home_settings_tab">Settings</string>
     <string name="home_back_cta">Back</string>
 
@@ -157,11 +166,15 @@
     <string name="conversation_muted_label">Muted conversation</string>
     <string name="conversation_muted_until_prefix">Muted until</string>
     <string name="conversation_loading_messages">Loading messages&#8230;</string>
-    <string name="conversation_search_placeholder">Search conversations</string>
+    <string name="conversation_search_placeholder">Search</string>
     <string name="conversation_loading_list">Loading conversations&#8230;</string>
     <string name="conversation_empty_list">No conversations yet</string>
+    <string name="conversation_empty_list_subtitle">Tap the compose button to start chatting with your contacts.</string>
+    <string name="conversation_empty_list_cta">Find Contacts</string>
     <string name="conversation_section_pinned">Pinned</string>
     <string name="conversation_section_others">Others</string>
+    <string name="conversation_compose_action">New chat</string>
+    <string name="conversation_you_prefix">You:</string>
     <string name="conversation_filter_all">All</string>
     <string name="conversation_filter_unread">Unread</string>
     <string name="conversation_filter_pinned">Pinned</string>
@@ -209,10 +222,21 @@
     <string name="conversation_send_recording">Send recording</string>
 
     <!-- Onboarding -->
+    <string name="welcome_title">Connect instantly with friends.</string>
+    <string name="welcome_subtitle">The simplest way to text, call, and share moments with the people who matter most.</string>
+    <string name="welcome_cta">Start Messaging</string>
+    <string name="welcome_help_cta">Help</string>
+    <string name="welcome_help_url">https://www.portfolio.eduwaldo.com</string>
+    <string name="welcome_terms_message">By continuing, you agree to our Terms of Service and Privacy Policy.</string>
+    <string name="welcome_terms_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="welcome_privacy_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="welcome_brand_name">LiveChat</string>
     <string name="onboarding_phone_title">Enter your phone number</string>
     <string name="onboarding_phone_subtitle">We&apos;ll send a verification code to confirm it&apos;s you.</string>
     <string name="onboarding_phone_field_label">Phone number</string>
-    <string name="onboarding_phone_field_placeholder">Digits only</string>
+    <string name="onboarding_phone_field_placeholder">(555) 000-0000</string>
+    <string name="onboarding_phone_country_label">Country</string>
+    <string name="onboarding_phone_terms_message">By tapping &quot;Continue&quot;, you agree to our Terms of Service and Privacy Policy.</string>
     <string name="onboarding_continue_cta">Continue</string>
     <string name="onboarding_default_phone_sample">5550100</string>
     <string name="onboarding_invalid_phone_error">Please enter a valid phone number</string>
@@ -226,6 +250,10 @@
     <string name="onboarding_success_title">You&apos;re all set!</string>
     <string name="onboarding_success_subtitle">Your account is ready. Start chatting with your contacts now.</string>
     <string name="onboarding_success_cta">Start chatting</string>
+    <string name="onboarding_success_checklist_sync_title">Sync Contacts</string>
+    <string name="onboarding_success_checklist_sync_subtitle">Find friends who are already here.</string>
+    <string name="onboarding_success_checklist_notify_title">Enable Notifications</string>
+    <string name="onboarding_success_checklist_notify_subtitle">Don&apos;t miss a message.</string>
     <string name="onboarding_country_picker_title">Select your country</string>
     <string name="onboarding_country_picker_search_placeholder">Search by country or code</string>
     <string name="onboarding_country_picker_empty">No countries found</string>
@@ -247,6 +275,7 @@
     <string name="general_open_settings">Open Settings</string>
     <string name="general_dismiss">Dismiss</string>
     <string name="general_error_title">Something went wrong</string>
+    <string name="general_coming_soon">Coming soon</string>
     <string name="general_time_period_am">AM</string>
     <string name="general_time_period_pm">PM</string>
     <string name="general_home_destination_transition_label">homeDestinationTransition</string>

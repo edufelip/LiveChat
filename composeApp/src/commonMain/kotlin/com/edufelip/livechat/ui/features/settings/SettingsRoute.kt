@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.account.AccountSettingsRoute
 import com.edufelip.livechat.ui.features.settings.appearance.AppearanceSettingsRoute
+import com.edufelip.livechat.ui.features.settings.model.SettingsChromeVisibility
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.features.settings.notifications.NotificationSettingsRoute
 import com.edufelip.livechat.ui.features.settings.privacy.PrivacySettingsRoute
@@ -34,7 +36,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun SettingsRoute(
     modifier: Modifier = Modifier,
     onSectionSelected: (SettingsNavigationRequest) -> Unit = {},
-    onChromeVisibilityChanged: (Boolean) -> Unit = {},
+    onChromeVisibilityChanged: (SettingsChromeVisibility) -> Unit = {},
     accountContent: SettingsSectionContent = { routeModifier, onBack ->
         AccountSettingsRoute(
             modifier = routeModifier,
@@ -63,10 +65,25 @@ fun SettingsRoute(
     val strings = liveChatStrings()
     val reduceMotion = LocalReduceMotion.current
     var destination by rememberSaveable { mutableStateOf(SettingsDestination.List) }
-    val hideChrome = destination != SettingsDestination.List
+    val chromeVisibility =
+        remember(destination) {
+            when (destination) {
+                SettingsDestination.List ->
+                    SettingsChromeVisibility(
+                        showTopBar = false,
+                        showBottomBar = true,
+                    )
 
-    LaunchedEffect(hideChrome) {
-        onChromeVisibilityChanged(!hideChrome)
+                else ->
+                    SettingsChromeVisibility(
+                        showTopBar = false,
+                        showBottomBar = false,
+                    )
+            }
+        }
+
+    LaunchedEffect(chromeVisibility) {
+        onChromeVisibilityChanged(chromeVisibility)
     }
 
     if (LocalInspectionMode.current) {

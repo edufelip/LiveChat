@@ -1,18 +1,25 @@
 package com.edufelip.livechat.ui.features.onboarding.steps
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -20,36 +27,40 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.disabled
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.onboarding.CountryOption
@@ -77,6 +88,7 @@ internal fun PhoneStep(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val inputBounds = remember { mutableStateOf<Rect?>(null) }
+    var isPhoneFocused by remember { mutableStateOf(false) }
     val density = LocalDensity.current
     val imeVisible = WindowInsets.ime.getBottom(density) > 0
     val contentBottomPadding =
@@ -85,6 +97,15 @@ internal fun PhoneStep(
         } else {
             (MaterialTheme.spacing.xxxl + MaterialTheme.spacing.xxl) / 2
         }
+    val cardShape = RoundedCornerShape(20.dp)
+    val cardBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+    val phoneBorderColor =
+        if (isPhoneFocused) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            cardBorderColor
+        }
+
     Box(
         modifier =
             modifier
@@ -106,39 +127,34 @@ internal fun PhoneStep(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                     .verticalScroll(scrollState)
                     .padding(horizontal = MaterialTheme.spacing.xl)
-                    .padding(
-                        top = MaterialTheme.spacing.xxxl,
-                        bottom = contentBottomPadding,
-                    ),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl, Alignment.Top),
+                    .padding(bottom = contentBottomPadding),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = MaterialTheme.spacing.lg),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
             ) {
                 Text(
                     text = strings.phoneTitle,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = strings.phoneSubtitle,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.72f),
                 )
             }
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
                 Surface(
                     modifier =
@@ -146,54 +162,120 @@ internal fun PhoneStep(
                             .fillMaxWidth()
                             .testTag(OnboardingTestTags.PHONE_COUNTRY_SELECTOR)
                             .clickable(onClick = onPickCountry),
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 2.dp,
+                    shape = cardShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, cardBorderColor),
                 ) {
-                    Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
-                        Text(
-                            text = selectedCountry.flag + " " + selectedCountry.name,
-                            style = MaterialTheme.typography.titleMedium,
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(MaterialTheme.spacing.lg),
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                        ) {
+                            Text(
+                                text = strings.phoneCountryLabel.uppercase(),
+                                style =
+                                    MaterialTheme.typography.labelSmall.copy(
+                                        letterSpacing = 1.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                    ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                            ) {
+                                Text(text = selectedCountry.flag, style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    text = selectedCountry.name,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.Rounded.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.align(Alignment.TopEnd),
                         )
                         Text(
                             text = selectedCountry.dialCode,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.align(Alignment.BottomEnd),
                         )
                     }
                 }
 
-                OutlinedTextField(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .testTag(OnboardingTestTags.PHONE_INPUT)
-                            .bringIntoViewRequester(bringIntoViewRequester)
-                            .onGloballyPositioned { coordinates ->
-                                inputBounds.value = coordinates.boundsInRoot()
-                            }
-                            .onFocusChanged { state ->
-                                if (state.isFocused) {
-                                    scope.launch {
-                                        bringIntoViewRequester.bringIntoView()
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = cardShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, phoneBorderColor),
+                ) {
+                    Column(modifier = Modifier.padding(MaterialTheme.spacing.lg)) {
+                        Text(
+                            text = strings.phoneFieldLabel.uppercase(),
+                            style =
+                                MaterialTheme.typography.labelSmall.copy(
+                                    letterSpacing = 1.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextField(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .testTag(OnboardingTestTags.PHONE_INPUT)
+                                    .bringIntoViewRequester(bringIntoViewRequester)
+                                    .onGloballyPositioned { coordinates ->
+                                        inputBounds.value = coordinates.boundsInRoot()
                                     }
-                                }
-                            },
-                    value = phoneNumber,
-                    onValueChange = onPhoneChanged,
-                    label = { Text(strings.phoneFieldLabel) },
-                    placeholder = { Text(strings.phoneFieldPlaceholder) },
-                    singleLine = true,
-                    isError = phoneError != null,
-                    keyboardOptions =
-                        KeyboardOptions(
-                            keyboardType = KeyboardType.Phone,
-                            imeAction = ImeAction.Done,
-                        ),
-                    keyboardActions =
-                        KeyboardActions(
-                            onDone = { focusManager.clearFocus() },
-                        ),
-                )
+                                    .onFocusChanged { state ->
+                                        isPhoneFocused = state.isFocused
+                                        if (state.isFocused) {
+                                            scope.launch {
+                                                bringIntoViewRequester.bringIntoView()
+                                            }
+                                        }
+                                    },
+                            value = phoneNumber,
+                            onValueChange = onPhoneChanged,
+                            placeholder = { Text(strings.phoneFieldPlaceholder) },
+                            singleLine = true,
+                            isError = phoneError != null,
+                            keyboardOptions =
+                                KeyboardOptions(
+                                    keyboardType = KeyboardType.Phone,
+                                    imeAction = ImeAction.Done,
+                                ),
+                            keyboardActions =
+                                KeyboardActions(
+                                    onDone = { focusManager.clearFocus() },
+                                ),
+                            colors =
+                                TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        )
+                    }
+                }
+
                 if (phoneError != null) {
                     Text(
                         text = phoneError,
@@ -204,48 +286,42 @@ internal fun PhoneStep(
                 }
             }
 
-            Spacer(modifier = Modifier.heightIn(min = MaterialTheme.spacing.xl))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
 
-            Box(
+            Button(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .testTag(OnboardingTestTags.PHONE_CONTINUE_BUTTON)
-                        .clickable(enabled = continueEnabled, onClick = onContinue)
-                        .semantics {
-                            role = Role.Button
-                            if (!continueEnabled) {
-                                disabled()
-                            }
-                            onClick {
-                                if (continueEnabled) {
-                                    onContinue()
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
-                        },
+                        .heightIn(min = 56.dp)
+                        .testTag(OnboardingTestTags.PHONE_CONTINUE_BUTTON),
+                onClick = onContinue,
+                enabled = continueEnabled,
+                shape = RoundedCornerShape(percent = 50),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
             ) {
-                Button(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp),
-                    onClick = onContinue,
-                    enabled = continueEnabled,
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.PHONE_LOADING_INDICATOR),
-                        )
-                    } else {
-                        Text(strings.continueCta)
-                    }
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(16.dp).testTag(OnboardingTestTags.PHONE_LOADING_INDICATOR),
+                    )
+                } else {
+                    Text(strings.continueCta)
                 }
             }
+
+            Text(
+                text = strings.phoneTermsMessage,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg),
+            )
         }
     }
 }

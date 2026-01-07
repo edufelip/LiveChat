@@ -1,30 +1,52 @@
 package com.edufelip.livechat.ui.features.conversations.list.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.ConversationFilter
 import com.edufelip.livechat.domain.models.ConversationListUiState
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
-import com.edufelip.livechat.ui.components.atoms.SectionHeader
-import com.edufelip.livechat.ui.components.molecules.EmptyState
+import com.edufelip.livechat.ui.app.AppIcons
 import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.features.conversations.list.components.ConversationListRow
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -40,15 +62,20 @@ fun ConversationListScreen(
     onToggleMute: (ConversationSummary, Boolean) -> Unit,
     onToggleArchive: (ConversationSummary, Boolean) -> Unit,
     onFilterSelected: (ConversationFilter) -> Unit,
+    onCompose: () -> Unit,
+    onEmptyStateAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val conversationStrings = liveChatStrings().conversation
+    val strings = liveChatStrings()
+    val conversationStrings = strings.conversation
     val onSearchAction = rememberStableAction(onSearch)
     val onConversationSelectedAction = rememberStableAction(onConversationSelected)
     val onTogglePinAction = rememberStableAction(onTogglePin)
     val onToggleMuteAction = rememberStableAction(onToggleMute)
     val onToggleArchiveAction = rememberStableAction(onToggleArchive)
     val onFilterSelectedAction = rememberStableAction(onFilterSelected)
+    val onComposeAction = rememberStableAction(onCompose)
+    val onEmptyStateActionState = rememberStableAction(onEmptyStateAction)
     val filterOptions =
         remember(conversationStrings) {
             ConversationFilter.entries.map { filter ->
@@ -62,96 +89,291 @@ fun ConversationListScreen(
                 FilterChipOption(filter = filter, label = label)
             }
         }
-    val uniqueConversations =
-        remember(state.conversations) {
-            state.conversations.distinctBy { it.conversationId }
-        }
-    val (pinned, others) = remember(uniqueConversations) { uniqueConversations.partition { it.isPinned } }
-    val selectedFilter = state.selectedFilter
+    val conversations = remember(state.conversations) { state.conversations.distinctBy { it.conversationId } }
 
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.md),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+                .background(MaterialTheme.colorScheme.background),
     ) {
-        if (state.conversations.isNotEmpty() || state.searchQuery.isNotBlank()) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = state.searchQuery,
-                onValueChange = onSearchAction,
-                placeholder = { Text(conversationStrings.searchPlaceholder) },
-                singleLine = true,
+        ConversationListHeader(
+            title = strings.home.chatsTab,
+            onCompose = onComposeAction,
+            composeContentDescription = conversationStrings.composeAction,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.md),
+        )
+
+        ConversationSearchField(
+            query = state.searchQuery,
+            placeholder = conversationStrings.searchPlaceholder,
+            onQueryChange = onSearchAction,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.gutter),
+        )
+
+        ConversationFilterChips(
+            options = filterOptions,
+            selectedFilter = state.selectedFilter,
+            onFilterSelected = onFilterSelectedAction,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MaterialTheme.spacing.gutter, vertical = MaterialTheme.spacing.md),
+        )
+
+        Box(
+            modifier = Modifier.weight(1f),
+        ) {
+            when {
+                state.isLoading ->
+                    LoadingState(
+                        message = conversationStrings.loadingList,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+
+                conversations.isEmpty() ->
+                    ConversationEmptyState(
+                        title = conversationStrings.emptyList,
+                        subtitle = conversationStrings.emptyListSubtitle,
+                        ctaLabel = conversationStrings.emptyListCta,
+                        onCtaClick = onEmptyStateActionState,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+
+                else ->
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                        contentPadding =
+                            PaddingValues(
+                                start = MaterialTheme.spacing.gutter,
+                                end = MaterialTheme.spacing.gutter,
+                                bottom = MaterialTheme.spacing.xxxl,
+                            ),
+                    ) {
+                        itemsIndexed(
+                            items = conversations,
+                            key = { _, item -> item.conversationId },
+                        ) { index, summary ->
+                            ConversationListRow(
+                                summary = summary,
+                                currentUserId = state.currentUserId,
+                                onTogglePin = onTogglePinAction,
+                                onToggleMute = onToggleMuteAction,
+                                onToggleArchive = onToggleArchiveAction,
+                                onClick = onConversationSelectedAction,
+                                showDivider = index != conversations.lastIndex,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConversationListHeader(
+    title: String,
+    onCompose: () -> Unit,
+    composeContentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        IconButton(
+            onClick = onCompose,
+            modifier =
+                Modifier
+                    .size(44.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        shape = CircleShape,
+                    ),
+        ) {
+            Icon(
+                imageVector = AppIcons.compose,
+                contentDescription = composeContentDescription,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
+    }
+}
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+@Composable
+private fun ConversationSearchField(
+    query: String,
+    placeholder: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors =
+        TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+    TextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        modifier =
+            modifier
+                .heightIn(min = 48.dp),
+        singleLine = true,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Rounded.Search,
+                contentDescription = null,
+            )
+        },
+        textStyle = MaterialTheme.typography.bodyMedium,
+        colors = colors,
+        shape = MaterialTheme.shapes.medium,
+    )
+}
+
+@Composable
+private fun ConversationFilterChips(
+    options: List<FilterChipOption>,
+    selectedFilter: ConversationFilter,
+    onFilterSelected: (ConversationFilter) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        contentPadding = PaddingValues(vertical = MaterialTheme.spacing.xs),
+    ) {
+        items(options, key = { it.filter.name }) { option ->
+            val isSelected = selectedFilter == option.filter
+            val onFilterClick =
+                remember(option.filter, onFilterSelected) {
+                    { onFilterSelected(option.filter) }
+                }
+            ConversationFilterChip(
+                label = option.label,
+                selected = isSelected,
+                onClick = onFilterClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConversationFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val containerColor =
+        if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        }
+    val contentColor =
+        if (selected) {
+            MaterialTheme.colorScheme.onPrimary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        shape = MaterialTheme.shapes.extraLarge,
+        modifier = modifier.clickable(onClick = onClick),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun ConversationEmptyState(
+    title: String,
+    subtitle: String,
+    ctaLabel: String,
+    onCtaClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(horizontal = MaterialTheme.spacing.xl),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = MaterialTheme.shapes.extraLarge,
+            modifier = Modifier.size(88.dp),
         ) {
-            items(filterOptions, key = { it.filter.name }) { option ->
-                val onFilterClick =
-                    remember(option.filter, onFilterSelectedAction) {
-                        { onFilterSelectedAction(option.filter) }
-                    }
-                FilterChip(
-                    selected = selectedFilter == option.filter,
-                    onClick = onFilterClick,
-                    label = { Text(option.label) },
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Icon(
+                    imageVector = AppIcons.conversations,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(40.dp),
                 )
             }
         }
-
-        when {
-            state.isLoading -> LoadingState(message = conversationStrings.loadingList)
-            state.conversations.isEmpty() -> EmptyState(message = conversationStrings.emptyList)
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                    contentPadding = PaddingValues(bottom = MaterialTheme.spacing.xl),
-                ) {
-                    if (
-                        pinned.isNotEmpty() &&
-                        selectedFilter != ConversationFilter.Pinned &&
-                        selectedFilter != ConversationFilter.Archived
-                    ) {
-                        item { SectionHeader(title = conversationStrings.pinnedSectionTitle) }
-                        items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
-                            ConversationListRow(
-                                summary = summary,
-                                onTogglePin = onTogglePinAction,
-                                onToggleMute = onToggleMuteAction,
-                                onToggleArchive = onToggleArchiveAction,
-                                onClick = onConversationSelectedAction,
-                            )
-                        }
-                        if (others.isNotEmpty()) {
-                            item { SectionHeader(title = conversationStrings.othersSectionTitle) }
-                        }
-                    }
-                    items(others, key = { "conv-${it.conversationId}" }) { summary ->
-                        ConversationListRow(
-                            summary = summary,
-                            onTogglePin = onTogglePinAction,
-                            onToggleMute = onToggleMuteAction,
-                            onToggleArchive = onToggleArchiveAction,
-                            onClick = onConversationSelectedAction,
-                        )
-                    }
-                    if (selectedFilter == ConversationFilter.Pinned) {
-                        items(pinned, key = { "pinned-${it.conversationId}" }) { summary ->
-                            ConversationListRow(
-                                summary = summary,
-                                onTogglePin = onTogglePinAction,
-                                onToggleMute = onToggleMuteAction,
-                                onToggleArchive = onToggleArchiveAction,
-                                onClick = onConversationSelectedAction,
-                            )
-                        }
-                    }
-                }
-            }
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
+        Button(
+            onClick = onCtaClick,
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(ctaLabel)
         }
     }
 }
@@ -193,6 +415,8 @@ private fun ConversationListScreenPreview() {
             onToggleMute = { _, _ -> },
             onToggleArchive = { _, _ -> },
             onFilterSelected = {},
+            onCompose = {},
+            onEmptyStateAction = {},
         )
     }
 }

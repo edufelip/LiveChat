@@ -1,6 +1,9 @@
 package com.edufelip.livechat.ui.features.onboarding
 
 internal object OnboardingTestTags {
+    const val WELCOME_STEP = "welcome_step"
+    const val WELCOME_CTA = "welcome_cta"
+
     const val PHONE_STEP = "phone_step"
     const val PHONE_COUNTRY_SELECTOR = "phone_country_selector"
     const val PHONE_INPUT = "phone_input"
