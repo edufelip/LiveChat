@@ -29,6 +29,10 @@ actual object MediaFileStore {
 
     actual fun exists(path: String): Boolean = NSFileManager.defaultManager.fileExistsAtPath(path)
 
+    actual fun delete(path: String) {
+        runCatching { NSFileManager.defaultManager.removeItemAtPath(path, error = null) }
+    }
+
     actual suspend fun readBytes(path: String): ByteArray? =
         withContext(ioDispatcher) {
             val data = NSData.create(contentsOfFile = path) ?: return@withContext null

@@ -27,6 +27,7 @@ import com.edufelip.livechat.ui.features.settings.notifications.NotificationSett
 import com.edufelip.livechat.ui.features.settings.privacy.PrivacySettingsRoute
 import com.edufelip.livechat.ui.features.settings.screens.SettingsScreen
 import com.edufelip.livechat.ui.features.settings.screens.SettingsSection
+import com.edufelip.livechat.ui.platform.openWebViewUrl
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -56,9 +57,15 @@ fun SettingsRoute(
         )
     },
     privacyContent: SettingsSectionContent = { routeModifier, onBack ->
+        val privacyUrl = liveChatStrings().settings.privacyPolicyUrl
         PrivacySettingsRoute(
             modifier = routeModifier,
             onBack = onBack,
+            onOpenPrivacyPolicy = {
+                if (privacyUrl.isNotBlank()) {
+                    openWebViewUrl(privacyUrl)
+                }
+            },
         )
     },
 ) {

@@ -4,12 +4,15 @@ import com.edufelip.livechat.data.contracts.IBlockedContactsRemoteData
 import com.edufelip.livechat.domain.models.BlockedContact
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -80,15 +83,52 @@ class FirebaseRestBlockedContactsRemoteData(
     ) {
         withContext(dispatcher) {
             ensureConfigured(idToken)
-            httpClient.patch(documentUrl(userId, blockedUserId)) {
+            val request = UpdateDocumentRequest(fields = fields)
+            runCatching {
+                httpClient.patch(documentUrl(userId, blockedUserId)) {
+                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                    if (config.apiKey.isNotBlank()) {
+                        parameter("key", config.apiKey)
+                    }
+                    fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
+            }.onFailure { throwable ->
+                if (throwable is ClientRequestException) {
+                    val responseBody = throwable.response.bodyAsText()
+                    if (responseBody.contains("NOT_FOUND", ignoreCase = true)) {
+                        createDocument(userId, idToken, blockedUserId, request)
+                        return@onFailure
+                    }
+                }
+                println(
+                    "FirebaseRestBlockedContactsRemoteData: update failed userId=$userId blocked=$blockedUserId error=${throwable.message}",
+                )
+            }
+        }
+    }
+
+    private suspend fun createDocument(
+        userId: String,
+        idToken: String,
+        blockedUserId: String,
+        request: UpdateDocumentRequest,
+    ) {
+        runCatching {
+            httpClient.post(collectionUrl(userId)) {
                 header(AUTHORIZATION_HEADER, "Bearer $idToken")
                 if (config.apiKey.isNotBlank()) {
                     parameter("key", config.apiKey)
                 }
-                fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
+                parameter("documentId", blockedUserId)
                 contentType(ContentType.Application.Json)
-                setBody(UpdateDocumentRequest(fields = fields))
+                setBody(CreateDocumentRequest(fields = request.fields))
             }
+        }.onFailure { throwable ->
+            println(
+                "FirebaseRestBlockedContactsRemoteData: create failed userId=$userId blocked=$blockedUserId error=${throwable.message}",
+            )
         }
     }
 
@@ -129,6 +169,11 @@ class FirebaseRestBlockedContactsRemoteData(
 
     @Serializable
     private data class UpdateDocumentRequest(
+        val fields: Map<String, Value>,
+    )
+
+    @Serializable
+    private data class CreateDocumentRequest(
         val fields: Map<String, Value>,
     )
 

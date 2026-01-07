@@ -31,6 +31,8 @@ interface IMessagesLocalData {
 
     suspend fun getMessageStatus(messageId: String): MessageStatus?
 
+    suspend fun downgradeReadStatuses()
+
     suspend fun updateMessageBodyAndMetadata(
         messageId: String,
         body: String,
@@ -59,6 +61,8 @@ interface IMessagesLocalData {
         conversationId: String,
         messages: List<Message>,
     )
+
+    suspend fun clearConversationData(conversationId: String)
 
     fun observeConversationSummaries(): Flow<List<ConversationSummary>>
 

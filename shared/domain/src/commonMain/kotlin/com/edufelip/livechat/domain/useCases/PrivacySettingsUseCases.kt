@@ -3,6 +3,7 @@ package com.edufelip.livechat.domain.useCases
 import com.edufelip.livechat.domain.models.InvitePreference
 import com.edufelip.livechat.domain.models.LastSeenAudience
 import com.edufelip.livechat.domain.models.PrivacySettings
+import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -30,9 +31,13 @@ class UpdateLastSeenAudienceUseCase(
 
 class UpdateReadReceiptsUseCase(
     private val repository: IPrivacySettingsRepository,
+    private val messagesRepository: IMessagesRepository,
 ) {
     suspend operator fun invoke(enabled: Boolean) {
         repository.updateReadReceipts(enabled)
+        if (!enabled) {
+            messagesRepository.hideReadReceipts()
+        }
     }
 }
 

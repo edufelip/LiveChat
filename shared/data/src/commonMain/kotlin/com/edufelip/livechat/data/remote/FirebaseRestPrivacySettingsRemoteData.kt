@@ -6,11 +6,14 @@ import com.edufelip.livechat.domain.models.LastSeenAudience
 import com.edufelip.livechat.domain.models.PrivacySettings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -107,17 +110,51 @@ class FirebaseRestPrivacySettingsRemoteData(
     ) {
         withContext(dispatcher) {
             ensureConfigured(idToken)
-            httpClient.patch(documentUrl(userId)) {
+            val request = UpdateDocumentRequest(fields = fields)
+            runCatching {
+                httpClient.patch(documentUrl(userId)) {
+                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                    if (config.apiKey.isNotBlank()) {
+                        parameter("key", config.apiKey)
+                    }
+                    fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
+            }.onFailure { throwable ->
+                if (throwable is ClientRequestException) {
+                    val responseBody = throwable.response.bodyAsText()
+                    if (responseBody.contains("NOT_FOUND", ignoreCase = true)) {
+                        createDocument(userId, idToken, request)
+                        return@onFailure
+                    }
+                }
+                println("FirebaseRestPrivacySettingsRemoteData: update failed userId=$userId error=${throwable.message}")
+            }
+        }
+    }
+
+    private suspend fun createDocument(
+        userId: String,
+        idToken: String,
+        request: UpdateDocumentRequest,
+    ) {
+        runCatching {
+            httpClient.post(collectionUrl(userId)) {
                 header(AUTHORIZATION_HEADER, "Bearer $idToken")
                 if (config.apiKey.isNotBlank()) {
                     parameter("key", config.apiKey)
                 }
-                fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
+                parameter("documentId", PRIVACY_DOC)
                 contentType(ContentType.Application.Json)
-                setBody(UpdateDocumentRequest(fields = fields))
+                setBody(CreateDocumentRequest(fields = request.fields))
             }
+        }.onFailure { throwable ->
+            println("FirebaseRestPrivacySettingsRemoteData: create failed userId=$userId error=${throwable.message}")
         }
     }
+
+    private fun collectionUrl(userId: String): String = "${config.documentsEndpoint}/${config.usersCollection}/$userId/$SETTINGS_COLLECTION"
 
     private fun documentUrl(userId: String): String =
         "${config.documentsEndpoint}/${config.usersCollection}/$userId/$SETTINGS_COLLECTION/$PRIVACY_DOC"
@@ -146,6 +183,11 @@ class FirebaseRestPrivacySettingsRemoteData(
 
     @Serializable
     private data class UpdateDocumentRequest(
+        val fields: Map<String, Value>,
+    )
+
+    @Serializable
+    private data class CreateDocumentRequest(
         val fields: Map<String, Value>,
     )
 

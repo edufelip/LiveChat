@@ -16,6 +16,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestNotificationSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPresenceRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPrivacySettingsRemoteData
+import com.edufelip.livechat.data.store.BlockedContactsStore
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -66,11 +67,13 @@ actual val firebaseBackendModule: Module =
             )
         }
         single<IMessagesRemoteData> {
+            val blockedContactsStore = get<BlockedContactsStore>()
             FirebaseMessagesRemoteData(
                 messagesBridge = get(),
                 storageBridge = get(),
                 config = get(),
                 sessionProvider = get<UserSessionProvider>(),
+                blockedUserIdsProvider = blockedContactsStore::currentBlockedUserIds,
             )
         }
     }
