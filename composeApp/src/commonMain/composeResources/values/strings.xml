@@ -228,7 +228,7 @@
     <string name="welcome_help_cta">Help</string>
     <string name="welcome_help_url">https://www.portfolio.eduwaldo.com</string>
     <string name="welcome_terms_message">By continuing, you agree to our Terms of Service and Privacy Policy.</string>
-    <string name="welcome_terms_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="welcome_terms_url">https://www.portfolio.eduwaldo.com/livechat_terms_of_service.pdf</string>
     <string name="welcome_privacy_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
     <string name="welcome_brand_name">LiveChat</string>
     <string name="onboarding_phone_title">Enter your phone number</string>

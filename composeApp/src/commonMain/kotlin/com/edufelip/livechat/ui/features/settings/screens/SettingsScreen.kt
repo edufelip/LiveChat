@@ -57,7 +57,7 @@ import com.edufelip.livechat.ui.features.settings.SettingsTestTags
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.platform.appVersionInfo
 import com.edufelip.livechat.ui.platform.isAndroid
-import com.edufelip.livechat.ui.platform.openExternalUrl
+import com.edufelip.livechat.ui.platform.openWebViewUrl
 import com.edufelip.livechat.ui.resources.SettingsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
@@ -118,7 +118,7 @@ fun SettingsScreen(
                 icon = Icons.Rounded.Shield,
                 iconBackground = SettingsIconGray,
                 trailingIcon = Icons.Rounded.OpenInNew,
-                onClick = { openExternalUrl(settingsStrings.privacyPolicyUrl) },
+                onClick = { openWebViewUrl(settingsStrings.privacyPolicyUrl) },
             )
         }
     val normalizedQuery = remember(searchQuery) { searchQuery.trim() }

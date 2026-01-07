@@ -49,6 +49,7 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
+                implementation(libs.androidx.browser)
                 implementation(libs.firebase.analytics)
             }
         }
