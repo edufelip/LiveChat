@@ -19,8 +19,8 @@ class ConversationListScreenTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun showsPinnedAndConversationNames() {
-        var pinnedLabel = ""
+    fun showsConversationNamesAndFilters() {
+        var pinnedFilterLabel = ""
         var primaryName = ""
         var secondaryName = ""
         composeRule.setContent {
@@ -28,7 +28,7 @@ class ConversationListScreenTest {
                 val strings = liveChatStrings()
                 val preview = strings.preview
                 SideEffect {
-                    pinnedLabel = strings.conversation.pinnedSectionTitle
+                    pinnedFilterLabel = strings.conversation.filterPinned
                     primaryName = preview.contactPrimaryName
                     secondaryName = preview.contactSecondaryName
                 }
@@ -40,13 +40,15 @@ class ConversationListScreenTest {
                     onToggleMute = { _, _ -> },
                     onToggleArchive = { _, _ -> },
                     onFilterSelected = {},
+                    onCompose = {},
+                    onEmptyStateAction = {},
                 )
             }
         }
 
         composeRule.waitForIdle()
-        val pinnedHeaders = composeRule.onAllNodesWithText(pinnedLabel).fetchSemanticsNodes()
-        assertTrue(pinnedHeaders.isNotEmpty())
+        val pinnedFilters = composeRule.onAllNodesWithText(pinnedFilterLabel).fetchSemanticsNodes()
+        assertTrue(pinnedFilters.isNotEmpty())
         composeRule.onNodeWithText(primaryName).assertIsDisplayed()
         composeRule.onNodeWithText(secondaryName).assertIsDisplayed()
     }

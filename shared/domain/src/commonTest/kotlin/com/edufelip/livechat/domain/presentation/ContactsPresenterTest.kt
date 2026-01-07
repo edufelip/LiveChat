@@ -120,6 +120,19 @@ class ContactsPresenterTest {
             }
         }
 
+    @Test
+    fun setSearchQueryTrimsAndUpdatesState() =
+        runTest {
+            val setup = createPresenter(initialContacts = emptyList())
+            try {
+                setup.presenter.setSearchQuery("  Ava  ")
+                setup.scope.advanceUntilIdle()
+                assertEquals("Ava", setup.presenter.state.value.searchQuery)
+            } finally {
+                setup.presenter.close()
+            }
+        }
+
     private fun TestScope.createPresenter(initialContacts: List<Contact>): PresenterSetup {
         val repository = FakeContactsRepository()
         repository.localContactsFlow.value = initialContacts

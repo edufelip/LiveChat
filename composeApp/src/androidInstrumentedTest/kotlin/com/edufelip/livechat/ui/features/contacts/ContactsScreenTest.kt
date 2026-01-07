@@ -41,15 +41,17 @@ class ContactsScreenTest {
                     onInvite = {},
                     onContactSelected = {},
                     onSync = {},
+                    onSearchQueryChange = {},
                     onDismissError = {},
+                    onBack = {},
                 )
             }
         }
 
         composeRule.waitForIdle()
-        val registeredBadges = composeRule.onAllNodesWithText(registeredLabel).fetchSemanticsNodes()
+        val registeredBadges = composeRule.onAllNodesWithText(registeredLabel.uppercase()).fetchSemanticsNodes()
         assertTrue(registeredBadges.isNotEmpty())
-        composeRule.onNodeWithText(inviteSectionTitle).assertIsDisplayed()
+        composeRule.onNodeWithText(inviteSectionTitle.uppercase()).assertIsDisplayed()
         val inviteButtons = composeRule.onAllNodesWithText(inviteCta).fetchSemanticsNodes()
         assertTrue(inviteButtons.isNotEmpty())
         composeRule.onNodeWithText(primaryName).assertIsDisplayed()

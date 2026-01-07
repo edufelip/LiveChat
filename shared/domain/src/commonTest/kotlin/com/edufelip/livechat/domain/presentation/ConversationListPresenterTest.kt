@@ -7,10 +7,15 @@ import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.domain.models.Participant
+import com.edufelip.livechat.domain.models.PresenceState
+import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
+import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
+import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
@@ -143,6 +148,8 @@ class ConversationListPresenterTest {
     ) {
         repository = FakeMessagesRepository(initialSummaries)
         participantsRepository = FakeParticipantsRepository()
+        val presenceRepository = FakePresenceRepository()
+        val sessionProvider = FakeSessionProvider()
         val dispatcher = StandardTestDispatcher(testScheduler)
         scope = TestScope(dispatcher)
         presenter =
@@ -152,6 +159,8 @@ class ConversationListPresenterTest {
                 setConversationPinned = SetConversationPinnedUseCase(repository),
                 setConversationMuted = SetConversationMutedUseCase(participantsRepository),
                 setConversationArchived = SetConversationArchivedUseCase(participantsRepository),
+                observePresence = ObservePresenceUseCase(presenceRepository),
+                sessionProvider = sessionProvider,
                 scope = scope,
             )
     }
@@ -233,6 +242,22 @@ class ConversationListPresenterTest {
         ) {
             archiveRequests += conversationId to archived
         }
+    }
+
+    private class FakePresenceRepository : IPresenceRepository {
+        override fun observePresence(userIds: List<String>): Flow<Map<String, PresenceState>> = emptyFlow()
+
+        override suspend fun updateSelfPresence(isOnline: Boolean) = Unit
+    }
+
+    private class FakeSessionProvider : UserSessionProvider {
+        override val session: Flow<UserSession?> = emptyFlow()
+
+        override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = null
+
+        override fun currentUserId(): String? = "user"
+
+        override fun currentUserPhone(): String? = null
     }
 
     private fun summary(

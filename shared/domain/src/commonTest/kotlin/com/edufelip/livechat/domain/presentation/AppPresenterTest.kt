@@ -6,12 +6,18 @@ import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
+import com.edufelip.livechat.domain.models.PresenceState
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
+import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
+import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
+import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +34,11 @@ class AppPresenterTest {
     @Test
     fun onboardingFlowReflectsRepositoryUpdates() =
         runTest {
-            val repository = FakeOnboardingRepository(initiallyComplete = false)
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = false,
+                    initiallyWelcomeSeen = false,
+                )
             val presenterScope = TestScope(testScheduler)
             val presenter = newPresenter(repository, presenterScope)
             try {
@@ -45,11 +55,16 @@ class AppPresenterTest {
     @Test
     fun initialSnapshotSeedsAppUiState() =
         runTest {
-            val repository = FakeOnboardingRepository(initiallyComplete = true)
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = true,
+                    initiallyWelcomeSeen = true,
+                )
             val presenterScope = TestScope(testScheduler)
             val presenter = newPresenter(repository, presenterScope)
             try {
                 assertTrue(presenter.state.value.isOnboardingComplete)
+                assertTrue(presenter.state.value.hasSeenWelcome)
             } finally {
                 presenter.close()
             }
@@ -58,7 +73,11 @@ class AppPresenterTest {
     @Test
     fun onOnboardingFinished_marksOnboardingComplete() =
         runTest {
-            val repository = FakeOnboardingRepository(initiallyComplete = false)
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = false,
+                    initiallyWelcomeSeen = false,
+                )
             val presenterScope = TestScope(testScheduler)
             val presenter = newPresenter(repository, presenterScope)
             try {
@@ -67,7 +86,30 @@ class AppPresenterTest {
                 presenterScope.advanceUntilIdle()
 
                 assertTrue(repository.currentValue)
+                assertTrue(repository.welcomeSeenValue)
                 assertTrue(presenter.state.value.isOnboardingComplete)
+            } finally {
+                presenter.close()
+            }
+        }
+
+    @Test
+    fun onWelcomeFinished_marksWelcomeSeen() =
+        runTest {
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = false,
+                    initiallyWelcomeSeen = false,
+                )
+            val presenterScope = TestScope(testScheduler)
+            val presenter = newPresenter(repository, presenterScope)
+            try {
+                presenterScope.advanceUntilIdle()
+                presenter.onWelcomeFinished()
+                presenterScope.advanceUntilIdle()
+
+                assertTrue(repository.welcomeSeenValue)
+                assertTrue(presenter.state.value.hasSeenWelcome)
             } finally {
                 presenter.close()
             }
@@ -76,14 +118,18 @@ class AppPresenterTest {
     @Test
     fun homeStateTransitionsFollowEvents() =
         runTest {
-            val repository = FakeOnboardingRepository(initiallyComplete = false)
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = false,
+                    initiallyWelcomeSeen = false,
+                )
             val presenterScope = TestScope(testScheduler)
             val presenter = newPresenter(repository, presenterScope)
             try {
                 presenterScope.advanceUntilIdle()
-                presenter.selectTab(HomeTab.Contacts)
+                presenter.selectTab(HomeTab.Calls)
                 presenterScope.advanceUntilIdle()
-                assertEquals(HomeTab.Contacts, presenter.state.value.home.selectedTab)
+                assertEquals(HomeTab.Calls, presenter.state.value.home.selectedTab)
                 assertEquals(null, presenter.state.value.home.activeConversationId)
 
                 presenter.selectTab(HomeTab.Settings)
@@ -106,7 +152,11 @@ class AppPresenterTest {
     @Test
     fun startConversationWithConversationIdUsesProvidedValue() =
         runTest {
-            val repository = FakeOnboardingRepository(initiallyComplete = true)
+            val repository =
+                FakeOnboardingRepository(
+                    initiallyComplete = true,
+                    initiallyWelcomeSeen = true,
+                )
             val presenterScope = TestScope(testScheduler)
             val presenter = newPresenter(repository, presenterScope)
             try {
@@ -133,28 +183,46 @@ class AppPresenterTest {
         scope: TestScope,
     ) = AppPresenter(
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
+        observeWelcomeSeen = ObserveWelcomeSeenUseCase(repository),
         observeConversationUseCase = ObserveConversationUseCase(FakeMessagesRepository()),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
+        setWelcomeSeen = SetWelcomeSeenUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
+        getWelcomeSeenSnapshot = GetWelcomeSeenSnapshotUseCase(repository),
+        updateSelfPresence = UpdateSelfPresenceUseCase(FakePresenceRepository()),
         scope = scope,
     )
 
     private class FakeOnboardingRepository(
         initiallyComplete: Boolean,
+        initiallyWelcomeSeen: Boolean,
     ) : IOnboardingStatusRepository {
         private val state = MutableStateFlow(initiallyComplete)
+        private val welcomeState = MutableStateFlow(initiallyWelcomeSeen)
 
         override val onboardingComplete: Flow<Boolean>
             get() = state
+
+        override val welcomeSeen: Flow<Boolean>
+            get() = welcomeState
 
         override suspend fun setOnboardingComplete(complete: Boolean) {
             state.value = complete
         }
 
+        override suspend fun setWelcomeSeen(seen: Boolean) {
+            welcomeState.value = seen
+        }
+
         override fun currentStatus(): Boolean = state.value
+
+        override fun currentWelcomeSeen(): Boolean = welcomeState.value
 
         val currentValue: Boolean
             get() = state.value
+
+        val welcomeSeenValue: Boolean
+            get() = welcomeState.value
     }
 
     private class FakeMessagesRepository : IMessagesRepository {
@@ -192,5 +260,11 @@ class AppPresenterTest {
         ) = Unit
 
         override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
+    }
+
+    private class FakePresenceRepository : IPresenceRepository {
+        override fun observePresence(userIds: List<String>): Flow<Map<String, PresenceState>> = emptyFlow()
+
+        override suspend fun updateSelfPresence(isOnline: Boolean) = Unit
     }
 }

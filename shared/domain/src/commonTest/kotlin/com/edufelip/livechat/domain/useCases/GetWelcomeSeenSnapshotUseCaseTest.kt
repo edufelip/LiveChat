@@ -6,37 +6,34 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class GetOnboardingStatusSnapshotUseCaseTest {
+class GetWelcomeSeenSnapshotUseCaseTest {
     @Test
     fun `returns repository snapshot value`() {
-        val repository = FakeRepository(initiallyComplete = true)
-        val useCase = GetOnboardingStatusSnapshotUseCase(repository)
+        val repository = FakeRepository(initiallySeen = true)
+        val useCase = GetWelcomeSeenSnapshotUseCase(repository)
 
         assertEquals(true, useCase())
 
-        repository.state = false
+        repository.seen = false
         assertEquals(false, useCase())
     }
 
     private class FakeRepository(
-        initiallyComplete: Boolean,
+        initiallySeen: Boolean,
     ) : IOnboardingStatusRepository {
-        var state: Boolean = initiallyComplete
-        var welcomeSeen: Boolean = false
+        var seen: Boolean = initiallySeen
 
         override val onboardingComplete: Flow<Boolean> = emptyFlow()
         override val welcomeSeen: Flow<Boolean> = emptyFlow()
 
-        override suspend fun setOnboardingComplete(complete: Boolean) {
-            state = complete
-        }
+        override suspend fun setOnboardingComplete(complete: Boolean) = Unit
 
         override suspend fun setWelcomeSeen(seen: Boolean) {
-            welcomeSeen = seen
+            this.seen = seen
         }
 
-        override fun currentStatus(): Boolean = state
+        override fun currentStatus(): Boolean = false
 
-        override fun currentWelcomeSeen(): Boolean = welcomeSeen
+        override fun currentWelcomeSeen(): Boolean = seen
     }
 }

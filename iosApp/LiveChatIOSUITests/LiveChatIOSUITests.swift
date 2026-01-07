@@ -289,8 +289,8 @@ final class OnboardingOtpUiTests: BaseUiTestCase {
         XCTAssertTrue(successButton.waitForExistence(timeout: 5))
         tapElement(successButton)
 
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
+        let chatsTab = app.buttons["Chats"]
+        XCTAssertTrue(chatsTab.waitForExistence(timeout: 8))
     }
 }
 
@@ -302,9 +302,9 @@ final class ContactsFlowUiTests: BaseUiTestCase {
         XCTAssertTrue(successButton.waitForExistence(timeout: 8))
         tapElement(successButton)
 
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
-        tapElement(contactsTab)
+        let composeButton = app.buttons["New chat"]
+        XCTAssertTrue(composeButton.waitForExistence(timeout: 8))
+        tapElement(composeButton)
 
         let syncButton = app.buttons["Sync Contacts"]
         XCTAssertTrue(syncButton.waitForExistence(timeout: 8))
@@ -321,9 +321,9 @@ final class ContactsFlowUiTests: BaseUiTestCase {
         XCTAssertTrue(successButton.waitForExistence(timeout: 8))
         tapElement(successButton)
 
-        let contactsTab = app.buttons["Contacts"]
-        XCTAssertTrue(contactsTab.waitForExistence(timeout: 8))
-        tapElement(contactsTab)
+        let composeButton = app.buttons["New chat"]
+        XCTAssertTrue(composeButton.waitForExistence(timeout: 8))
+        tapElement(composeButton)
 
         let syncButton = app.buttons["Sync Contacts"]
         XCTAssertTrue(syncButton.waitForExistence(timeout: 8))

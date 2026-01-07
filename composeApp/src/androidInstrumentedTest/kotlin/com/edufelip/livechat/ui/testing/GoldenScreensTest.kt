@@ -121,6 +121,8 @@ class GoldenScreensTest {
                     onToggleMute = { _, _ -> },
                     onToggleArchive = { _, _ -> },
                     onFilterSelected = {},
+                    onCompose = {},
+                    onEmptyStateAction = {},
                 )
             }
         }
@@ -137,7 +139,9 @@ class GoldenScreensTest {
                     onInvite = {},
                     onContactSelected = {},
                     onSync = {},
+                    onSearchQueryChange = {},
                     onDismissError = {},
+                    onBack = {},
                 )
             }
         }
