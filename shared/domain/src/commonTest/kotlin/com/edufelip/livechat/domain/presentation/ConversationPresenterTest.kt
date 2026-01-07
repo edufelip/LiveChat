@@ -288,6 +288,10 @@ class ConversationPresenterTest {
             pinnedAt: Long?,
         ) = Unit
 
+        override suspend fun purgeConversation(conversationId: String) = Unit
+
+        override suspend fun hideReadReceipts() = Unit
+
         override suspend fun ensureConversation(
             conversationId: String,
             peer: ConversationPeer?,

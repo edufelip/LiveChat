@@ -203,6 +203,10 @@ class ConversationListPresenterTest {
             // no-op for filter tests
         }
 
+        override suspend fun purgeConversation(conversationId: String) = Unit
+
+        override suspend fun hideReadReceipts() = Unit
+
         override suspend fun ensureConversation(
             conversationId: String,
             peer: ConversationPeer?,

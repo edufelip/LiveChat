@@ -148,6 +148,8 @@ class KoinInitializationTest {
             userPhone: String?,
             peer: ConversationPeer?,
         ) = Unit
+
+        override suspend fun purgeInboxMessagesFromSender(senderId: String) = Unit
     }
 
     private object StubPresenceRemoteData : IPresenceRemoteData {

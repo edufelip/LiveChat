@@ -309,6 +309,7 @@ class MessagesRepositoryInboxActionTest {
         private val inboxFlow = MutableSharedFlow<List<InboxItem>>(replay = 1, extraBufferCapacity = 4)
         val sentActions = mutableListOf<InboxAction>()
         val deletedMediaUrls = mutableListOf<String>()
+        val purgedSenders = mutableListOf<String>()
         var shouldFailSend: Boolean = false
 
         override fun observeConversation(
@@ -358,6 +359,10 @@ class MessagesRepositoryInboxActionTest {
             userPhone: String?,
             peer: ConversationPeer?,
         ) = Unit
+
+        override suspend fun purgeInboxMessagesFromSender(senderId: String) {
+            purgedSenders += senderId
+        }
     }
 
     private class FakeLocalMessagesData : IMessagesLocalData {
@@ -404,6 +409,16 @@ class MessagesRepositoryInboxActionTest {
         }
 
         override suspend fun getMessageStatus(messageId: String): MessageStatus? = messages[messageId]?.status
+
+        override suspend fun downgradeReadStatuses() {
+            messages.replaceAll { _, message ->
+                if (message.status == MessageStatus.READ) {
+                    message.copy(status = MessageStatus.DELIVERED)
+                } else {
+                    message
+                }
+            }
+        }
 
         override suspend fun updateMessageBodyAndMetadata(
             messageId: String,
@@ -456,6 +471,10 @@ class MessagesRepositoryInboxActionTest {
         ) {
             this.messages.entries.removeIf { it.value.conversationId == conversationId }
             upsertMessages(messages)
+        }
+
+        override suspend fun clearConversationData(conversationId: String) {
+            this.messages.entries.removeIf { it.value.conversationId == conversationId }
         }
 
         override suspend fun hasProcessedAction(actionId: String): Boolean = processedActions.contains(actionId)
