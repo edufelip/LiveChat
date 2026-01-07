@@ -5,8 +5,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.execSQL
 import kotlinx.coroutines.Dispatchers
 
 @Database(
@@ -47,8 +48,8 @@ const val LIVE_CHAT_DB_NAME = "livechat.db"
 
 private val MIGRATION_3_4 =
     object : Migration(3, 4) {
-        override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL(
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
                 "ALTER TABLE onboarding_status ADD COLUMN welcome_seen INTEGER NOT NULL DEFAULT 0",
             )
         }
