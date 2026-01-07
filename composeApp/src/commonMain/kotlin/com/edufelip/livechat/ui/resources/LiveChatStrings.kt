@@ -195,7 +195,7 @@ data class OnboardingStrings(
     val welcomeTermsMessage: String =
         "By continuing, you agree to our Terms of Service and Privacy Policy.",
     val welcomeTermsUrl: String =
-        "https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf",
+        "https://www.portfolio.eduwaldo.com/livechat_terms_of_service.pdf",
     val welcomePrivacyUrl: String =
         "https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf",
     val welcomeBrandName: String = "LiveChat",
