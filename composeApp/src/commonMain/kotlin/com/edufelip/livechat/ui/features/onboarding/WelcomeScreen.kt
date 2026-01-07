@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.resources.Res
+import com.edufelip.livechat.resources.livechat_logo
 import com.edufelip.livechat.ui.platform.openExternalUrl
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.resources.ExperimentalResourceApi
