@@ -185,6 +185,15 @@ data class HomeStrings(
     val backCta: String = "Back",
 )
 
+data class CallsStrings(
+    val screenTitle: String = "Calls",
+    val searchPlaceholder: String = "Search",
+    val filterAll: String = "All",
+    val filterMissed: String = "Missed",
+    val emptyTitle: String = "No calls yet",
+    val emptySubtitle: String = "When you start calling, your recent calls will appear here.",
+)
+
 data class OnboardingStrings(
     val welcomeTitle: String = "Connect instantly with friends.",
     val welcomeSubtitle: String =
@@ -335,6 +344,7 @@ data class LiveChatStrings(
     val appearance: AppearanceStrings = AppearanceStrings(),
     val privacy: PrivacyStrings = PrivacyStrings(),
     val home: HomeStrings = HomeStrings(),
+    val calls: CallsStrings = CallsStrings(),
     val onboarding: OnboardingStrings = OnboardingStrings(),
     val conversation: ConversationStrings = ConversationStrings(),
     val general: GeneralStrings = GeneralStrings(),
@@ -524,6 +534,16 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             backCta = stringResource(Res.string.home_back_cta),
         )
 
+    val calls =
+        CallsStrings(
+            screenTitle = stringResource(Res.string.calls_screen_title),
+            searchPlaceholder = stringResource(Res.string.calls_search_placeholder),
+            filterAll = stringResource(Res.string.calls_filter_all),
+            filterMissed = stringResource(Res.string.calls_filter_missed),
+            emptyTitle = stringResource(Res.string.calls_empty_title),
+            emptySubtitle = stringResource(Res.string.calls_empty_subtitle),
+        )
+
     val conversation =
         ConversationStrings(
             archivedLabel = stringResource(Res.string.conversation_archived_label),
@@ -694,6 +714,7 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         appearance = appearance,
         privacy = privacy,
         home = home,
+        calls = calls,
         conversation = conversation,
         onboarding = onboarding,
         general = general,
