@@ -3,11 +3,11 @@ set -euo pipefail
 IFS=$'\n\t'
 
 PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-SCHEME="${SCHEME:-LiveChatIOS}"
-PROJECT_PATH="${PROJECT_PATH:-$PROJECT_ROOT/iosApp/LiveChatIOS.xcodeproj}"
+SCHEME="${SCHEME:-iosApp}"
+PROJECT_PATH="${PROJECT_PATH:-$PROJECT_ROOT/iosApp/iosApp.xcodeproj}"
 DERIVED_DATA="${DERIVED_DATA:-$PROJECT_ROOT/build/derived}"
 CONFIGURATION="${CONFIGURATION:-Debug}"
-APP_NAME="${APP_NAME:-LiveChatIOS}"
+APP_NAME="${APP_NAME:-iosApp}"
 
 log() {
   printf '\033[1;34m[run-ios]\033[0m %s\n' "$*"
@@ -256,9 +256,9 @@ fi
 
 CONFIG_LOWER=$(echo "$CONFIGURATION" | tr '[:upper:]' '[:lower:]')
 if [[ "$CONFIG_LOWER" == "debug" ]]; then
-  XCFRAMEWORK_TASK=":composeApp:assembleLiveChatComposeDebugXCFramework"
+  XCFRAMEWORK_TASK=":app:assembleLiveChatComposeDebugXCFramework"
 else
-  XCFRAMEWORK_TASK=":composeApp:assembleLiveChatComposeReleaseXCFramework"
+  XCFRAMEWORK_TASK=":app:assembleLiveChatComposeReleaseXCFramework"
 fi
 
 log "Syncing LiveChatCompose XCFramework ($CONFIGURATION)"

@@ -7,30 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C2E7A1B2C3D4E5F607182930 /* LiveChatIOS/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2E7A1B2C3D4E5F607182931 /* LiveChatIOS/Assets.xcassets */; };
+		C2E7A1B2C3D4E5F607182930 /* iosApp/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */; };
 		4F0F1C2C2C61B7F8008F12B2 /* LiveChatCompose.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */; };
 		4F0F1C2C2C61B7F8008F12B3 /* LiveChatCompose.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4F0F1C2C2C61B7F8008F12C1 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */; };
-		A1B2C3D4E5F60718293A4B65 /* LiveChatIOS/GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B66 /* LiveChatIOS/GoogleService-Info.plist */; };
+		A1B2C3D4E5F60718293A4B65 /* iosApp/GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B66 /* iosApp/GoogleService-Info.plist */; };
 		A1B2C3D4E5F60718293A4B61 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B5D /* FirebaseCore */; };
 		A1B2C3D4E5F60718293A4B68 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B67 /* FirebaseAuth */; };
 		A1B2C3D4E5F60718293A4B62 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B5E /* FirebaseFirestore */; };
 		A1B2C3D4E5F60718293A4B63 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B5F /* FirebaseFunctions */; };
 		A1B2C3D4E5F60718293A4B64 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B60 /* FirebaseStorage */; };
-		7F0AD4BE2D45E3D700C6A1E1 /* LiveChatIOS/AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BD2D45E3D700C6A1E1 /* LiveChatIOS/AppDelegate.swift */; };
-		7F0AD4C02D45E50C00C6A1E1 /* LiveChatIOS/SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BF2D45E50C00C6A1E1 /* LiveChatIOS/SceneDelegate.swift */; };
-		7F0AD4C22D45E5B500C6A1E1 /* LiveChatIOS/LiveChatRootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4C12D45E5B500C6A1E1 /* LiveChatIOS/LiveChatRootViewController.swift */; };
-		D6DD0116FFAE40E3887EF1BE /* LiveChatIOS/FirebaseMessagesBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87F176FA2E94BC48B2AA10B /* LiveChatIOS/FirebaseMessagesBridge.swift */; };
-		EFD5952226034B8496F1D667 /* LiveChatIOS/FirebaseContactsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */; };
-		96E4D7A5B05C4E7CB0FE3611 /* LiveChatIOS/FirebaseStorageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */; };
-		D51F087574D14572ACCCDD85 /* LiveChatIOS/FirebasePhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */; };
-		F1A2B3C4D5E60718293A4C01 /* LiveChatIOS/FirebaseAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */; };
-		A1B2C3D4E5F60718293A4B70 /* LiveChatIOS/FirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */; };
-		A1B2C3D4E5F60718293A4B99 /* LiveChatIOS/FirebaseEmulatorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */; };
-		A1B2C3D4E5F60718293A4B72 /* LiveChatIOS/IosContactsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */; };
-		B0DC9DAFB8BA4A0796555A13 /* LiveChatIOS/LiveChatBridgeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2FD02392F6E4348869E5651 /* LiveChatIOS/LiveChatBridgeFactory.swift */; };
-		52AB906A01970BC3BD29D254 /* LiveChatIOS/UITestPhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1D2ACDD62D09B3CD7BCFF0 /* LiveChatIOS/UITestPhoneAuthBridge.swift */; };
-		B6B11E8265C9497FB55E2676 /* LiveChatIOSUITests/LiveChatIOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600FF41C96B64C1EBF3F874E /* LiveChatIOSUITests/LiveChatIOSUITests.swift */; };
+		7F0AD4BE2D45E3D700C6A1E1 /* iosApp/AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BD2D45E3D700C6A1E1 /* iosApp/AppDelegate.swift */; };
+		7F0AD4C02D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4BF2D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift */; };
+		7F0AD4C22D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F0AD4C12D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift */; };
+		D6DD0116FFAE40E3887EF1BE /* iosApp/FirebaseMessagesBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87F176FA2E94BC48B2AA10B /* iosApp/FirebaseMessagesBridge.swift */; };
+		EFD5952226034B8496F1D667 /* iosApp/FirebaseContactsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */; };
+		96E4D7A5B05C4E7CB0FE3611 /* iosApp/FirebaseStorageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8EBB78A95A94D18B72B942B /* iosApp/FirebaseStorageBridge.swift */; };
+		D51F087574D14572ACCCDD85 /* iosApp/FirebasePhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */; };
+		F1A2B3C4D5E60718293A4C01 /* iosApp/FirebaseAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */; };
+		A1B2C3D4E5F60718293A4B70 /* iosApp/FirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B71 /* iosApp/FirebaseConfig.swift */; };
+		A1B2C3D4E5F60718293A4B99 /* iosApp/FirebaseEmulatorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B9A /* iosApp/FirebaseEmulatorSettings.swift */; };
+		A1B2C3D4E5F60718293A4B72 /* iosApp/IosContactsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B73 /* iosApp/IosContactsProvider.swift */; };
+		B0DC9DAFB8BA4A0796555A13 /* iosApp/LiveChatBridgeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2FD02392F6E4348869E5651 /* iosApp/LiveChatBridgeFactory.swift */; };
+		52AB906A01970BC3BD29D254 /* iosApp/UITestPhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1D2ACDD62D09B3CD7BCFF0 /* iosApp/UITestPhoneAuthBridge.swift */; };
+		B6B11E8265C9497FB55E2676 /* iosAppUITests/iosAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600FF41C96B64C1EBF3F874E /* iosAppUITests/iosAppUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,34 +52,34 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 4F0F1C2C2C61B7F8008F12A0 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 4F0F1C2C2C61B7F8008F12AA /* LiveChatIOS */;
-			remoteInfo = LiveChatIOS;
+			remoteGlobalIDString = 4F0F1C2C2C61B7F8008F12AA /* iosApp */;
+			remoteInfo = iosApp;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../composeApp/build/XCFrameworks/debug/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
-		4F0F1C2C2C61B7F8008F12AF /* LiveChatIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveChatIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../app/build/XCFrameworks/debug/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
+		4F0F1C2C2C61B7F8008F12AF /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
-		C2E7A1B2C3D4E5F607182931 /* LiveChatIOS/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = LiveChatIOS/Assets.xcassets; sourceTree = SOURCE_ROOT; };
-		600FF41C96B64C1EBF3F874E /* LiveChatIOSUITests/LiveChatIOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOSUITests/LiveChatIOSUITests.swift; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60718293A4B66 /* LiveChatIOS/GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LiveChatIOS/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
-		26788EF6BAEE4EE8B362DA93 /* LiveChatIOSUITests/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = LiveChatIOSUITests/Info.plist; sourceTree = SOURCE_ROOT; };
-		7F0AD4BD2D45E3D700C6A1E1 /* LiveChatIOS/AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/AppDelegate.swift; sourceTree = SOURCE_ROOT; };
-		7F0AD4BF2D45E50C00C6A1E1 /* LiveChatIOS/SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/SceneDelegate.swift; sourceTree = SOURCE_ROOT; };
-		7F0AD4C12D45E5B500C6A1E1 /* LiveChatIOS/LiveChatRootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/LiveChatRootViewController.swift; sourceTree = SOURCE_ROOT; };
-		F87F176FA2E94BC48B2AA10B /* LiveChatIOS/FirebaseMessagesBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseMessagesBridge.swift; sourceTree = SOURCE_ROOT; };
-		BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseContactsBridge.swift; sourceTree = SOURCE_ROOT; };
-		F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseStorageBridge.swift; sourceTree = SOURCE_ROOT; };
-		E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebasePhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
-		F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseAuthBridge.swift; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseConfig.swift; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/FirebaseEmulatorSettings.swift; sourceTree = SOURCE_ROOT; };
-		A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/IosContactsProvider.swift; sourceTree = SOURCE_ROOT; };
-		E2FD02392F6E4348869E5651 /* LiveChatIOS/LiveChatBridgeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/LiveChatBridgeFactory.swift; sourceTree = SOURCE_ROOT; };
-		2D1D2ACDD62D09B3CD7BCFF0 /* LiveChatIOS/UITestPhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveChatIOS/UITestPhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
-		95CFB87026E94C0786D0A0B9 /* LiveChatIOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveChatIOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		FBDCA5D62EF4D775008E4D69 /* LiveChatIOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = LiveChatIOS.entitlements; path = LiveChatIOS/LiveChatIOS.entitlements; sourceTree = "<group>"; };
+		C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = iosApp/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		600FF41C96B64C1EBF3F874E /* iosAppUITests/iosAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosAppUITests/iosAppUITests.swift; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60718293A4B66 /* iosApp/GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "iosApp/GoogleService-Info.plist"; sourceTree = SOURCE_ROOT; };
+		26788EF6BAEE4EE8B362DA93 /* iosAppUITests/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = iosAppUITests/Info.plist; sourceTree = SOURCE_ROOT; };
+		7F0AD4BD2D45E3D700C6A1E1 /* iosApp/AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/AppDelegate.swift; sourceTree = SOURCE_ROOT; };
+		7F0AD4BF2D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/SceneDelegate.swift; sourceTree = SOURCE_ROOT; };
+		7F0AD4C12D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/LiveChatRootViewController.swift; sourceTree = SOURCE_ROOT; };
+		F87F176FA2E94BC48B2AA10B /* iosApp/FirebaseMessagesBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseMessagesBridge.swift; sourceTree = SOURCE_ROOT; };
+		BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseContactsBridge.swift; sourceTree = SOURCE_ROOT; };
+		F8EBB78A95A94D18B72B942B /* iosApp/FirebaseStorageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseStorageBridge.swift; sourceTree = SOURCE_ROOT; };
+		E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebasePhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
+		F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseAuthBridge.swift; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60718293A4B71 /* iosApp/FirebaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseConfig.swift; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60718293A4B9A /* iosApp/FirebaseEmulatorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseEmulatorSettings.swift; sourceTree = SOURCE_ROOT; };
+		A1B2C3D4E5F60718293A4B73 /* iosApp/IosContactsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/IosContactsProvider.swift; sourceTree = SOURCE_ROOT; };
+		E2FD02392F6E4348869E5651 /* iosApp/LiveChatBridgeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/LiveChatBridgeFactory.swift; sourceTree = SOURCE_ROOT; };
+		2D1D2ACDD62D09B3CD7BCFF0 /* iosApp/UITestPhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/UITestPhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
+		95CFB87026E94C0786D0A0B9 /* iosAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iosAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBDCA5D62EF4D775008E4D69 /* iosApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = iosApp.entitlements; path = iosApp/iosApp.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,23 +110,23 @@
 		4F0F1C2C2C61B7F8008F129F = {
 			isa = PBXGroup;
 			children = (
-				7A4439C15F454489B21DA463 /* LiveChatIOSUITests */,
-				FBDCA5D62EF4D775008E4D69 /* LiveChatIOS.entitlements */,
-				C2E7A1B2C3D4E5F607182931 /* LiveChatIOS/Assets.xcassets */,
-				A1B2C3D4E5F60718293A4B66 /* LiveChatIOS/GoogleService-Info.plist */,
-				7F0AD4BD2D45E3D700C6A1E1 /* LiveChatIOS/AppDelegate.swift */,
-				7F0AD4BF2D45E50C00C6A1E1 /* LiveChatIOS/SceneDelegate.swift */,
-				7F0AD4C12D45E5B500C6A1E1 /* LiveChatIOS/LiveChatRootViewController.swift */,
-				F87F176FA2E94BC48B2AA10B /* LiveChatIOS/FirebaseMessagesBridge.swift */,
-				BECF9DB746BA40A6B39CBC83 /* LiveChatIOS/FirebaseContactsBridge.swift */,
-				F8EBB78A95A94D18B72B942B /* LiveChatIOS/FirebaseStorageBridge.swift */,
-				E2AC4F07903D4E07B4A75461 /* LiveChatIOS/FirebasePhoneAuthBridge.swift */,
-				F1A2B3C4D5E60718293A4C02 /* LiveChatIOS/FirebaseAuthBridge.swift */,
-				A1B2C3D4E5F60718293A4B71 /* LiveChatIOS/FirebaseConfig.swift */,
-				A1B2C3D4E5F60718293A4B9A /* LiveChatIOS/FirebaseEmulatorSettings.swift */,
-				A1B2C3D4E5F60718293A4B73 /* LiveChatIOS/IosContactsProvider.swift */,
-				E2FD02392F6E4348869E5651 /* LiveChatIOS/LiveChatBridgeFactory.swift */,
-				2D1D2ACDD62D09B3CD7BCFF0 /* LiveChatIOS/UITestPhoneAuthBridge.swift */,
+				7A4439C15F454489B21DA463 /* iosAppUITests */,
+				FBDCA5D62EF4D775008E4D69 /* iosApp.entitlements */,
+				C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */,
+				A1B2C3D4E5F60718293A4B66 /* iosApp/GoogleService-Info.plist */,
+				7F0AD4BD2D45E3D700C6A1E1 /* iosApp/AppDelegate.swift */,
+				7F0AD4BF2D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift */,
+				7F0AD4C12D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift */,
+				F87F176FA2E94BC48B2AA10B /* iosApp/FirebaseMessagesBridge.swift */,
+				BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */,
+				F8EBB78A95A94D18B72B942B /* iosApp/FirebaseStorageBridge.swift */,
+				E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */,
+				F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */,
+				A1B2C3D4E5F60718293A4B71 /* iosApp/FirebaseConfig.swift */,
+				A1B2C3D4E5F60718293A4B9A /* iosApp/FirebaseEmulatorSettings.swift */,
+				A1B2C3D4E5F60718293A4B73 /* iosApp/IosContactsProvider.swift */,
+				E2FD02392F6E4348869E5651 /* iosApp/LiveChatBridgeFactory.swift */,
+				2D1D2ACDD62D09B3CD7BCFF0 /* iosApp/UITestPhoneAuthBridge.swift */,
 				4F0F1C2C2C61B7F8008F12A8 /* Frameworks */,
 				4F0F1C2C2C61B7F8008F12A9 /* Products */,
 			);
@@ -141,20 +141,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		7A4439C15F454489B21DA463 /* LiveChatIOSUITests */ = {
+		7A4439C15F454489B21DA463 /* iosAppUITests */ = {
 			isa = PBXGroup;
 			children = (
-				26788EF6BAEE4EE8B362DA93 /* LiveChatIOSUITests/Info.plist */,
-				600FF41C96B64C1EBF3F874E /* LiveChatIOSUITests/LiveChatIOSUITests.swift */,
+				26788EF6BAEE4EE8B362DA93 /* iosAppUITests/Info.plist */,
+				600FF41C96B64C1EBF3F874E /* iosAppUITests/iosAppUITests.swift */,
 			);
-			name = LiveChatIOSUITests;
+			name = iosAppUITests;
 			sourceTree = "<group>";
 		};
 		4F0F1C2C2C61B7F8008F12A9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4F0F1C2C2C61B7F8008F12AF /* LiveChatIOS.app */,
-				95CFB87026E94C0786D0A0B9 /* LiveChatIOSUITests.xctest */,
+				4F0F1C2C2C61B7F8008F12AF /* iosApp.app */,
+				95CFB87026E94C0786D0A0B9 /* iosAppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,9 +162,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4F0F1C2C2C61B7F8008F12AA /* LiveChatIOS */ = {
+		4F0F1C2C2C61B7F8008F12AA /* iosApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4F0F1C2C2C61B7F8008F12B7 /* Build configuration list for PBXNativeTarget "LiveChatIOS" */;
+			buildConfigurationList = 4F0F1C2C2C61B7F8008F12B7 /* Build configuration list for PBXNativeTarget "iosApp" */;
 			buildPhases = (
 				7F0AD4C42D45E5B600C6A1E1 /* ShellScript */,
 				A1B2C3D4E5F60718293A4C10 /* SyncLiveChatComposeFramework */,
@@ -184,14 +184,14 @@
 				A1B2C3D4E5F60718293A4B5F /* FirebaseFunctions */,
 				A1B2C3D4E5F60718293A4B60 /* FirebaseStorage */,
 			);
-			name = LiveChatIOS;
-			productName = LiveChatIOS;
-			productReference = 4F0F1C2C2C61B7F8008F12AF /* LiveChatIOS.app */;
+			name = iosApp;
+			productName = iosApp;
+			productReference = 4F0F1C2C2C61B7F8008F12AF /* iosApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2C90E1F82F5E4FFFA4C2D611 /* LiveChatIOSUITests */ = {
+		2C90E1F82F5E4FFFA4C2D611 /* iosAppUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A72A0C5FCF2B41BF8680E49D /* Build configuration list for PBXNativeTarget "LiveChatIOSUITests" */;
+			buildConfigurationList = A72A0C5FCF2B41BF8680E49D /* Build configuration list for PBXNativeTarget "iosAppUITests" */;
 			buildPhases = (
 				93ADD69ED899482AACE2E1BA /* Sources */,
 				42E7EC2C7F504588A4B50C7F /* Frameworks */,
@@ -202,9 +202,9 @@
 			dependencies = (
 				F415E02520E240D5ACFA8ED6 /* PBXTargetDependency */,
 			);
-			name = LiveChatIOSUITests;
-			productName = LiveChatIOSUITests;
-			productReference = 95CFB87026E94C0786D0A0B9 /* LiveChatIOSUITests.xctest */;
+			name = iosAppUITests;
+			productName = iosAppUITests;
+			productReference = 95CFB87026E94C0786D0A0B9 /* iosAppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -228,7 +228,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4F0F1C2C2C61B7F8008F12B4 /* Build configuration list for PBXProject "LiveChatIOS" */;
+			buildConfigurationList = 4F0F1C2C2C61B7F8008F12B4 /* Build configuration list for PBXProject "iosApp" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -243,8 +243,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4F0F1C2C2C61B7F8008F12AA /* LiveChatIOS */,
-				2C90E1F82F5E4FFFA4C2D611 /* LiveChatIOSUITests */,
+				4F0F1C2C2C61B7F8008F12AA /* iosApp */,
+				2C90E1F82F5E4FFFA4C2D611 /* iosAppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -254,8 +254,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C2E7A1B2C3D4E5F607182930 /* LiveChatIOS/Assets.xcassets in Resources */,
-				A1B2C3D4E5F60718293A4B65 /* LiveChatIOS/GoogleService-Info.plist in Resources */,
+				C2E7A1B2C3D4E5F607182930 /* iosApp/Assets.xcassets in Resources */,
+				A1B2C3D4E5F60718293A4B65 /* iosApp/GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,16 +275,16 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/../composeApp/build.gradle.kts",
-				"$(SRCROOT)/../composeApp/src/iosMain/kotlin",
-				"$(SRCROOT)/../composeApp/src/commonMain/kotlin",
+				"$(SRCROOT)/../app/build.gradle.kts",
+				"$(SRCROOT)/../app/src/iosMain/kotlin",
+				"$(SRCROOT)/../app/src/commonMain/kotlin",
 			);
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/compose_xcframework_built.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "set -e\nif command -v /usr/libexec/java_home >/dev/null 2>&1; then\n  JAVA_HOME_RESOLVED=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home)\"\n  export JAVA_HOME=\"$JAVA_HOME_RESOLVED\"\nelse\n  export JAVA_HOME=\"${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}\"\nfi\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nif [ \"$CONFIG_LOWER\" = \"debug\" ]; then\n  XCFRAMEWORK_TASK=\":composeApp:assembleLiveChatComposeDebugXCFramework\"\nelse\n  XCFRAMEWORK_TASK=\":composeApp:assembleLiveChatComposeReleaseXCFramework\"\nfi\nchmod +x \"$SRCROOT/../gradlew\"\n\"$SRCROOT/../gradlew\" \"$XCFRAMEWORK_TASK\"\n";
+			shellScript = "set -e\nif command -v /usr/libexec/java_home >/dev/null 2>&1; then\n  JAVA_HOME_RESOLVED=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home)\"\n  export JAVA_HOME=\"$JAVA_HOME_RESOLVED\"\nelse\n  export JAVA_HOME=\"${JAVA_HOME:-/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home}\"\nfi\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nif [ \"$CONFIG_LOWER\" = \"debug\" ]; then\n  XCFRAMEWORK_TASK=\":app:assembleLiveChatComposeDebugXCFramework\"\nelse\n  XCFRAMEWORK_TASK=\":app:assembleLiveChatComposeReleaseXCFramework\"\nfi\nchmod +x \"$SRCROOT/../gradlew\"\n\"$SRCROOT/../gradlew\" \"$XCFRAMEWORK_TASK\"\n";
 		};
 		A1B2C3D4E5F60718293A4C10 /* SyncLiveChatComposeFramework */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -293,7 +293,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "set -e\nFRAMEWORK_NAME=LiveChatCompose.xcframework\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nSOURCE_FW=\"$SRCROOT/../composeApp/build/XCFrameworks/${CONFIG_LOWER}/${FRAMEWORK_NAME}\"\nDEST_FW=\"$BUILT_PRODUCTS_DIR/${FRAMEWORK_NAME}\"\nrm -rf \"$DEST_FW\"\nif [ -d \"$SOURCE_FW\" ]; then\n  cp -R \"$SOURCE_FW\" \"$DEST_FW\"\nelse\n  echo \"Missing ${SOURCE_FW}; run ./gradlew :composeApp:assembleLiveChatCompose${CONFIGURATION}XCFramework\" >&2\n  exit 1\nfi\n";
+			shellScript = "set -e\nFRAMEWORK_NAME=LiveChatCompose.xcframework\nCONFIG_LOWER=\"$(echo \"$CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\"\nSOURCE_FW=\"$SRCROOT/../app/build/XCFrameworks/${CONFIG_LOWER}/${FRAMEWORK_NAME}\"\nDEST_FW=\"$BUILT_PRODUCTS_DIR/${FRAMEWORK_NAME}\"\nrm -rf \"$DEST_FW\"\nif [ -d \"$SOURCE_FW\" ]; then\n  cp -R \"$SOURCE_FW\" \"$DEST_FW\"\nelse\n  echo \"Missing ${SOURCE_FW}; run ./gradlew :app:assembleLiveChatCompose${CONFIGURATION}XCFramework\" >&2\n  exit 1\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -302,19 +302,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7F0AD4BE2D45E3D700C6A1E1 /* LiveChatIOS/AppDelegate.swift in Sources */,
-				7F0AD4C02D45E50C00C6A1E1 /* LiveChatIOS/SceneDelegate.swift in Sources */,
-				7F0AD4C22D45E5B500C6A1E1 /* LiveChatIOS/LiveChatRootViewController.swift in Sources */,
-				D6DD0116FFAE40E3887EF1BE /* LiveChatIOS/FirebaseMessagesBridge.swift in Sources */,
-				EFD5952226034B8496F1D667 /* LiveChatIOS/FirebaseContactsBridge.swift in Sources */,
-				96E4D7A5B05C4E7CB0FE3611 /* LiveChatIOS/FirebaseStorageBridge.swift in Sources */,
-				D51F087574D14572ACCCDD85 /* LiveChatIOS/FirebasePhoneAuthBridge.swift in Sources */,
-				F1A2B3C4D5E60718293A4C01 /* LiveChatIOS/FirebaseAuthBridge.swift in Sources */,
-				A1B2C3D4E5F60718293A4B70 /* LiveChatIOS/FirebaseConfig.swift in Sources */,
-				A1B2C3D4E5F60718293A4B99 /* LiveChatIOS/FirebaseEmulatorSettings.swift in Sources */,
-				A1B2C3D4E5F60718293A4B72 /* LiveChatIOS/IosContactsProvider.swift in Sources */,
-				B0DC9DAFB8BA4A0796555A13 /* LiveChatIOS/LiveChatBridgeFactory.swift in Sources */,
-				52AB906A01970BC3BD29D254 /* LiveChatIOS/UITestPhoneAuthBridge.swift in Sources */,
+				7F0AD4BE2D45E3D700C6A1E1 /* iosApp/AppDelegate.swift in Sources */,
+				7F0AD4C02D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift in Sources */,
+				7F0AD4C22D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift in Sources */,
+				D6DD0116FFAE40E3887EF1BE /* iosApp/FirebaseMessagesBridge.swift in Sources */,
+				EFD5952226034B8496F1D667 /* iosApp/FirebaseContactsBridge.swift in Sources */,
+				96E4D7A5B05C4E7CB0FE3611 /* iosApp/FirebaseStorageBridge.swift in Sources */,
+				D51F087574D14572ACCCDD85 /* iosApp/FirebasePhoneAuthBridge.swift in Sources */,
+				F1A2B3C4D5E60718293A4C01 /* iosApp/FirebaseAuthBridge.swift in Sources */,
+				A1B2C3D4E5F60718293A4B70 /* iosApp/FirebaseConfig.swift in Sources */,
+				A1B2C3D4E5F60718293A4B99 /* iosApp/FirebaseEmulatorSettings.swift in Sources */,
+				A1B2C3D4E5F60718293A4B72 /* iosApp/IosContactsProvider.swift in Sources */,
+				B0DC9DAFB8BA4A0796555A13 /* iosApp/LiveChatBridgeFactory.swift in Sources */,
+				52AB906A01970BC3BD29D254 /* iosApp/UITestPhoneAuthBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,7 +322,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B6B11E8265C9497FB55E2676 /* LiveChatIOSUITests/LiveChatIOSUITests.swift in Sources */,
+				B6B11E8265C9497FB55E2676 /* iosAppUITests/iosAppUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,7 +331,7 @@
 /* Begin PBXTargetDependency section */
 		F415E02520E240D5ACFA8ED6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4F0F1C2C2C61B7F8008F12AA /* LiveChatIOS */;
+			target = 4F0F1C2C2C61B7F8008F12AA /* iosApp */;
 			targetProxy = D7B19233286A4A3FADF2B785 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -519,12 +519,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = LiveChatIOS/LiveChatIOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = LiveChatIOS/Info.plist;
+				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LiveChat;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
@@ -537,7 +537,7 @@
 					"-lsqlite3",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
-				PRODUCT_NAME = LiveChatIOS;
+				PRODUCT_NAME = iosApp;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -548,12 +548,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = LiveChatIOS/LiveChatIOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = iosApp/iosApp.entitlements;
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = LiveChatIOS/Info.plist;
+				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LiveChat;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
@@ -566,7 +566,7 @@
 					"-lsqlite3",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
-				PRODUCT_NAME = LiveChatIOS;
+				PRODUCT_NAME = iosApp;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -578,13 +578,13 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
-				INFOPLIST_FILE = LiveChatIOSUITests/Info.plist;
+				INFOPLIST_FILE = iosAppUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.iosuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = LiveChatIOS;
+				TEST_TARGET_NAME = iosApp;
 			};
 			name = Debug;
 		};
@@ -593,20 +593,20 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
-				INFOPLIST_FILE = LiveChatIOSUITests/Info.plist;
+				INFOPLIST_FILE = iosAppUITests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.iosuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = LiveChatIOS;
+				TEST_TARGET_NAME = iosApp;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4F0F1C2C2C61B7F8008F12B4 /* Build configuration list for PBXProject "LiveChatIOS" */ = {
+		4F0F1C2C2C61B7F8008F12B4 /* Build configuration list for PBXProject "iosApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4F0F1C2C2C61B7F8008F12B5 /* Debug */,
@@ -615,7 +615,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		4F0F1C2C2C61B7F8008F12B7 /* Build configuration list for PBXNativeTarget "LiveChatIOS" */ = {
+		4F0F1C2C2C61B7F8008F12B7 /* Build configuration list for PBXNativeTarget "iosApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4F0F1C2C2C61B7F8008F12B8 /* Debug */,
@@ -624,7 +624,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		A72A0C5FCF2B41BF8680E49D /* Build configuration list for PBXNativeTarget "LiveChatIOSUITests" */ = {
+		A72A0C5FCF2B41BF8680E49D /* Build configuration list for PBXNativeTarget "iosAppUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BDA6F94F8B645939A0007ED /* Debug */,
