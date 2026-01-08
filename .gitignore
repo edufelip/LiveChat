@@ -21,7 +21,7 @@ docs/*
 !docs/FirebaseScenarioMatrix.md
 .kotlin/
 .project_context
-iosApp/LiveChatIOS/GoogleService-Info.plist
+iosApp/iosApp/GoogleService-Info.plist
 **/google-services.json
 **/AGENTS.md
 functions/node_modules/
