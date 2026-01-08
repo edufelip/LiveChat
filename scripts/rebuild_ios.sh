@@ -5,14 +5,14 @@ ROOT_DIR="$(cd -- "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
 CONFIG="${CONFIG:-Debug}"
-SCHEME="${SCHEME:-LiveChatIOS}"
+SCHEME="${SCHEME:-iosApp}"
 PLATFORM="${PLATFORM_NAME:-iphonesimulator}" # iphonesimulator | iphoneos
 
 export JAVA_HOME="$(/usr/libexec/java_home -v 17)"
 export PATH="$JAVA_HOME/bin:$PATH"
 chmod +x ./gradlew
 
-PROJECT_PATH="iosApp/LiveChatIOS.xcodeproj"
+PROJECT_PATH="iosApp/iosApp.xcodeproj"
 
 # Determine Gradle target suffix/output directory
 if [[ "$PLATFORM" == "iphoneos" ]]; then
@@ -57,14 +57,14 @@ fi
 
 CONFIG_LOWER="$(echo "$CONFIG" | tr '[:upper:]' '[:lower:]')"
 if [[ "$CONFIG_LOWER" == "debug" ]]; then
-  XCFRAMEWORK_TASK=":composeApp:assembleLiveChatComposeDebugXCFramework"
+  XCFRAMEWORK_TASK=":app:assembleLiveChatComposeDebugXCFramework"
 else
-  XCFRAMEWORK_TASK=":composeApp:assembleLiveChatComposeReleaseXCFramework"
+  XCFRAMEWORK_TASK=":app:assembleLiveChatComposeReleaseXCFramework"
 fi
 
 ./gradlew "$XCFRAMEWORK_TASK"
 
-XCFRAMEWORK_PATH="composeApp/build/XCFrameworks/${CONFIG_LOWER}/LiveChatCompose.xcframework"
+XCFRAMEWORK_PATH="app/build/XCFrameworks/${CONFIG_LOWER}/LiveChatCompose.xcframework"
 if [[ ! -d "$XCFRAMEWORK_PATH" ]]; then
   echo "ERROR: LiveChatCompose.xcframework not found at $XCFRAMEWORK_PATH"
   exit 1

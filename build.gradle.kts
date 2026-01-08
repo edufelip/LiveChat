@@ -44,10 +44,10 @@ tasks.register("testSharedDomainUnitTest") {
     dependsOn(":shared:domain:testDebugUnitTest")
 }
 
-tasks.register("testComposeAppUnitTest") {
+tasks.register("testAppUnitTest") {
     group = "verification"
-    description = "Runs unit tests for :composeApp"
-    dependsOn(":composeApp:testDebugUnitTest")
+    description = "Runs unit tests for :app"
+    dependsOn(":app:testDebugUnitTest")
 }
 
 tasks.register("testAllModuleUnitTests") {
@@ -56,6 +56,6 @@ tasks.register("testAllModuleUnitTests") {
     dependsOn(
         "testSharedDataUnitTest",
         "testSharedDomainUnitTest",
-        "testComposeAppUnitTest",
+        "testAppUnitTest",
     )
 }
