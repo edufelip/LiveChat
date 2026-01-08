@@ -5,10 +5,10 @@
 LiveChat is a Kotlin Multiplatform chat experience geared toward organizing conversations into categories. The project ships an Android client built with Jetpack Compose and a Compose Multiplatform iOS client that share the same domain/data stack.
 
 ## Current Stack
-- **Presentation (Android)**: Compose Multiplatform hosted directly from `:composeApp` (`MainActivity`, `LiveChatApp`). The legacy `:app` module has been excluded from the build (see `app/README_LEGACY.md`) and now serves only as historical reference while remaining utilities are ported.
-- **Presentation (iOS)**: Compose Multiplatform running from the `composeApp` module. The UI consumes shared presenters (`ConversationListPresenter`, `ConversationPresenter`, `ContactsPresenter`) directly via Koin through expect/actual hooks.
+- **Presentation (Android)**: Compose Multiplatform hosted directly from `:app` (`MainActivity`, `LiveChatApp`).
+- **Presentation (iOS)**: Compose Multiplatform running from the `app` module. The UI consumes shared presenters (`ConversationListPresenter`, `ConversationPresenter`, `ContactsPresenter`) directly via Koin through expect/actual hooks.
 - **Dependency Injection**: [Koin](https://insert-koin.io/) for both Android and shared modules (Hilt removed).
-- **State/Data**: Kotlin Coroutines/Flows. Legacy Android ViewModels still live under `app/src/main/java/com/project/livechat/ui/viewmodels`, but the `:composeApp` entry now consumes shared presenters directly.
+- **State/Data**: Kotlin Coroutines/Flows. The `:app` entry consumes shared presenters directly.
 - **Persistence**: [Room](https://developer.android.com/training/data-storage/room) configured for Kotlin Multiplatform with bundled SQLite drivers and shared entities/DAOs under `shared/data/src/commonMain`.
 - **Remote**:
   - Android uses Firebase Auth for phone verification and resolves Firestore clients from the shared `firebaseBackendModule`. Configuration is pulled from `google-services.json` at runtime.
@@ -33,18 +33,18 @@ https://github.com/edufelip/live-chat_android.git
 
 ### Android Build Commands
 ```bash
-./gradlew :composeApp:assembleDebug
-./gradlew :composeApp:lint
-./gradlew :composeApp:testDebugUnitTest
+./gradlew :app:assembleDebug
+./gradlew :app:lint
+./gradlew :app:testDebugUnitTest
 ```
-> Building still relies on a Firebase configuration file. Place your `google-services.json` under `composeApp/src/google-services.json` (or the appropriate variant directory such as `composeApp/src/debug/google-services.json`).
+> Building still relies on a Firebase configuration file. Place your `google-services.json` under `app/` (or the appropriate variant directory such as `app/src/debug/google-services.json`).
 >
 > Gradle runs on the bundled JetBrains Runtime 17 (`org.gradle.java.home` in `gradle.properties`). Keep that runtime installed locally or update the path if you swap JDKs.
 
 ### Shared Modules
 - `:shared:data` — SQDelight database, Koin modules, Firebase REST client (Ktor), multiplatform repositories.
 - `:shared:domain` — Models, use cases, validation utilities, shared Koin module.
-- `:composeApp` — Compose Multiplatform UI, organised into `ui/app`, `ui/features`, `ui/components`, `ui/state`, and `ui/util` packages following an atomic design breakdown.
+- `:app` — Compose Multiplatform UI, organised into `ui/app`, `ui/features`, `ui/components`, `ui/state`, and `ui/util` packages following an atomic design breakdown.
 
 ### Theming
 - The entire UI now runs through a `LiveChatTheme` wrapper (Compose Multiplatform) built on a pastel green palette. Shapes and typography are centralised under `ui/theme`.
@@ -53,7 +53,7 @@ https://github.com/edufelip/live-chat_android.git
 - Components reference `MaterialTheme` tokens instead of hard-coded colours. Empty states, badges, and the contacts screen now draw from `colorScheme` for consistent styling.
 
 ### Contacts Sync & Permissions
-- A cross-platform `ContactsPermissionManager` abstraction lives in `composeApp/contacts`. The Android actual requests `READ_CONTACTS` at runtime via `ActivityResultContracts`, while the iOS actual simply returns granted—matching the system behaviour.
+- A cross-platform `ContactsPermissionManager` abstraction lives in `app/contacts`. The Android actual requests `READ_CONTACTS` at runtime via `ActivityResultContracts`, while the iOS actual simply returns granted—matching the system behaviour.
 - `ContactsRoute` requests permission on entry and kicks off a sync when granted. The sync path calls into shared presenters/use cases, keeping the logic consistent across platforms.
 - `CheckRegisteredContactsUseCase` now diff-checks the on-device list against the cached SQDelight table:
   - Removes contacts that disappeared from the phone.
@@ -75,26 +75,26 @@ The iOS experience is now entirely Compose Multiplatform. There are two ways to 
 
   Use `-PIOS_SIMULATOR_DEVICE="iPhone 14"` (or any simulator name returned by `xcrun simctl list devices`) to target a different simulator. The task builds `iosApp/build/ios/simulator/debug/LiveChat.app`, installs it, and launches it in the chosen device.
 
-- **Consume from Xcode** &mdash; `composeApp/` produces an XCFramework you can drop into an Xcode project or Swift package:
+- **Consume from Xcode** &mdash; `app/` produces an XCFramework you can drop into an Xcode project or Swift package:
 
   ```bash
-  ./gradlew :composeApp:assembleLiveChatComposeXCFramework
+  ./gradlew :app:assembleLiveChatComposeXCFramework
   ```
 
-  You’ll find the framework under `composeApp/build/XCFrameworks/LiveChatCompose`. Drag that folder into Xcode (or reference it through SwiftPM) and call `MainViewController(...)`/`updateLiveChatSession()` from Swift just like before&mdash;no SwiftUI glue code required. `MainViewController` now requires an iOS bridge bundle so Kotlin can route Firebase calls to Swift.
+  You’ll find the framework under `app/build/XCFrameworks/LiveChatCompose`. Drag that folder into Xcode (or reference it through SwiftPM) and call `MainViewController(...)`/`updateLiveChatSession()` from Swift just like before&mdash;no SwiftUI glue code required. `MainViewController` now requires an iOS bridge bundle so Kotlin can route Firebase calls to Swift.
 
-- **Use the bundled Xcode target** &mdash; `iosApp/LiveChatIOS.xcodeproj` already links the generated `LiveChatCompose.xcframework` and boots the UIKit wrapper (`AppDelegate` + `MainViewControllerKt`).
+- **Use the bundled Xcode target** &mdash; `iosApp/iosApp.xcodeproj` already links the generated `LiveChatCompose.xcframework` and boots the UIKit wrapper (`AppDelegate` + `MainViewControllerKt`).
   1. Generate the framework first (command above).
   2. Open the project in Xcode, set your Development Team under *Signing & Capabilities*, and build/run against a simulator or device.
   3. The target ships with sensible defaults:
      - Deployment target `iOS 17.2` to match the Compose runtime.
      - `libsqlite3` linked and SDK `System/Library/SubFrameworks` added to resolve Compose’s dependencies such as `UIUtilities`.
-     - `CADisableMinimumFrameDurationOnPhone` enabled in `iosApp/LiveChatIOS/Info.plist` to satisfy Compose’s high-refresh-rate sanity check.
+     - `CADisableMinimumFrameDurationOnPhone` enabled in `iosApp/iosApp/Info.plist` to satisfy Compose’s high-refresh-rate sanity check.
      - `AppDelegate` calls `FirebaseApp.configure()` automatically when the FirebaseCore SDK is present (wrapped in `#if canImport(FirebaseCore)`).
 
 Configuration pointers:
 
-- Configure Firebase by editing `defaultFirebaseConfig()` in `composeApp/src/iosMain/kotlin/com/edufelip/livechat/MainViewController.kt` or by supplying a custom `FirebaseRestConfig` when wiring `MainViewController`.
+- Configure Firebase by editing `defaultFirebaseConfig()` in `app/src/iosMain/kotlin/com/edufelip/livechat/MainViewController.kt` or by supplying a custom `FirebaseRestConfig` when wiring `MainViewController`.
 - Update the active session at runtime from Kotlin with:
 
   ```kotlin
@@ -103,7 +103,7 @@ Configuration pointers:
 
 - The previous SwiftUI shell has been removed in favor of this KMP-first packaging flow. Historical sources remain under `docs/legacy-ios-swift/` if needed.
 
-- Drop your platform credentials into `iosApp/LiveChatIOS/GoogleService-Info.plist`. The path is git-ignored by default; copy your Firebase file locally if you need Analytics/Auth in the Xcode build.
+- Drop your platform credentials into `iosApp/iosApp/GoogleService-Info.plist`. The path is git-ignored by default; copy your Firebase file locally if you need Analytics/Auth in the Xcode build.
 
 You can still generate the shared Room-powered XCFramework for other native integrations:
 
@@ -189,11 +189,11 @@ service cloud.firestore {
 ```
 
 ### UI Architecture at a Glance
-- **Atomic Compose components**: Reusable building blocks live in `composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/components` and `app/src/main/java/com/project/livechat/ui/components`, grouped into `atoms`, `molecules`, `organisms`, and `dialogs`. Each component includes a local preview to simplify iteration.
+- **Atomic Compose components**: Reusable building blocks live in `app/src/commonMain/kotlin/com/edufelip/livechat/ui/components` and `app/src/main/java/com/project/livechat/ui/components`, grouped into `atoms`, `molecules`, `organisms`, and `dialogs`. Each component includes a local preview to simplify iteration.
 - **Feature-oriented packages**: Screens and screen-specific state/route composables sit inside `ui/features/<feature-name>/**` on both the shared and Android modules (e.g., `ui/features/conversations/list`, `ui/features/contacts/screens`).
-- **Presenter bridge**: Shared presenters are exposed through expect/actual helpers in `composeApp/ui/state/PresenterHooks.kt`, now backed by Koin on both iOS and Android via `IosKoinBridge` and `AndroidKoinBridge`.
+- **Presenter bridge**: Shared presenters are exposed through expect/actual helpers in `app/ui/state/PresenterHooks.kt`, now backed by Koin on both iOS and Android via `IosKoinBridge` and `AndroidKoinBridge`.
 - **Animated navigation**: Tab switches (Chats ↔ Contacts) run through `AnimatedContent`, providing directional fades/slides that align with the new theme.
-- **Firebase setup**: The Google Services Gradle plugin runs inside `:composeApp`. Drop `google-services.json` into `composeApp/src/<buildType>/` (or directly under `composeApp/src/`) before running Gradle so the plugin can merge Firebase credentials.
+- **Firebase setup**: The Google Services Gradle plugin runs inside `:app`. Drop `google-services.json` into `app/src/<buildType>/` (or directly under `app/src/`) before running Gradle so the plugin can merge Firebase credentials.
 - **Firebase Emulator Suite**: Set `FIREBASE_EMULATOR_ENABLED=1` to route Auth/Firestore/Storage/Functions to emulators. Defaults: `FIREBASE_EMULATOR_HOST=10.0.2.2` (Android emulator) or `127.0.0.1` (iOS simulator), ports `9099/8080/9199/5001`. Helpers: `scripts/firebase_emulators_start.sh` and `scripts/firebase_emulators_exec.sh <command>`.
 
 ## Layout Preview

@@ -8,13 +8,13 @@
 
 ## Files Changed
 
-- [ ] composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- [ ] app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 
 ## Changes by Rule
 
 ### Rule A — Read State in the Narrowest Scope
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables:** SettingsRoute
 - **Pattern observed:** No parent-only state reads passing values through.
 - **Fix applied:** None.
@@ -24,7 +24,7 @@
 
 ### Rule B — Use derivedStateOf for Fast-Changing Inputs
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables:** SettingsRoute
 - **Pattern observed:** No fast-changing derived values.
 - **Fix applied:** None.
@@ -34,7 +34,7 @@
 
 ### Rule C — Use snapshotFlow for Side Effects
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables:** SettingsRoute
 - **Pattern observed:** No effect keyed to fast-changing inputs.
 - **Fix applied:** None.
@@ -44,7 +44,7 @@
 
 ### Rule D — Defer Hot Reads to Layout/Draw
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables:** SettingsRoute
 - **Pattern observed:** No hot state reads in modifiers.
 - **Fix applied:** None.
@@ -54,7 +54,7 @@
 
 ### Rule E — Add Stable Keys in Lists
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables:** SettingsRoute
 - **Pattern observed:** No lazy lists or keyed loops.
 - **Fix applied:** None.
@@ -64,7 +64,7 @@
 
 ### Rule F — Improve Parameter Stability
 
-- **File:** composeApp/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/settings/SettingsRoute.kt
 - **Composables / Models:** SettingsRoute
 - **Pattern observed (compiler report or heuristic):** No unstable parameter usage detected.
 - **Fix applied:** None.
@@ -74,7 +74,7 @@
 
 ### Rule G — Strong Skipping Mode Awareness
 
-- **Module:** composeApp
+- **Module:** app
 - **Current state:** Not evaluated.
 - **Suggestion or change:** Consider enabling compiler reports if recomposition becomes a concern.
 - **Risk level:** Low
