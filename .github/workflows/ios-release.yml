@@ -48,6 +48,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: List XCFramework tasks
+        run: ./gradlew :app:tasks --all | rg -n "XCFramework|xcframework"
+
       - name: Generate Compose resources (iOS device)
         run: ./gradlew :app:iosArm64AggregateResources --stacktrace
 
@@ -118,7 +121,7 @@ jobs:
           echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
 
       - name: Build Compose frameworks (Release/iphoneos)
-        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx8g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" -PCONFIGURATION=Release -PSDK_NAME=iphoneos :app:packForXcode :iosApp:packForXcode --stacktrace
+        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx8g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" :app:assembleLiveChatComposeReleaseXCFramework --stacktrace
 
       - name: Verify Compose resources present
         run: |
