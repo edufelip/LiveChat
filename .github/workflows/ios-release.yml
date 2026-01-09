@@ -117,8 +117,17 @@ jobs:
 
       - name: Resolve Swift Package dependencies
         run: |
-          rm -f iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved
-          rm -f iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          WORKSPACE_RESOLVED="iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          PROJECT_RESOLVED="iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+
+          rm -f "$WORKSPACE_RESOLVED"
+          mkdir -p "$(dirname "$WORKSPACE_RESOLVED")"
+          if [ -f "$PROJECT_RESOLVED" ]; then
+            cp "$PROJECT_RESOLVED" "$WORKSPACE_RESOLVED"
+          else
+            echo "Missing project-level Package.resolved at $PROJECT_RESOLVED"
+            exit 1
+          fi
           xcodebuild -resolvePackageDependencies -workspace iosApp/iosApp.xcworkspace -scheme iosApp
 
       - name: Set up keychain and certificates
