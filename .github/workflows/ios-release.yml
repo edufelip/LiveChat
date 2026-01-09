@@ -155,6 +155,8 @@ jobs:
             CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM="${{ secrets.IOS_TEAM_ID }}" \
             IOS_PROFILE_NAME="${PROFILE_NAME}" \
+            PROVISIONING_PROFILE_SPECIFIER="${PROFILE_NAME}" \
+            PROVISIONING_PROFILE="${PROFILE_UUID}" \
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
             archive
 
