@@ -49,7 +49,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: List XCFramework tasks
-        run: ./gradlew :app:tasks --all | rg -n "XCFramework|xcframework"
+        run: |
+          if command -v rg >/dev/null 2>&1; then
+            ./gradlew :app:tasks --all | rg -n "XCFramework|xcframework" || true
+          else
+            ./gradlew :app:tasks --all | awk 'tolower($0) ~ /xcframework/ {print}'
+          fi
 
       - name: Generate Compose resources (iOS device)
         run: ./gradlew :app:iosArm64AggregateResources --stacktrace
