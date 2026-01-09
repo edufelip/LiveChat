@@ -58,7 +58,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = ../app/build/XCFrameworks/$(LIVECHAT_XCFRAMEWORK_CONFIG)/LiveChatCompose.xcframework; sourceTree = SOURCE_ROOT; };
+		4F0F1C2C2C61B7F8008F12A6 /* LiveChatCompose.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = LiveChatCompose.xcframework; path = "../app/build/XCFrameworks/$(LIVECHAT_XCFRAMEWORK_CONFIG)/LiveChatCompose.xcframework"; sourceTree = SOURCE_ROOT; };
 		4F0F1C2C2C61B7F8008F12AF /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0F1C2C2C61B7F8008F12C0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = iosApp/Assets.xcassets; sourceTree = SOURCE_ROOT; };
