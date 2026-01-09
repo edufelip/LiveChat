@@ -66,6 +66,33 @@ jobs:
           mkdir -p iosApp/iosApp
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
 
+      - name: Diagnose SwiftPM Package.resolved
+        run: |
+          RESOLVED="iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          if [ -f "$RESOLVED" ]; then
+            echo "Package.resolved exists at workspace-level."
+            echo "First 80 bytes:"
+            head -c 80 "$RESOLVED" | sed 's/[^[:print:]\t]/./g'
+            echo ""
+            if command -v xxd >/dev/null 2>&1; then
+              echo "Hex (first 32 bytes):"
+              xxd -g 1 -l 32 "$RESOLVED"
+            fi
+            if command -v jq >/dev/null 2>&1; then
+              jq . "$RESOLVED" >/dev/null
+              echo "jq: valid JSON"
+            else
+              echo "jq not available; skipping JSON validation"
+            fi
+          else
+            echo "No workspace-level Package.resolved at $RESOLVED"
+          fi
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          rm -f iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          xcodebuild -resolvePackageDependencies -workspace iosApp/iosApp.xcworkspace -scheme iosApp
+
       - name: Set up keychain and certificates
         env:
           CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
