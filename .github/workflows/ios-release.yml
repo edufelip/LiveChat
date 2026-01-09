@@ -66,31 +66,59 @@ jobs:
           mkdir -p iosApp/iosApp
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
 
-      - name: Diagnose SwiftPM Package.resolved
+      - name: Diagnose SwiftPM files
         run: |
-          RESOLVED="iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-          if [ -f "$RESOLVED" ]; then
-            echo "Package.resolved exists at workspace-level."
-            echo "First 80 bytes:"
-            head -c 80 "$RESOLVED" | sed 's/[^[:print:]\t]/./g'
-            echo ""
-            if command -v xxd >/dev/null 2>&1; then
-              echo "Hex (first 32 bytes):"
-              xxd -g 1 -l 32 "$RESOLVED"
-            fi
-            if command -v jq >/dev/null 2>&1; then
-              jq . "$RESOLVED" >/dev/null
-              echo "jq: valid JSON"
+          inspect_resolved() {
+            local resolved_path="$1"
+            if [ -f "$resolved_path" ]; then
+              echo "Package.resolved found: $resolved_path"
+              echo "First 80 bytes:"
+              head -c 80 "$resolved_path" | sed 's/[^[:print:]\t]/./g'
+              echo ""
+              if command -v xxd >/dev/null 2>&1; then
+                echo "Hex (first 32 bytes):"
+                xxd -g 1 -l 32 "$resolved_path"
+              fi
+              if command -v jq >/dev/null 2>&1; then
+                if jq . "$resolved_path" >/dev/null; then
+                  echo "jq: valid JSON"
+                else
+                  echo "jq: invalid JSON"
+                fi
+              else
+                echo "jq not available; skipping JSON validation"
+              fi
             else
-              echo "jq not available; skipping JSON validation"
+              echo "Package.resolved missing: $resolved_path"
+            fi
+          }
+
+          inspect_resolved "iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+          inspect_resolved "iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+
+          PBXPROJ="iosApp/iosApp.xcodeproj/project.pbxproj"
+          if [ -f "$PBXPROJ" ]; then
+            echo "project.pbxproj exists."
+            echo "First 2 lines:"
+            head -n 2 "$PBXPROJ"
+            echo "Size (bytes):"
+            wc -c "$PBXPROJ"
+            if command -v rg >/dev/null 2>&1; then
+              rg -n '<<<<<<<|=======|>>>>>>>' "$PBXPROJ" || true
+            else
+              awk '/<<<<<<<|=======|>>>>>>>/{print NR ":" $0}' "$PBXPROJ" || true
             fi
           else
-            echo "No workspace-level Package.resolved at $RESOLVED"
+            echo "Missing project.pbxproj at $PBXPROJ"
           fi
+
+          echo "Git status (porcelain):"
+          git status --porcelain || true
 
       - name: Resolve Swift Package dependencies
         run: |
           rm -f iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          rm -f iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
           xcodebuild -resolvePackageDependencies -workspace iosApp/iosApp.xcworkspace -scheme iosApp
 
       - name: Set up keychain and certificates
