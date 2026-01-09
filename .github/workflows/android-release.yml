@@ -57,7 +57,13 @@ jobs:
           echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json
 
       - name: Build release bundle
-        run: ./gradlew :app:bundleRelease --stacktrace
+        run: |
+          ./gradlew :app:bundleRelease \
+            -Pandroid.injected.signing.store.file="$RELEASE_STORE_FILE" \
+            -Pandroid.injected.signing.store.password="$RELEASE_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$RELEASE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$RELEASE_KEY_PASSWORD" \
+            --stacktrace
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
