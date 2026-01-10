@@ -11,6 +11,9 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+val ciVersionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull()
+val ciVersionName = project.findProperty("versionName") as String?
+
 kotlin {
     androidTarget {
         compilerOptions {
@@ -94,8 +97,8 @@ android {
         applicationId = "com.edufelip.livechat"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = ciVersionCode ?: 1
+        versionName = ciVersionName ?: "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
