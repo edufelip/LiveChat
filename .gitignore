@@ -27,5 +27,6 @@ iosApp/iosApp/GoogleService-Info.plist
 functions/node_modules/
 functions/package-lock.json
 **/xcuserdata/
+**/xcshareddata/
 **/LiveChatCompose.framework.o
 .firebaserc
