@@ -48,14 +48,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: List XCFramework tasks
-        run: |
-          if command -v rg >/dev/null 2>&1; then
-            ./gradlew :app:tasks --all | rg -n "XCFramework|xcframework" || true
-          else
-            ./gradlew :app:tasks --all | awk 'tolower($0) ~ /xcframework/ {print}'
-          fi
-
       - name: Generate Compose resources (iOS device)
         run: ./gradlew :app:iosArm64AggregateResources --stacktrace
 
@@ -65,70 +57,6 @@ jobs:
         run: |
           mkdir -p iosApp/iosApp
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
-
-      - name: Diagnose SwiftPM files
-        run: |
-          inspect_resolved() {
-            local resolved_path="$1"
-            if [ -f "$resolved_path" ]; then
-              echo "Package.resolved found: $resolved_path"
-              echo "First 80 bytes:"
-              head -c 80 "$resolved_path" | sed 's/[^[:print:]\t]/./g'
-              echo ""
-              if command -v xxd >/dev/null 2>&1; then
-                echo "Hex (first 32 bytes):"
-                xxd -g 1 -l 32 "$resolved_path"
-              fi
-              if command -v jq >/dev/null 2>&1; then
-                if jq . "$resolved_path" >/dev/null; then
-                  echo "jq: valid JSON"
-                else
-                  echo "jq: invalid JSON"
-                fi
-              else
-                echo "jq not available; skipping JSON validation"
-              fi
-            else
-              echo "Package.resolved missing: $resolved_path"
-            fi
-          }
-
-          inspect_resolved "iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-          inspect_resolved "iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-
-          PBXPROJ="iosApp/iosApp.xcodeproj/project.pbxproj"
-          if [ -f "$PBXPROJ" ]; then
-            echo "project.pbxproj exists."
-            echo "First 2 lines:"
-            head -n 2 "$PBXPROJ"
-            echo "Size (bytes):"
-            wc -c "$PBXPROJ"
-            if command -v rg >/dev/null 2>&1; then
-              rg -n '<<<<<<<|=======|>>>>>>>' "$PBXPROJ" || true
-            else
-              awk '/<<<<<<<|=======|>>>>>>>/{print NR ":" $0}' "$PBXPROJ" || true
-            fi
-          else
-            echo "Missing project.pbxproj at $PBXPROJ"
-          fi
-
-          echo "Git status (porcelain):"
-          git status --porcelain || true
-
-      - name: Resolve Swift Package dependencies
-        run: |
-          WORKSPACE_RESOLVED="iosApp/iosApp.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-          PROJECT_RESOLVED="iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-
-          rm -f "$WORKSPACE_RESOLVED"
-          mkdir -p "$(dirname "$WORKSPACE_RESOLVED")"
-          if [ -f "$PROJECT_RESOLVED" ]; then
-            cp "$PROJECT_RESOLVED" "$WORKSPACE_RESOLVED"
-          else
-            echo "Missing project-level Package.resolved at $PROJECT_RESOLVED"
-            exit 1
-          fi
-          xcodebuild -resolvePackageDependencies -workspace iosApp/iosApp.xcworkspace -scheme iosApp
 
       - name: Set up keychain and certificates
         env:
@@ -206,6 +134,7 @@ jobs:
       - name: Build archive
         env:
           KEYCHAIN_PATH: ${{ runner.temp }}/live-chat.keychain-db
+          IOS_PROFILE_NAME: ${{ env.PROFILE_NAME }}
         run: |
           xcodebuild \
             -workspace iosApp/iosApp.xcworkspace \
@@ -216,6 +145,8 @@ jobs:
             -destination "generic/platform=iOS" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
+            DEVELOPMENT_TEAM="${{ secrets.IOS_TEAM_ID }}" \
+            IOS_PROFILE_NAME="${PROFILE_NAME}" \
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
             archive
 
