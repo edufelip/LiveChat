@@ -24,6 +24,8 @@ jobs:
       BUNDLE_ID: com.edufelip.livechat
       KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
       EXPORT_METHOD: ${{ github.event.inputs.export_method || 'app-store' }}
+      GRADLE_OPTS: -Xmx6g -Dkotlin.daemon.jvm.options=-Xmx4g
+      ORG_GRADLE_PROJECT_org.gradle.workers.max: "2"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
