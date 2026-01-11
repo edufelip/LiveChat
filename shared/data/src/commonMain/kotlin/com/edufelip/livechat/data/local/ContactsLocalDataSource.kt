@@ -35,6 +35,11 @@ class ContactsLocalDataSource(
                     }
             }
 
+    override suspend fun getLocalContactsSnapshot(): List<Contact> =
+        withContext(dispatcher) {
+            contactsDao.getAll().map { it.toDomain() }
+        }
+
     override suspend fun findContact(phoneNumber: String): Contact? =
         withContext(dispatcher) {
             val normalizedTarget = normalizePhoneNumber(phoneNumber)

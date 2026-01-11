@@ -8,6 +8,8 @@ interface IContactsRepository {
 
     fun observeContact(phoneNumber: String): Flow<Contact?>
 
+    suspend fun getLocalContactsSnapshot(): List<Contact>
+
     suspend fun findContact(phoneNumber: String): Contact?
 
     fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact>

@@ -312,19 +312,24 @@ private fun ContactsListContent(
         remember(localContacts, validatedContacts) {
             val merged = linkedMapOf<String, Contact>()
             val validatedMap =
-                validatedContacts.associateBy { normalizePhoneNumber(it.phoneNo) }
+                validatedContacts
+                    .filter { it.firebaseUid?.isNotBlank() == true }
+                    .associateBy { normalizePhoneNumber(it.phoneNo) }
             localContacts.forEach { contact ->
                 val normalizedPhone = normalizePhoneNumber(contact.phoneNo)
                 val validated = validatedMap[normalizedPhone]
+                val shouldHighlight = contact.isRegistered && !contact.firebaseUid.isNullOrBlank()
                 merged[normalizedPhone] =
                     if (validated != null) {
-                        contact.copy(isRegistered = true)
-                    } else {
+                        contact.copy(isRegistered = true, firebaseUid = validated.firebaseUid)
+                    } else if (shouldHighlight) {
                         contact
+                    } else {
+                        contact.copy(isRegistered = false)
                     }
             }
-            validatedContacts.forEach { contact ->
-                merged[normalizePhoneNumber(contact.phoneNo)] = contact.copy(isRegistered = true)
+            validatedMap.forEach { (normalizedPhone, contact) ->
+                merged[normalizedPhone] = contact.copy(isRegistered = true)
             }
             merged.entries
                 .map { (normalizedPhone, contact) -> ContactEntry(normalizedPhone, contact) }
@@ -345,9 +350,17 @@ private fun ContactsListContent(
             }
         }
     val registeredContacts =
-        remember(filteredContacts) { filteredContacts.filter { it.contact.isRegistered } }
+        remember(filteredContacts) {
+            filteredContacts.filter { entry ->
+                entry.contact.isRegistered && !entry.contact.firebaseUid.isNullOrBlank()
+            }
+        }
     val inviteCandidates =
-        remember(filteredContacts) { filteredContacts.filterNot { it.contact.isRegistered } }
+        remember(filteredContacts) {
+            filteredContacts.filterNot { entry ->
+                entry.contact.isRegistered && !entry.contact.firebaseUid.isNullOrBlank()
+            }
+        }
     val showSearchEmptyState = normalizedQuery.isNotBlank() && filteredContacts.isEmpty()
 
     LazyColumn(

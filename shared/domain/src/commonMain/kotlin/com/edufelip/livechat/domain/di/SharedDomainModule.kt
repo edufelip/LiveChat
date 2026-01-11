@@ -26,6 +26,7 @@ import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
+import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
@@ -90,6 +91,7 @@ val sharedDomainModule: Module =
         single { PhoneNumberValidator() }
         single<PhoneNumberFormatter> { DefaultPhoneNumberFormatter() }
         factory { GetLocalContactsUseCase(get<IContactsRepository>()) }
+        factory { GetLocalContactsSnapshotUseCase(get<IContactsRepository>()) }
         factory { BuildContactSyncPlanUseCase(get()) }
         factory { ApplyContactSyncPlanUseCase(get<IContactsRepository>()) }
         factory { ValidateContactsUseCase(get<IContactsRepository>(), phoneNumberFormatter = get()) }
@@ -226,6 +228,7 @@ val sharedDomainModule: Module =
                 setWelcomeSeen = get<SetWelcomeSeenUseCase>(),
                 getOnboardingStatusSnapshot = get<GetOnboardingStatusSnapshotUseCase>(),
                 getWelcomeSeenSnapshot = get<GetWelcomeSeenSnapshotUseCase>(),
+                getLocalContactsSnapshot = get<GetLocalContactsSnapshotUseCase>(),
                 updateSelfPresence = get<UpdateSelfPresenceUseCase>(),
                 scope = MainScope(),
             )

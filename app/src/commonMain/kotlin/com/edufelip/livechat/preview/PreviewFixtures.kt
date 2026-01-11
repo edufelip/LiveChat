@@ -136,6 +136,7 @@ object PreviewFixtures {
                 description = null,
                 photo = null,
                 isRegistered = true,
+                firebaseUid = "uid-preview-1",
             ),
             Contact(
                 id = 2,
@@ -144,6 +145,7 @@ object PreviewFixtures {
                 description = null,
                 photo = null,
                 isRegistered = true,
+                firebaseUid = "uid-preview-2",
             ),
             Contact(
                 id = 3,

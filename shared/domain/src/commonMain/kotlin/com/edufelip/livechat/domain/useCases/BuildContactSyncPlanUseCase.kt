@@ -10,7 +10,7 @@ class BuildContactSyncPlanUseCase(
         phoneContacts: List<Contact>,
         localDbContacts: List<Contact>,
     ): ContactSyncPlan {
-        if (phoneContacts.isEmpty() && localDbContacts.isEmpty()) {
+        if (phoneContacts.isEmpty()) {
             return ContactSyncPlan()
         }
 
@@ -49,7 +49,8 @@ class BuildContactSyncPlanUseCase(
                 ) {
                     toUpdate.add(merged)
                 }
-                if (local.isRegistered) {
+                val hasUid = !merged.firebaseUid.isNullOrBlank()
+                if (local.isRegistered && hasUid) {
                     alreadyRegistered.add(merged.copy(isRegistered = true))
                 } else {
                     needsValidation.add(merged.copy(isRegistered = false))
