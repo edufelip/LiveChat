@@ -3,6 +3,7 @@ package com.edufelip.livechat.domain.presentation
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
+import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
@@ -12,8 +13,11 @@ import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
+import com.edufelip.livechat.domain.utils.ContactsSyncSession
+import com.edufelip.livechat.domain.utils.ContactsUiStateCache
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
@@ -32,6 +37,7 @@ class AppPresenter(
     private val setWelcomeSeen: SetWelcomeSeenUseCase,
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
     getWelcomeSeenSnapshot: GetWelcomeSeenSnapshotUseCase,
+    getLocalContactsSnapshot: GetLocalContactsSnapshotUseCase,
     private val updateSelfPresence: UpdateSelfPresenceUseCase,
     private val scope: CoroutineScope,
 ) {
@@ -47,6 +53,13 @@ class AppPresenter(
     private var presenceJob: Job? = null
 
     init {
+        ContactsSyncSession.markAppOpen()
+        scope.launch {
+            runCatching {
+                val snapshot = withContext(Dispatchers.Default) { getLocalContactsSnapshot() }
+                ContactsUiStateCache.seedFromSnapshot(snapshot)
+            }
+        }
         scope.launch {
             observeOnboardingStatus()
                 .collectLatest { isComplete ->

@@ -8,6 +8,8 @@ interface IContactsLocalData {
 
     fun observeContact(phoneNumber: String): Flow<Contact?>
 
+    suspend fun getLocalContactsSnapshot(): List<Contact>
+
     suspend fun findContact(phoneNumber: String): Contact?
 
     suspend fun removeContacts(contacts: List<Contact>)

@@ -8,6 +8,8 @@ import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
+import com.edufelip.livechat.domain.utils.ContactsSyncSession
+import com.edufelip.livechat.domain.utils.ContactsUiStateCache
 import com.edufelip.livechat.domain.utils.PhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import kotlinx.coroutines.CoroutineScope
@@ -29,21 +31,26 @@ class ContactsPresenter(
     private val phoneNumberFormatter: PhoneNumberFormatter,
     private val scope: CoroutineScope,
 ) {
-    private val mutableState = MutableStateFlow(ContactsUiState(isLoading = true))
+    private val mutableState =
+        MutableStateFlow(
+            ContactsUiStateCache.snapshot()
+                ?: ContactsUiState(isLoading = !ContactsUiStateCache.hasVisitedContacts()),
+        )
     val state = mutableState.asStateFlow()
     val cState: CStateFlow<ContactsUiState> = state.asCStateFlow()
     private val mutableEvents = MutableSharedFlow<ContactsEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<ContactsEvent> = mutableEvents
-    private var lastSyncedFingerprint: String? = null
+    private var lastAttemptedFingerprint: String? = null
 
     init {
+        ContactsUiStateCache.markVisited()
         scope.launch {
             getLocalContactsUseCase()
                 .catch { throwable ->
-                    mutableState.update { it.copy(isLoading = false, errorMessage = throwable.message) }
+                    updateState { it.copy(isLoading = false, errorMessage = throwable.message) }
                 }
                 .collectLatest { contacts ->
-                    mutableState.update { state ->
+                    updateState { state ->
                         state.copy(
                             localContacts = contacts,
                             validatedContacts = contacts.filter { it.isRegistered },
@@ -59,8 +66,10 @@ class ContactsPresenter(
         force: Boolean = false,
     ): Boolean {
         if (force) return true
+        if (!ContactsSyncSession.canSync()) return false
+        if (phoneContacts.isEmpty()) return false
         val fingerprint = phoneContacts.fingerprint()
-        return fingerprint != lastSyncedFingerprint
+        return fingerprint != lastAttemptedFingerprint
     }
 
     fun syncContacts(
@@ -68,20 +77,29 @@ class ContactsPresenter(
         force: Boolean = false,
     ) {
         val targetFingerprint = phoneContacts.fingerprint()
-        if (!force && targetFingerprint == lastSyncedFingerprint) return
+        if (!force) {
+            if (!ContactsSyncSession.canSync()) return
+            if (targetFingerprint == lastAttemptedFingerprint) return
+        }
+        lastAttemptedFingerprint = targetFingerprint
 
         scope.launch {
+            if (phoneContacts.isEmpty()) {
+                return@launch
+            }
             val localContacts = mutableState.value.localContacts
-            mutableState.update { it.copy(isSyncing = true, errorMessage = null) }
+            updateState { it.copy(isSyncing = true, errorMessage = null) }
+            var hadError = false
             runCatching {
                 checkRegisteredContactsUseCase(phoneContacts, localContacts)
             }.onSuccess { flow ->
                 flow
                     .catch { throwable ->
-                        mutableState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
+                        hadError = true
+                        updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
                     }
                     .collect { contact ->
-                        mutableState.update { state ->
+                        updateState { state ->
                             val updated =
                                 (state.validatedContacts + contact).distinctBy {
                                     phoneNumberFormatter.normalize(it.phoneNo)
@@ -89,10 +107,12 @@ class ContactsPresenter(
                             state.copy(validatedContacts = updated)
                         }
                     }
-                mutableState.update { it.copy(isSyncing = false) }
-                lastSyncedFingerprint = targetFingerprint
+                updateState { it.copy(isSyncing = false) }
+                if (!hadError) {
+                    ContactsSyncSession.markSynced()
+                }
             }.onFailure { throwable ->
-                mutableState.update { it.copy(isSyncing = false, errorMessage = throwable.message) }
+                updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
             }
         }
     }
@@ -102,7 +122,7 @@ class ContactsPresenter(
     }
 
     fun setSearchQuery(query: String) {
-        mutableState.update { state ->
+        updateState { state ->
             val trimmed = query.trim()
             if (state.searchQuery == trimmed) {
                 state
@@ -115,12 +135,12 @@ class ContactsPresenter(
     fun onContactSelected(contact: Contact) {
         scope.launch {
             if (!contact.isRegistered || contact.firebaseUid.isNullOrBlank()) {
-                mutableState.update { it.copy(errorMessage = "Contact is not available right now") }
+                updateState { it.copy(errorMessage = "Contact is not available right now") }
                 return@launch
             }
             val conversationId = resolveConversationIdForContactUseCase(contact)
             if (conversationId.isBlank()) {
-                mutableState.update { it.copy(errorMessage = "Unable to open conversation") }
+                updateState { it.copy(errorMessage = "Unable to open conversation") }
                 return@launch
             }
             val peer = ConversationPeer(firebaseUid = contact.firebaseUid, phoneNumber = contact.phoneNo)
@@ -132,14 +152,14 @@ class ContactsPresenter(
             scope.launch {
                 runCatching { ensureConversationUseCase(conversationId, peer) }
                     .onFailure { throwable ->
-                        mutableState.update { it.copy(errorMessage = throwable.message ?: "Failed to open conversation") }
+                        updateState { it.copy(errorMessage = throwable.message ?: "Failed to open conversation") }
                     }
             }
         }
     }
 
     fun clearError() {
-        mutableState.update { it.copy(errorMessage = null) }
+        updateState { it.copy(errorMessage = null) }
     }
 
     fun close() {
@@ -152,6 +172,14 @@ class ContactsPresenter(
             .filter { it.isNotBlank() }
             .sorted()
             .joinToString("#")
+
+    private fun updateState(transform: (ContactsUiState) -> ContactsUiState) {
+        mutableState.update { current ->
+            val updated = transform(current)
+            ContactsUiStateCache.update(updated)
+            updated
+        }
+    }
 }
 
 sealed interface ContactsEvent {

@@ -5,6 +5,7 @@ import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.utils.canonicalPhoneNumber
 import com.edufelip.livechat.domain.utils.currentEpochMillis
+import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import io.ktor.client.HttpClient
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
@@ -72,8 +73,9 @@ class FirebaseRestContactsRemoteData(
 
     private suspend fun FlowCollector<Contact>.emitBatchResults(canonicalContacts: List<Pair<String, Contact>>) {
         val canonicalPhones = canonicalContacts.map { it.first }.distinct()
-        val registeredPhones = mutableSetOf<String>()
+        val registeredRemembered = mutableSetOf<String>()
         val matchByPhone = mutableMapOf<String, String>()
+        val matchByNormalized = mutableMapOf<String, String>()
 
         canonicalPhones
             .chunked(BATCH_CHUNK_SIZE)
@@ -84,19 +86,46 @@ class FirebaseRestContactsRemoteData(
                             contactsBridge.phoneExistsMany(chunk)
                         }
                     }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
-                registeredPhones.addAll(result.registeredPhones)
+                registeredRemembered.addAll(result.registeredPhones)
                 result.matches.forEach { match ->
                     matchByPhone[match.phone] = match.uid
+                    val normalized = normalizePhoneNumber(match.phone)
+                    if (normalized.isNotBlank()) {
+                        matchByNormalized[normalized] = match.uid
+                    }
                 }
             }
 
+        val registeredNormalized =
+            registeredRemembered
+                .map { normalizePhoneNumber(it) }
+                .filter { it.isNotBlank() }
+                .toSet()
+
         canonicalContacts.forEach { (canonical, contact) ->
-            val matchedUid = matchByPhone[canonical]
-            val exists = canonical in registeredPhones || matchedUid != null
-            if (exists) {
-                emit(contact.copy(isRegistered = true, firebaseUid = matchedUid ?: contact.firebaseUid))
+            val normalized = normalizePhoneNumber(canonical)
+            val matchedUid = matchByPhone[canonical] ?: matchByNormalized[normalized]
+            val exists = matchedUid != null || (normalized.isNotBlank() && normalized in registeredNormalized)
+            if (!exists) return@forEach
+
+            val resolvedUid =
+                matchedUid
+                    ?: contact.firebaseUid?.takeIf { it.isNotBlank() }
+                    ?: resolveUid(canonical)
+            if (!resolvedUid.isNullOrBlank()) {
+                emit(contact.copy(isRegistered = true, firebaseUid = resolvedUid))
             }
         }
+    }
+
+    private suspend fun resolveUid(phoneE164: String): String? {
+        val result =
+            runCatching {
+                withTimeout(FUNCTION_TIMEOUT_MS) {
+                    contactsBridge.phoneExists(phoneE164)
+                }
+            }.getOrNull()
+        return result?.uid?.takeIf { result.exists }
     }
 
     @Serializable
