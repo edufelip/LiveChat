@@ -3,7 +3,6 @@ package com.edufelip.livechat.domain.utils
 internal expect fun isMainThread(): Boolean
 
 internal object MainThreadGuardConfig {
-    @Volatile
     var isEnabled: Boolean = true
 }
 
