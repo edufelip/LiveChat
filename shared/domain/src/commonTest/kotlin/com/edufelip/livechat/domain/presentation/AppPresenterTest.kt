@@ -7,9 +7,11 @@ import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.PresenceState
+import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPresenceRepository
+import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
@@ -189,6 +191,7 @@ class AppPresenterTest {
         setWelcomeSeen = SetWelcomeSeenUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
         getWelcomeSeenSnapshot = GetWelcomeSeenSnapshotUseCase(repository),
+        getLocalContactsSnapshot = GetLocalContactsSnapshotUseCase(FakeContactsRepository()),
         updateSelfPresence = UpdateSelfPresenceUseCase(FakePresenceRepository()),
         scope = scope,
     )
@@ -264,6 +267,26 @@ class AppPresenterTest {
         ) = Unit
 
         override fun observeAllIncomingMessages(): Flow<List<Message>> = emptyFlow()
+    }
+
+    private class FakeContactsRepository : IContactsRepository {
+        override fun getLocalContacts(): Flow<List<Contact>> = MutableStateFlow(emptyList())
+
+        override fun observeContact(phoneNumber: String): Flow<Contact?> = emptyFlow()
+
+        override suspend fun getLocalContactsSnapshot(): List<Contact> = emptyList()
+
+        override suspend fun findContact(phoneNumber: String): Contact? = null
+
+        override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()
+
+        override suspend fun removeContactsFromLocal(contacts: List<Contact>) = Unit
+
+        override suspend fun addContactsToLocal(contacts: List<Contact>) = Unit
+
+        override suspend fun updateContacts(contacts: List<Contact>) = Unit
+
+        override suspend fun inviteContact(contact: Contact): Boolean = true
     }
 
     private class FakePresenceRepository : IPresenceRepository {

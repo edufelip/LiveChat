@@ -88,6 +88,29 @@ class CheckRegisteredContactsUseCaseTest {
             assertTrue(repository.addedContacts.isEmpty(), "No duplicates should be inserted")
         }
 
+    @Test
+    fun registeredContactWithoutUidIsRevalidated() =
+        runTest {
+            val repository = FakeContactsRepository()
+            val formatter = DefaultPhoneNumberFormatter()
+            val useCase =
+                CheckRegisteredContactsUseCase(
+                    buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
+                    applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
+                    validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+                )
+
+            val localAlice = contact(id = 1, name = "Alice", phone = "+1", registered = true).copy(firebaseUid = null)
+            val phoneAlice = contact(id = 0, name = "Alice", phone = "+1")
+
+            useCase(listOf(phoneAlice), listOf(localAlice)).toList(mutableListOf())
+
+            assertTrue(
+                repository.lastCheckRequest.any { it.phoneNo == "+1" },
+                "Expected contact without uid to be revalidated",
+            )
+        }
+
     private class FakeContactsRepository : IContactsRepository {
         val localContactsFlow = MutableStateFlow<List<Contact>>(emptyList())
         val removedContacts = mutableListOf<List<Contact>>()
@@ -102,6 +125,8 @@ class CheckRegisteredContactsUseCaseTest {
             localContactsFlow.map { contacts ->
                 contacts.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
             }
+
+        override suspend fun getLocalContactsSnapshot(): List<Contact> = localContactsFlow.value
 
         override suspend fun findContact(phoneNumber: String): Contact? =
             localContactsFlow.value.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }

@@ -4,6 +4,7 @@ import com.edufelip.livechat.data.bridge.ContactsRemoteBridge
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
 import com.edufelip.livechat.data.remote.PhoneExistsBatchResult
+import com.edufelip.livechat.data.remote.PhoneExistsMatch
 import com.edufelip.livechat.data.remote.PhoneExistsSingleResult
 import com.edufelip.livechat.domain.models.Contact
 import io.ktor.client.HttpClient
@@ -33,7 +34,7 @@ class FirebaseRestContactsRemoteDataTest {
                     batchResult =
                         PhoneExistsBatchResult(
                             registeredPhones = listOf("+15550001111"),
-                            matches = emptyList(),
+                            matches = listOf(PhoneExistsMatch(phone = "+15550001111", uid = "uid-123")),
                         ),
                 )
             val httpClient = HttpClient(MockEngine { respond("", HttpStatusCode.OK) })
@@ -55,7 +56,37 @@ class FirebaseRestContactsRemoteDataTest {
             assertEquals(1, results.size)
             assertEquals("Ada", results.first().name)
             assertTrue(results.first().isRegistered)
+            assertEquals("uid-123", results.first().firebaseUid)
             assertEquals(listOf("+15550001111"), bridge.lastBatchPhones)
+        }
+
+    @Test
+    fun checkContactsFallsBackToSingleLookupWhenUidMissing() =
+        runTest(dispatcher) {
+            val bridge =
+                FakeContactsBridge(
+                    batchResult =
+                        PhoneExistsBatchResult(
+                            registeredPhones = listOf("+15550002222"),
+                            matches = emptyList(),
+                        ),
+                    singleResult = PhoneExistsSingleResult(exists = true, uid = "uid-456"),
+                )
+            val httpClient = HttpClient(MockEngine { respond("", HttpStatusCode.OK) })
+            val remote =
+                FirebaseRestContactsRemoteData(
+                    contactsBridge = bridge,
+                    config = FirebaseRestConfig(projectId = "demo", apiKey = "key", defaultRegionIso = "US"),
+                    httpClient = httpClient,
+                    dispatcher = dispatcher,
+                )
+
+            val contacts = listOf(Contact(name = "Ben", phoneNo = "+1 (555) 000-2222"))
+
+            val results = remote.checkContacts(contacts).toList()
+            assertEquals(1, results.size)
+            assertEquals("uid-456", results.first().firebaseUid)
+            assertEquals("+15550002222", bridge.lastSinglePhone)
         }
 
     @Test
@@ -117,8 +148,12 @@ class FirebaseRestContactsRemoteDataTest {
         private val singleResult: PhoneExistsSingleResult = PhoneExistsSingleResult(exists = false, uid = null),
     ) : ContactsRemoteBridge {
         var lastBatchPhones: List<String> = emptyList()
+        var lastSinglePhone: String? = null
 
-        override suspend fun phoneExists(phoneE164: String): PhoneExistsSingleResult = singleResult
+        override suspend fun phoneExists(phoneE164: String): PhoneExistsSingleResult {
+            lastSinglePhone = phoneE164
+            return singleResult
+        }
 
         override suspend fun phoneExistsMany(phones: List<String>): PhoneExistsBatchResult {
             lastBatchPhones = phones

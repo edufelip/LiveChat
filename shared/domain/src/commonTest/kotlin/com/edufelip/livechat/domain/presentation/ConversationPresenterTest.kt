@@ -351,6 +351,8 @@ class ConversationPresenterTest {
 
         override fun observeContact(phoneNumber: String): Flow<Contact?> = contactState
 
+        override suspend fun getLocalContactsSnapshot(): List<Contact> = emptyList()
+
         override suspend fun findContact(phoneNumber: String): Contact? = contactState.value
 
         override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> = emptyFlow()
