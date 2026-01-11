@@ -16,6 +16,8 @@ import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
+import com.edufelip.livechat.domain.utils.ContactsSyncSession
+import com.edufelip.livechat.domain.utils.ContactsUiStateCache
 import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -134,6 +136,8 @@ class ContactsPresenterTest {
         }
 
     private fun TestScope.createPresenter(initialContacts: List<Contact>): PresenterSetup {
+        ContactsUiStateCache.clear()
+        ContactsSyncSession.markAppOpen()
         val repository = FakeContactsRepository()
         repository.localContactsFlow.value = initialContacts
         val presenterScope = TestScope(testScheduler)
@@ -237,6 +241,8 @@ class ContactsPresenterTest {
             localContactsFlow.map { contacts ->
                 contacts.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
             }
+
+        override suspend fun getLocalContactsSnapshot(): List<Contact> = localContactsFlow.value
 
         override suspend fun findContact(phoneNumber: String): Contact? =
             localContactsFlow.value.firstOrNull { normalizePhoneNumber(it.phoneNo) == normalizePhoneNumber(phoneNumber) }
