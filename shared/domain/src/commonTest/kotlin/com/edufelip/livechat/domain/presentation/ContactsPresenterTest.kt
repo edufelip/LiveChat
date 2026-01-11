@@ -19,6 +19,7 @@ import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
 import com.edufelip.livechat.domain.utils.ContactsSyncSession
 import com.edufelip.livechat.domain.utils.ContactsUiStateCache
 import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
+import com.edufelip.livechat.domain.utils.MainThreadGuardConfig
 import com.edufelip.livechat.domain.utils.normalizePhoneNumber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -33,16 +34,28 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContactsPresenterTest {
+    @BeforeTest
+    fun setUp() {
+        MainThreadGuardConfig.isEnabled = false
+    }
+
+    @AfterTest
+    fun tearDown() {
+        MainThreadGuardConfig.isEnabled = true
+    }
+
     @Test
     fun localContactsPopulateUiState() =
         runTest {
-            val registered = contact(id = 1, name = "Ava", phone = "+1", registered = true)
+            val registered = contact(id = 1, name = "Ava", phone = "+1", registered = true, firebaseUid = "uid-ava")
             val unregistered = contact(id = 2, name = "Blake", phone = "+2", registered = false)
 
             val setup = createPresenter(initialContacts = listOf(registered, unregistered))
@@ -74,7 +87,11 @@ class ContactsPresenterTest {
             try {
                 setup.repository.remoteFlowFactory =
                     { candidates ->
-                        val registered = candidates.first().copy(isRegistered = true)
+                        val registered =
+                            candidates.first().copy(
+                                isRegistered = true,
+                                firebaseUid = "uid-${candidates.first().phoneNo}",
+                            )
                         setup.repository.localContactsFlow.value =
                             (setup.repository.localContactsFlow.value + registered)
                                 .distinctBy { normalizePhoneNumber(it.phoneNo) }
@@ -291,6 +308,7 @@ class ContactsPresenterTest {
         name: String,
         phone: String,
         registered: Boolean = false,
+        firebaseUid: String? = null,
     ) = Contact(
         id = id,
         name = name,
@@ -298,5 +316,6 @@ class ContactsPresenterTest {
         description = null,
         photo = null,
         isRegistered = registered,
+        firebaseUid = firebaseUid ?: if (registered) "uid-$id" else null,
     )
 }

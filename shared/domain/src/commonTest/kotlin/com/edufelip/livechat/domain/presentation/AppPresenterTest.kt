@@ -169,6 +169,7 @@ class AppPresenterTest {
                         name = "Ava",
                         phoneNo = "+1 (555) 010-2000",
                         isRegistered = true,
+                        firebaseUid = "uid-ava",
                     ),
                     conversationId = "conversation-001",
                 )
