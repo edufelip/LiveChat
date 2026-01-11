@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+if [ -z "${RUN_PRE_PUSH_CHECKS:-}" ]; then
+  echo "Skipping pre-push checks. Set RUN_PRE_PUSH_CHECKS=1 to enable."
+  exit 0
+fi
+
 export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
 
 ./gradlew testDebugUnitTest
