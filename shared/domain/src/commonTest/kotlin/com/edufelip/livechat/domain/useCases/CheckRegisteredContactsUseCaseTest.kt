@@ -28,7 +28,7 @@ class CheckRegisteredContactsUseCaseTest {
                     validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
                 )
 
-            val alice = contact(id = 1, name = "Alice", phone = "+1", registered = true)
+            val alice = contact(id = 1, name = "Alice", phone = "+1", registered = true, firebaseUid = "uid-alice")
             val bobLocal = contact(id = 2, name = "Bob", phone = "+2", registered = false)
             val charlie = contact(id = 3, name = "Charlie", phone = "+3", registered = false)
 
@@ -46,7 +46,7 @@ class CheckRegisteredContactsUseCaseTest {
                     // Ensure the request includes both Bob (updated) and Dana (new)
                     assertTrue(requested.any { it.phoneNo == "+2" })
                     assertTrue(requested.any { it.phoneNo == "+4" })
-                    flow { emit(bobPhone.copy(isRegistered = true)) }
+                    flow { emit(bobPhone.copy(isRegistered = true, firebaseUid = "uid-bob")) }
                 }
 
             val emissions =
@@ -156,6 +156,7 @@ class CheckRegisteredContactsUseCaseTest {
         name: String,
         phone: String,
         registered: Boolean = false,
+        firebaseUid: String? = null,
     ) = Contact(
         id = id,
         name = name,
@@ -163,5 +164,6 @@ class CheckRegisteredContactsUseCaseTest {
         description = null,
         photo = null,
         isRegistered = registered,
+        firebaseUid = firebaseUid ?: if (registered) "uid-$id" else null,
     )
 }
