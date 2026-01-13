@@ -85,6 +85,7 @@ jobs:
             exit 1
           fi
 
+          export SCHEMES_LIST
           SCHEMES_LIST=$(xcodebuild -workspace iosApp/iosApp.xcworkspace -list)
           echo "$SCHEMES_LIST"
           python - <<'PY'
