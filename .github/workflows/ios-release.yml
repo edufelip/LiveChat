@@ -68,11 +68,17 @@ jobs:
 
       - name: Write GoogleService-Info.plist
         env:
-          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD }}
         run: |
           mkdir -p iosApp/iosApp
-          echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info-Prod.plist
-          cp iosApp/iosApp/GoogleService-Info-Prod.plist iosApp/iosApp/GoogleService-Info.plist
+          if [ -z "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" ]; then
+            echo "IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD is not set" >&2
+            exit 1
+          fi
+          printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info-Prod.plist
+          plutil -lint iosApp/iosApp/GoogleService-Info-Prod.plist
+          plutil -convert xml1 iosApp/iosApp/GoogleService-Info-Prod.plist -o iosApp/iosApp/GoogleService-Info.plist
+          plutil -lint iosApp/iosApp/GoogleService-Info.plist
 
       - name: Preflight iOS scheme + Firebase config
         run: |
