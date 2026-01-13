@@ -32,6 +32,7 @@ jobs:
       RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+      GOOGLE_SERVICES_JSON_BASE64_PROD: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}
       PLAY_TRACK: ${{ github.event.inputs.track || 'internal' }}
       PLAY_RELEASE_STATUS: ${{ github.event.inputs.status || 'draft' }}
     steps:
@@ -56,7 +57,7 @@ jobs:
       - name: Write google-services.json
         run: |
           mkdir -p app/src/prod
-          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/src/prod/google-services.json
+          echo "$GOOGLE_SERVICES_JSON_BASE64_PROD" | base64 --decode > app/src/prod/google-services.json
 
       - name: Build release bundle
         run: |
