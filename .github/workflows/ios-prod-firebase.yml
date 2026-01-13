@@ -1,36 +1,47 @@
-name: iOS Release
+name: iOS Prod - Firebase Distribution
 
 on:
   push:
     branches:
-      - "main"
       - "release/**"
       - "hotfix/**"
-  workflow_dispatch:
-    inputs:
-      export_method:
-        description: "Export method (app-store, ad-hoc, enterprise)"
-        required: false
-        default: "app-store"
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - "app/src/androidMain/**"
 
 concurrency:
-  group: ios-release-${{ github.ref }}
+  group: ios-prod-firebase-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  release:
-    name: Archive & Upload to TestFlight
-    runs-on: macos-26
-    timeout-minutes: 150
+  firebase-distribution:
+    name: Build Prod IPA & Upload to Firebase
+    runs-on: macos-14
+    timeout-minutes: 120
+    permissions:
+      contents: read
     env:
       BUNDLE_ID: com.edufelip.livechat
       KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
-      EXPORT_METHOD: ${{ github.event.inputs.export_method || 'app-store' }}
       GRADLE_OPTS: -Xmx8g -Dkotlin.daemon.jvm.options=-Xmx6g
       ORG_GRADLE_PROJECT_org.gradle.workers.max: "2"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Extract version from branch
+        id: version
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [[ "$BRANCH_NAME" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[2]}"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+            echo "Found version: $VERSION"
+          else
+            echo "VERSION=1.0.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+            echo "Using run number for version"
+          fi
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -66,22 +77,41 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-konan-
 
-      - name: Write GoogleService-Info.plist
+      - name: Validate Firebase secrets
         env:
-          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD }}
+          FIREBASE_APP_ID_IOS: ${{ secrets.FIREBASE_APP_ID_IOS_PROD }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_INFO_PLIST_BASE64" ]; then
+            echo "IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD is not set" >&2
+            exit 1
+          fi
+          if [ -z "$FIREBASE_APP_ID_IOS" ]; then
+            echo "FIREBASE_APP_ID_IOS_PROD is not set" >&2
+            exit 1
+          fi
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT_JSON is not set" >&2
+            exit 1
+          fi
+
+      - name: Write GoogleService-Info-Prod.plist
+        env:
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD }}
         run: |
           mkdir -p iosApp/iosApp
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info-Prod.plist
 
-      - name: Set up keychain and certificates
+      - name: Set up keychain and certificates (prod)
         env:
-          CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
-          CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
-          PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          CERT_P12_BASE64: ${{ secrets.IOS_ADHOC_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_ADHOC_CERT_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.IOS_ADHOC_PROFILE_BASE64 }}
         run: |
-          KEYCHAIN_PATH="$RUNNER_TEMP/live-chat.keychain-db"
-          CERTIFICATE_PATH="$RUNNER_TEMP/distribution_certificate.p12"
-          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          KEYCHAIN_PATH="$RUNNER_TEMP/live-chat-prod.keychain-db"
+          CERTIFICATE_PATH="$RUNNER_TEMP/adhoc_certificate.p12"
+          PROFILE_PATH="$RUNNER_TEMP/adhoc_profile.mobileprovision"
 
           echo -n "$CERT_P12_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
           echo -n "$PROFILE_BASE64" | base64 --decode -o "$PROFILE_PATH"
@@ -100,7 +130,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 
-          PROFILE_PLIST="$RUNNER_TEMP/profile.plist"
+          PROFILE_PLIST="$RUNNER_TEMP/adhoc_profile.plist"
           security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
 
           PROFILE_UUID=$(/usr/libexec/PlistBuddy -c 'Print:UUID' "$PROFILE_PLIST" 2>/dev/null || true)
@@ -109,8 +139,6 @@ jobs:
 
           if [ -z "$PROFILE_UUID" ] || [ -z "$PROFILE_NAME" ] || [ -z "$PROFILE_APP_ID" ]; then
             echo "Failed to read provisioning profile metadata (UUID/Name/AppId)."
-            ls -l "$PROFILE_PATH" "$PROFILE_PLIST" || true
-            head -n 40 "$PROFILE_PLIST" || true
             exit 1
           fi
 
@@ -122,11 +150,12 @@ jobs:
             exit 1
           fi
 
-          if ! security find-identity -p codesigning -v "$KEYCHAIN_PATH" | grep -q "Apple Distribution"; then
-            echo "No Apple Distribution signing identity found in keychain $KEYCHAIN_PATH"
+          if ! security find-identity -p codesigning -v "$KEYCHAIN_PATH" | grep -q "Apple Distribution\|Apple Development"; then
+            echo "No Apple Distribution/Development signing identity found in keychain $KEYCHAIN_PATH"
             security find-identity -p codesigning -v "$KEYCHAIN_PATH" || true
             exit 1
           fi
+
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
           echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
@@ -146,9 +175,12 @@ jobs:
       - name: Bump iOS build number
         run: /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" iosApp/iosApp/Info.plist
 
-      - name: Build archive
+      - name: Update version string
+        run: /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" iosApp/iosApp/Info.plist
+
+      - name: Build archive (Prod)
         env:
-          KEYCHAIN_PATH: ${{ runner.temp }}/live-chat.keychain-db
+          KEYCHAIN_PATH: ${{ runner.temp }}/live-chat-prod.keychain-db
           IOS_PROFILE_NAME: ${{ env.PROFILE_NAME }}
         run: |
           xcodebuild \
@@ -156,7 +188,7 @@ jobs:
             -scheme "iosApp Prod" \
             -configuration ReleaseProd \
             -sdk iphoneos \
-            -archivePath iosApp/build/iosApp.xcarchive \
+            -archivePath iosApp/build/iosApp-prod.xcarchive \
             -destination "generic/platform=iOS" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Apple Distribution" \
@@ -166,20 +198,20 @@ jobs:
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH" \
             archive
 
-      - name: Export IPA
+      - name: Export IPA (ad-hoc)
         env:
-          KEYCHAIN_PATH: ${{ runner.temp }}/live-chat.keychain-db
+          KEYCHAIN_PATH: ${{ runner.temp }}/live-chat-prod.keychain-db
         run: |
-          cat <<EOF > iosApp/ExportOptions.plist
+          cat <<EOF > iosApp/ExportOptionsProd.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
             <dict>
-              <key>method</key><string>${EXPORT_METHOD}</string>
+              <key>method</key><string>ad-hoc</string>
               <key>signingStyle</key><string>manual</string>
               <key>provisioningProfiles</key>
               <dict>
-                <key>${BUNDLE_ID}</key><string>${PROFILE_NAME:-${{ secrets.IOS_PROFILE_NAME }}}</string>
+                <key>${BUNDLE_ID}</key><string>${PROFILE_NAME}</string>
               </dict>
               <key>stripSwiftSymbols</key><true/>
               <key>compileBitcode</key><false/>
@@ -188,39 +220,61 @@ jobs:
           EOF
 
           xcodebuild -exportArchive \
-            -archivePath iosApp/build/iosApp.xcarchive \
-            -exportOptionsPlist iosApp/ExportOptions.plist \
-            -exportPath iosApp/build/export \
+            -archivePath iosApp/build/iosApp-prod.xcarchive \
+            -exportOptionsPlist iosApp/ExportOptionsProd.plist \
+            -exportPath iosApp/build/export-prod \
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 
-      - name: Upload IPA to TestFlight
-        env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+      - name: Resolve IPA path
         run: |
-          mkdir -p "$HOME/.private_keys"
-          KEY_FILE="$HOME/.private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" | base64 --decode > "$KEY_FILE"
-
-          IPA_PATH=$(ls iosApp/build/export/*.ipa | head -n 1)
+          IPA_PATH=$(ls iosApp/build/export-prod/*.ipa | head -n 1)
           if [ -z "$IPA_PATH" ]; then
-            echo "IPA not found after export" && exit 1
+            echo "IPA not found in iosApp/build/export-prod" && exit 1
           fi
+          echo "IPA_PATH=$IPA_PATH" >> "$GITHUB_ENV"
 
-          xcrun altool --upload-app -f "$IPA_PATH" -t ios \
-            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_API_KEY_ISSUER_ID"
+      - name: Generate release notes
+        run: |
+          NOTES=$(git log -1 --pretty=%B)
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          cat <<EOF > release-notes.txt
+          Version: ${VERSION}
+          Branch: ${BRANCH}
+
+          ${NOTES}
+          EOF
+
+          echo "RELEASE_NOTES<<EOF" >> "$GITHUB_ENV"
+          cat release-notes.txt >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
+      - name: Write Firebase service account
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Upload to Firebase App Distribution
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
+        run: |
+          firebase appdistribution:distribute "$IPA_PATH" \
+            --app "${{ secrets.FIREBASE_APP_ID_IOS_PROD }}" \
+            --groups "beta-testers" \
+            --release-notes "$RELEASE_NOTES"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iosApp.ipa
-          path: iosApp/build/export/*.ipa
+          name: iosApp-prod.ipa
+          path: iosApp/build/export-prod/*.ipa
+          retention-days: 30
 
       - name: Clean keychain and profiles
         if: always()
         run: |
-          KEYCHAIN_PATH="$RUNNER_TEMP/live-chat.keychain-db"
+          KEYCHAIN_PATH="$RUNNER_TEMP/live-chat-prod.keychain-db"
           security delete-keychain "$KEYCHAIN_PATH" || true
           rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision || true

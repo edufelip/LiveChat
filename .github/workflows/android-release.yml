@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "main"
+      - "release/**"
+      - "hotfix/**"
   workflow_dispatch:
     inputs:
       track:
@@ -53,12 +55,12 @@ jobs:
 
       - name: Write google-services.json
         run: |
-          mkdir -p app
-          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json
+          mkdir -p app/src/prod
+          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/src/prod/google-services.json
 
       - name: Build release bundle
         run: |
-          ./gradlew :app:bundleRelease \
+          ./gradlew :app:bundleProdRelease \
             -PversionCode="$GITHUB_RUN_NUMBER" \
             -PversionName="1.0.$GITHUB_RUN_NUMBER" \
             -Pandroid.injected.signing.store.file="$RELEASE_STORE_FILE" \
@@ -71,13 +73,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release.aab
-          path: app/build/outputs/bundle/release/app-release.aab
+          path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
 
       - name: Upload to Play Console
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.edufelip.livechat
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: app/build/outputs/bundle/prodRelease/app-prod-release.aab
           track: ${{ env.PLAY_TRACK }}
           status: ${{ env.PLAY_RELEASE_STATUS }}

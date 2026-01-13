@@ -1,0 +1,129 @@
+name: Android Prod - Firebase Distribution
+
+on:
+  push:
+    branches:
+      - "release/**"
+      - "hotfix/**"
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - "iosApp/**"
+
+concurrency:
+  group: android-prod-firebase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firebase-distribution:
+    name: Build Prod Bundle & Upload to Firebase
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      RELEASE_STORE_FILE: ${{ github.workspace }}/app/release.keystore
+      RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from branch
+        id: version
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [[ "$BRANCH_NAME" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[2]}"
+            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+            echo "Found version: $VERSION"
+          else
+            echo "VERSION=1.0.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+            echo "Using run number for version"
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Validate Firebase secrets
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}
+          FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID_PROD }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo "GOOGLE_SERVICES_JSON_BASE64_PROD is not set" >&2
+            exit 1
+          fi
+          if [ -z "$FIREBASE_APP_ID_ANDROID" ]; then
+            echo "FIREBASE_APP_ID_ANDROID_PROD is not set" >&2
+            exit 1
+          fi
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT_JSON is not set" >&2
+            exit 1
+          fi
+
+      - name: Decode release keystore
+        run: echo "${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "$RELEASE_STORE_FILE"
+
+      - name: Validate keystore credentials
+        run: keytool -list -keystore "$RELEASE_STORE_FILE" -storepass "$RELEASE_STORE_PASSWORD" -alias "$RELEASE_KEY_ALIAS" -keypass "$RELEASE_KEY_PASSWORD" >/dev/null
+
+      - name: Write google-services.json (prod)
+        run: |
+          mkdir -p app/src/prod
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}" | base64 --decode > app/src/prod/google-services.json
+
+      - name: Build prod release bundle
+        run: |
+          ./gradlew :app:bundleProdRelease \
+            -PversionCode="$GITHUB_RUN_NUMBER" \
+            -PversionName="$VERSION" \
+            -Pandroid.injected.signing.store.file="$RELEASE_STORE_FILE" \
+            -Pandroid.injected.signing.store.password="$RELEASE_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$RELEASE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$RELEASE_KEY_PASSWORD" \
+            --stacktrace
+
+      - name: Generate release notes
+        run: |
+          NOTES=$(git log -1 --pretty=%B)
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          cat <<EOF > release-notes.txt
+          Version: ${VERSION}
+          Branch: ${BRANCH}
+
+          ${NOTES}
+          EOF
+
+          echo "RELEASE_NOTES<<EOF" >> "$GITHUB_ENV"
+          cat release-notes.txt >> "$GITHUB_ENV"
+          echo "EOF" >> "$GITHUB_ENV"
+
+      - name: Write Firebase service account
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-service-account.json"
+
+      - name: Upload bundle to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID_ANDROID_PROD }}
+          serviceCredentialsFile: ${{ runner.temp }}/firebase-service-account.json
+          groups: beta-testers
+          file: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          releaseNotes: ${{ env.RELEASE_NOTES }}
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release.aab
+          path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          retention-days: 30
