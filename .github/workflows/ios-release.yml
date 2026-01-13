@@ -88,12 +88,12 @@ jobs:
           SCHEMES_LIST=$(xcodebuild -workspace iosApp/iosApp.xcworkspace -list)
           echo "$SCHEMES_LIST"
           python - <<'PY'
-            import os, sys
+import os, sys
 
-            scheme_lines = [line.strip() for line in os.environ["SCHEMES_LIST"].splitlines()]
-            if "iosApp" not in scheme_lines:
-                print("Scheme iosApp not found in workspace.")
-                sys.exit(1)
+scheme_lines = [line.strip() for line in os.environ["SCHEMES_LIST"].splitlines()]
+if "iosApp" not in scheme_lines:
+    print("Scheme iosApp not found in workspace.")
+    sys.exit(1)
           PY
 
       - name: Set up keychain and certificates
