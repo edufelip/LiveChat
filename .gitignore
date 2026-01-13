@@ -24,7 +24,8 @@ docs/*
 iosApp/iosApp/GoogleService-Info.plist
 iosApp/iosApp/GoogleService-Info-Dev.plist
 iosApp/iosApp/GoogleService-Info-Prod.plist
-**/google-services.jsonG
+**/GoogleService-Info.plist
+**/google-services.json
 **/AGENTS.md
 functions/node_modules/
 functions/package-lock.json
