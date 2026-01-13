@@ -72,6 +72,7 @@ jobs:
         run: |
           mkdir -p iosApp/iosApp
           echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info-Prod.plist
+          cp iosApp/iosApp/GoogleService-Info-Prod.plist iosApp/iosApp/GoogleService-Info.plist
 
       - name: Preflight iOS scheme + Firebase config
         run: |
