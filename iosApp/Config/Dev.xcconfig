@@ -1,0 +1,11 @@
+// Dev Environment Configuration
+// This configuration is for development/staging environment
+
+// Bundle Identifier - adds .dev suffix
+PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.dev
+
+// Display Name
+PRODUCT_NAME = LiveChat Dev
+
+// Firebase Config File (used by build script)
+FIREBASE_ENV = dev

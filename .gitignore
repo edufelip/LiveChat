@@ -22,7 +22,9 @@ docs/*
 .kotlin/
 .project_context
 iosApp/iosApp/GoogleService-Info.plist
-**/google-services.json
+iosApp/iosApp/GoogleService-Info-Dev.plist
+iosApp/iosApp/GoogleService-Info-Prod.plist
+**/google-services.jsonG
 **/AGENTS.md
 functions/node_modules/
 functions/package-lock.json

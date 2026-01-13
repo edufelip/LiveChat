@@ -31,13 +31,33 @@ Clone this repository and open the root project in **Android Studio** (Kotlin Mu
 https://github.com/edufelip/live-chat_android.git
 ```
 
+### Environments: Dev vs Prod
+
+This project supports separate **dev** and **prod** environments with distinct Firebase projects and app identifiers. This allows you to develop and test without affecting production data. See [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) for complete setup instructions.
+
+**Quick Summary:**
+- **Android**: `com.edufelip.livechat` (prod) / `com.edufelip.livechat.dev` (dev)
+- **iOS**: `com.edufelip.livechat` (prod) / `com.edufelip.livechat.dev` (dev)
+
+Firebase configuration files:
+- Android: `app/src/prod/google-services.json` and `app/src/dev/google-services.json`
+- iOS: `iosApp/iosApp/GoogleService-Info-Prod.plist` and `iosApp/iosApp/GoogleService-Info-Dev.plist`
+
 ### Android Build Commands
 ```bash
-./gradlew :app:assembleDebug
+# Dev environment
+./gradlew :app:assembleDevDebug
+./gradlew :app:installDevDebug
+
+# Prod environment
+./gradlew :app:assembleProdDebug
+./gradlew :app:installProdDebug
+
+# Run tests and lint
 ./gradlew :app:lint
 ./gradlew :app:testDebugUnitTest
 ```
-> Building still relies on a Firebase configuration file. Place your `google-services.json` under `app/` (or the appropriate variant directory such as `app/src/debug/google-services.json`).
+> Building requires Firebase configuration files. See [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) for setup instructions.
 >
 > Gradle runs on the bundled JetBrains Runtime 17 (`org.gradle.java.home` in `gradle.properties`). Keep that runtime installed locally or update the path if you swap JDKs.
 

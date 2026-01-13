@@ -1,0 +1,11 @@
+// Prod Environment Configuration
+// This configuration is for production environment
+
+// Bundle Identifier - base identifier
+PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat
+
+// Display Name
+PRODUCT_NAME = LiveChat
+
+// Firebase Config File (used by build script)
+FIREBASE_ENV = prod

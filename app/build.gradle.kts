@@ -112,6 +112,18 @@ android {
         }
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("prod") {
+            dimension = "environment"
+            // Use base applicationId
+        }
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
