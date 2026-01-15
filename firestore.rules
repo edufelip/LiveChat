@@ -50,7 +50,9 @@ service cloud.firestore {
     match /conversations/{conversationId} {
       // Conversation ID is the recipient user ID.
       allow read: if isInboxOwner(conversationId);
-      allow create, update: if isActiveUser(request.auth.uid);
+      // Allow users to create their own inbox or send messages to others
+      allow create, update: if isActiveUser(request.auth.uid) &&
+                               (request.auth.uid == conversationId || isActiveUser(conversationId));
       allow delete: if isInboxOwner(conversationId);
 
       match /messages/{messageId} {
