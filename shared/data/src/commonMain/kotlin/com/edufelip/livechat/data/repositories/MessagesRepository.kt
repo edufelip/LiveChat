@@ -106,6 +106,15 @@ class MessagesRepository(
                 launch {
                     remoteData.observeConversation(currentUser, null)
                         .catch { throwable ->
+                            val isPermissionError = throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true
+                            if (isPermissionError) {
+                                println("$logTag: Permission denied - attempting to create inbox")
+                                runCatching {
+                                    ensureConversation(currentUser, null)
+                                }.onFailure { ensureError ->
+                                    println("$logTag: Failed to ensure inbox: ${ensureError.message}")
+                                }
+                            }
                             println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
                         }
                         .collect { remoteItems ->

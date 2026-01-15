@@ -26,6 +26,7 @@ import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
+import com.edufelip.livechat.domain.useCases.EnsureUserInboxUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
@@ -111,6 +112,7 @@ val sharedDomainModule: Module =
         factory { GetWelcomeSeenSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
         factory { EnsureConversationUseCase(get()) }
+        factory { EnsureUserInboxUseCase(get(), get()) }
         factory { SendMessageUseCase(get()) }
         factory { DeleteMessageLocalUseCase(get()) }
         factory { SyncConversationUseCase(get()) }
@@ -149,7 +151,7 @@ val sharedDomainModule: Module =
         factory { ResetNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
-        factory { VerifyOtpUseCase(get<IPhoneAuthRepository>()) }
+        factory { VerifyOtpUseCase(get<IPhoneAuthRepository>(), get<EnsureUserInboxUseCase>()) }
         factory { ClearPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ConversationPresenter(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
         factory { ConversationListPresenter(get(), get(), get(), get(), get(), get(), get()) }

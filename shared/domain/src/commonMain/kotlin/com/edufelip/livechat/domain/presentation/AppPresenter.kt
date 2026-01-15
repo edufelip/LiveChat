@@ -77,6 +77,8 @@ class AppPresenter(
                 }
         }
         scope.launch {
+            // Inbox is now created during authentication (VerifyOtpUseCase)
+            // This listener will start receiving messages once inbox exists
             observeConversationUseCase.observeAll().collectLatest {
                 // Messages are persisted by repository; no UI state change needed here.
             }
