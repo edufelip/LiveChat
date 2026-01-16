@@ -6,8 +6,10 @@ import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.Image
@@ -42,4 +44,6 @@ object AppIcons {
     val camera: ImageVector = Icons.Rounded.PhotoCamera
     val gallery: ImageVector = Icons.Rounded.Image
     val stop: ImageVector = Icons.Rounded.Stop
+    val check: ImageVector = Icons.Rounded.Check
+    val doneAll: ImageVector = Icons.Rounded.DoneAll
 }
