@@ -1,16 +1,19 @@
 package com.edufelip.livechat.domain.useCases
 
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthResult
+import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
 import com.edufelip.livechat.domain.auth.phone.model.PhoneVerificationSession
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.useCases.phone.VerifyOtpUseCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -76,8 +79,7 @@ class EnsureUserInboxUseCaseTest {
             val session =
                 PhoneVerificationSession(
                     verificationId = "verify123",
-                    phoneNumber = "+1234567890",
-                    resendToken = null,
+                    phoneNumber = PhoneNumber("+1", "234567890"),
                 )
 
             val result = verifyOtp(session, "123456")
@@ -102,8 +104,7 @@ class EnsureUserInboxUseCaseTest {
             val session =
                 PhoneVerificationSession(
                     verificationId = "verify123",
-                    phoneNumber = "+1234567890",
-                    resendToken = null,
+                    phoneNumber = PhoneNumber("+1", "234567890"),
                 )
 
             val result = verifyOtp(session, "123456")
@@ -116,6 +117,10 @@ class EnsureUserInboxUseCaseTest {
         private val userId: String?,
         private val userPhone: String? = null,
     ) : UserSessionProvider {
+        override val session: Flow<UserSession?> = MutableStateFlow(null)
+
+        override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = null
+
         override fun currentUserId(): String? = userId
 
         override fun currentUserPhone(): String? = userPhone
@@ -196,6 +201,6 @@ class EnsureUserInboxUseCaseTest {
             presentationContext: com.edufelip.livechat.domain.auth.phone.model.PhoneAuthPresentationContext,
         ): Flow<com.edufelip.livechat.domain.auth.phone.model.PhoneAuthEvent> = emptyFlow()
 
-        override fun clearVerification() = Unit
+        override fun clearActiveSession() = Unit
     }
 }
