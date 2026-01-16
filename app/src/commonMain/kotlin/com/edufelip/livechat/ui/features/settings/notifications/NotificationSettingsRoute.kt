@@ -17,6 +17,7 @@ import com.edufelip.livechat.notifications.NotificationPermissionState
 import com.edufelip.livechat.notifications.rememberNotificationPermissionManager
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.common.audio.rememberSoundPlayer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationQuietHoursBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundBottomSheet
@@ -43,6 +44,8 @@ fun NotificationSettingsRoute(
 
     val presenter = rememberNotificationSettingsPresenter()
     val state by presenter.collectState()
+
+    val soundPlayer = rememberSoundPlayer()
 
     val permissionManager = rememberNotificationPermissionManager()
     var permissionState by remember { mutableStateOf(permissionManager.status()) }
@@ -122,11 +125,18 @@ fun NotificationSettingsRoute(
             description = strings.notifications.soundSheetDescription,
             options = soundOptions,
             selectedId = selectedSound,
-            onSelect = { selectedSound = it },
-            onDismiss = { activeSheet = NotificationSheet.None },
+            onSelect = {
+                selectedSound = it
+                soundPlayer.playNotificationSound(it)
+            },
+            onDismiss = {
+                activeSheet = NotificationSheet.None
+                soundPlayer.stop()
+            },
             onConfirm = {
                 presenter.updateSound(selectedSound)
                 activeSheet = NotificationSheet.None
+                soundPlayer.stop()
             },
             confirmEnabled = !state.isUpdating && selectedSound != state.settings.sound,
             confirmLabel = strings.notifications.saveCta,
