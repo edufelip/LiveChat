@@ -5,12 +5,15 @@ import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.QuietHours
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -125,14 +128,46 @@ class FirebaseRestNotificationSettingsRemoteData(
     ) {
         withContext(dispatcher) {
             ensureConfigured(idToken)
-            httpClient.patch(documentUrl(userId)) {
-                header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                if (config.apiKey.isNotBlank()) {
-                    parameter("key", config.apiKey)
+            val url = documentUrl(userId)
+            val request = UpdateDocumentRequest(fields = fields)
+
+            try {
+                httpClient.patch(url) {
+                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                    if (config.apiKey.isNotBlank()) {
+                        parameter("key", config.apiKey)
+                    }
+                    fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
                 }
-                fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
-                contentType(ContentType.Application.Json)
-                setBody(UpdateDocumentRequest(fields = fields))
+            } catch (e: ClientRequestException) {
+                if (e.response.status == HttpStatusCode.NotFound) {
+                    // Document doesn't exist, create it with defaults + changes
+                    val defaults = NotificationSettings()
+                    val initialFields =
+                        mapOf(
+                            FIELD_PUSH_ENABLED to Value(booleanValue = defaults.pushEnabled),
+                            FIELD_SOUND to Value(stringValue = defaults.sound),
+                            FIELD_QUIET_ENABLED to Value(booleanValue = defaults.quietHoursEnabled),
+                            FIELD_QUIET_FROM to Value(stringValue = defaults.quietHours.from),
+                            FIELD_QUIET_TO to Value(stringValue = defaults.quietHours.to),
+                            FIELD_IN_APP_VIBRATION to Value(booleanValue = defaults.inAppVibration),
+                            FIELD_SHOW_PREVIEW to Value(booleanValue = defaults.showMessagePreview),
+                        ) + fields
+
+                    httpClient.post("${config.documentsEndpoint}/${config.usersCollection}/$userId/$SETTINGS_COLLECTION") {
+                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                        if (config.apiKey.isNotBlank()) {
+                            parameter("key", config.apiKey)
+                        }
+                        parameter("documentId", NOTIFICATIONS_DOC)
+                        contentType(ContentType.Application.Json)
+                        setBody(UpdateDocumentRequest(fields = initialFields))
+                    }
+                } else {
+                    throw e
+                }
             }
         }
     }
