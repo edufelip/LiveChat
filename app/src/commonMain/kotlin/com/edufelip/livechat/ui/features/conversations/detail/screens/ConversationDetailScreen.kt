@@ -416,6 +416,10 @@ private fun ConversationMessagesList(
             val isOwnMessage =
                 message.senderId == currentUserId ||
                     (currentUserId.isBlank() && message.localTempId != null)
+            println(
+                "MSG_ATTRIBUTION: [UI_DISPLAY] Rendering message - id=${message.id}, " +
+                    "senderId=${message.senderId}, isOwn=$isOwnMessage",
+            )
             val messageKey = message.localTempId ?: message.id
             val isHighlighted = selectedMessageId != null && selectedMessageId == messageKey
             var bubbleBounds by remember(messageKey) { mutableStateOf<Rect?>(null) }

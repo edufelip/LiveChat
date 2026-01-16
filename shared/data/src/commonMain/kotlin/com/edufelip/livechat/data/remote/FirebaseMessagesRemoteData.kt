@@ -106,6 +106,10 @@ class FirebaseMessagesRemoteData(
                         if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
                         if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
                     }
+                println(
+                    "MSG_ATTRIBUTION: [INBOX_SYNC] Processing - payloadId=${payload.id}, " +
+                        "sender=${payload.senderId}, receiver=${payload.receiverId}",
+                )
                 val message =
                     payload.toDomainMessage(
                         documentId = payload.id,
@@ -114,6 +118,10 @@ class FirebaseMessagesRemoteData(
                         bodyOverride = mediaPath,
                         extraMetadata = extraMetadata,
                     )
+                println(
+                    "MSG_ATTRIBUTION: [INBOX_SYNC] Mapped - messageId=${message.id}, " +
+                        "sender=${message.senderId}, convId=${message.conversationId}",
+                )
                 mapped += InboxItem.MessageItem(message)
                 sendDeliveryActionIfNeeded(currentUserId, payload)
                 deleteRemoteMessage(
@@ -340,20 +348,30 @@ class FirebaseMessagesRemoteData(
         val contentType = contentTypeOverride ?: type.toMessageContentType()
         val status = status.toMessageStatus()
         val resolvedConversationId = conversationId.takeIf { it.isNotBlank() } ?: senderId.orEmpty()
-        return Message(
-            id = documentId,
-            conversationId = resolvedConversationId,
-            senderId = senderId.orEmpty(),
-            body = bodyOverride ?: content.orEmpty(),
-            createdAt = createdAt,
-            status = status,
-            contentType = contentType,
-            metadata =
-                buildMap {
-                    put(META_RECEIVER_ID, receiverId.orEmpty())
-                    putAll(extraMetadata)
-                },
+        println(
+            "MSG_ATTRIBUTION: [MAPPING] toDomainMessage - payloadSender=${this.senderId}, " +
+                "paramConvId=$conversationId, resolvedConvId=$resolvedConversationId",
         )
+        val message =
+            Message(
+                id = documentId,
+                conversationId = resolvedConversationId,
+                senderId = senderId.orEmpty(),
+                body = bodyOverride ?: content.orEmpty(),
+                createdAt = createdAt,
+                status = status,
+                contentType = contentType,
+                metadata =
+                    buildMap {
+                        put(META_RECEIVER_ID, receiverId.orEmpty())
+                        putAll(extraMetadata)
+                    },
+            )
+        println(
+            "MSG_ATTRIBUTION: [MAPPING] Created message - id=${message.id}, " +
+                "sender=${message.senderId}, convId=${message.conversationId}",
+        )
+        return message
     }
 
     private fun MessageDraft.toTransportPayload(

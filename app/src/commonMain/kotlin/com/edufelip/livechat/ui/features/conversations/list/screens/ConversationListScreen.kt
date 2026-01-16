@@ -166,6 +166,10 @@ fun ConversationListScreen(
                             items = conversations,
                             key = { _, item -> item.conversationId },
                         ) { index, summary ->
+                            println(
+                                "MSG_ATTRIBUTION: [CONV_LIST] id=${summary.conversationId}, " +
+                                    "sender=${summary.lastMessage.senderId}, unread=${summary.unreadCount}",
+                            )
                             ConversationListRow(
                                 summary = summary,
                                 currentUserId = state.currentUserId,
