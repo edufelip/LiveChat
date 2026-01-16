@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -155,6 +156,10 @@ class MessagesRepository(
                             ?: error("User must be authenticated before sending messages.")
                     draft.copy(senderId = userId)
                 }
+            println(
+                "$logTag: [STORAGE] Before insert - senderId=${resolvedDraft.senderId}, " +
+                    "conversationId=${resolvedDraft.conversationId}, localId=${resolvedDraft.localId}",
+            )
             val pending = resolvedDraft.toPendingMessage(status = MessageStatus.SENDING)
             val existingStatus = localData.getMessageStatus(resolvedDraft.localId)
             if (existingStatus == MessageStatus.ERROR) {
@@ -167,13 +172,24 @@ class MessagesRepository(
             }
             try {
                 val remoteMessage = remoteData.sendMessage(resolvedDraft)
-                println("$logTag: repo sendMessage delivered id=${remoteMessage.id} conv=${remoteMessage.conversationId}")
+                println(
+                    "$logTag: repo sendMessage delivered id=${remoteMessage.id} " +
+                        "conv=${remoteMessage.conversationId}",
+                )
+                println(
+                    "$logTag: [STORAGE] Remote returned - id=${remoteMessage.id}, " +
+                        "senderId=${remoteMessage.senderId}, conversationId=${remoteMessage.conversationId}",
+                )
                 localData.updateMessageStatusByLocalId(
                     localId = resolvedDraft.localId,
                     serverId = remoteMessage.id,
                     status = remoteMessage.status,
                 )
                 localData.upsertMessages(listOf(remoteMessage.copy(localTempId = null)))
+                println(
+                    "$logTag: [STORAGE] After upsert - id=${remoteMessage.id}, " +
+                        "senderId=${remoteMessage.senderId}",
+                )
                 remoteMessage
             } catch (error: Throwable) {
                 localData.updateMessageStatus(
@@ -213,7 +229,11 @@ class MessagesRepository(
     }
 
     override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
-        return localData.observeConversationSummaries()
+        val currentUserId = sessionProvider.currentUserId()
+        if (currentUserId.isNullOrBlank()) {
+            return flowOf(emptyList())
+        }
+        return localData.observeConversationSummaries(currentUserId)
             .let { flow ->
                 flowOfMaybeReadReceipts(flow)
             }

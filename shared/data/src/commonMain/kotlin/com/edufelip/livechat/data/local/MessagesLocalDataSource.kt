@@ -196,8 +196,8 @@ class MessagesLocalDataSource(
         }
     }
 
-    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> =
-        messagesDao.observeConversationSummaries()
+    override fun observeConversationSummaries(currentUserId: String): Flow<List<ConversationSummary>> =
+        messagesDao.observeConversationSummaries(currentUserId)
             .map { rows ->
                 println("$logTag: local observeConversationSummaries count=${rows.size}")
                 rows.map { it.toConversationSummary() }

@@ -64,7 +64,7 @@ interface IMessagesLocalData {
 
     suspend fun clearConversationData(conversationId: String)
 
-    fun observeConversationSummaries(): Flow<List<ConversationSummary>>
+    fun observeConversationSummaries(currentUserId: String): Flow<List<ConversationSummary>>
 
     fun observeParticipant(conversationId: String): Flow<Participant?>
 

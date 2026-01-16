@@ -177,6 +177,7 @@ interface MessagesDao {
                 FROM messages AS unread
                 WHERE unread.conversation_id = m.conversation_id
                   AND unread.created_at > IFNULL(cs.last_read_at, 0)
+                  AND unread.sender_id != :currentUserId
             ) AS unreadCount
         FROM latest
         JOIN messages m ON m.conversation_id = latest.conversation_id AND m.created_at = latest.max_created_at
@@ -187,7 +188,7 @@ interface MessagesDao {
             m.created_at DESC
         """,
     )
-    fun observeConversationSummaries(): Flow<List<ConversationSummaryRow>>
+    fun observeConversationSummaries(currentUserId: String): Flow<List<ConversationSummaryRow>>
 }
 
 data class ConversationSummaryRow(

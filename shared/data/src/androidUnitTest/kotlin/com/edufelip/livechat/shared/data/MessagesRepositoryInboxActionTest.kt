@@ -456,7 +456,7 @@ class MessagesRepositoryInboxActionTest {
                 .filter { it.conversationId == conversationId }
                 .maxOfOrNull { it.createdAt }
 
-        override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = emptyFlow()
+        override fun observeConversationSummaries(currentUserId: String): Flow<List<ConversationSummary>> = emptyFlow()
 
         override fun observeParticipant(conversationId: String): Flow<Participant?> = emptyFlow()
 
