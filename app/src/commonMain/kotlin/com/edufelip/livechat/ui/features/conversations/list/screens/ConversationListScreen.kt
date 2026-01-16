@@ -1,5 +1,10 @@
 package com.edufelip.livechat.ui.features.conversations.list.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -152,34 +157,43 @@ fun ConversationListScreen(
                     )
 
                 else ->
-                    LazyColumn(
+                    AnimatedContent(
+                        targetState = state.selectedFilter to conversations,
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(300)) togetherWith
+                                fadeOut(animationSpec = tween(200))
+                        },
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                        contentPadding =
-                            PaddingValues(
-                                start = MaterialTheme.spacing.gutter,
-                                end = MaterialTheme.spacing.gutter,
-                                bottom = MaterialTheme.spacing.xxxl,
-                            ),
-                    ) {
-                        itemsIndexed(
-                            items = conversations,
-                            key = { _, item -> item.conversationId },
-                        ) { index, summary ->
-                            println(
-                                "MSG_ATTRIBUTION: [CONV_LIST] id=${summary.conversationId}, " +
-                                    "sender=${summary.lastMessage.senderId}, unread=${summary.unreadCount}",
-                            )
-                            ConversationListRow(
-                                summary = summary,
-                                currentUserId = state.currentUserId,
-                                onTogglePin = onTogglePinAction,
-                                onToggleMute = onToggleMuteAction,
-                                onToggleArchive = onToggleArchiveAction,
-                                onClick = onConversationSelectedAction,
-                                showDivider = index != conversations.lastIndex,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                    ) { (_, conversationList) ->
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                            contentPadding =
+                                PaddingValues(
+                                    start = MaterialTheme.spacing.gutter,
+                                    end = MaterialTheme.spacing.gutter,
+                                    bottom = MaterialTheme.spacing.xxxl,
+                                ),
+                        ) {
+                            itemsIndexed(
+                                items = conversationList,
+                                key = { _, item -> item.conversationId },
+                            ) { index, summary ->
+                                println(
+                                    "MSG_ATTRIBUTION: [CONV_LIST] id=${summary.conversationId}, " +
+                                        "sender=${summary.lastMessage.senderId}, unread=${summary.unreadCount}",
+                                )
+                                ConversationListRow(
+                                    summary = summary,
+                                    currentUserId = state.currentUserId,
+                                    onTogglePin = onTogglePinAction,
+                                    onToggleMute = onToggleMuteAction,
+                                    onToggleArchive = onToggleArchiveAction,
+                                    onClick = onConversationSelectedAction,
+                                    showDivider = index != conversationList.lastIndex,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
                         }
                     }
             }
