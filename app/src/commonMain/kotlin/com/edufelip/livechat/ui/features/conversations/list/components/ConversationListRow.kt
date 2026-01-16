@@ -44,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.MessageContentType
+import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -58,6 +59,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.absoluteValue
+
+private val AVATAR_SIZE = 52.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -130,7 +133,7 @@ fun ConversationListRow(
                     displayName = summary.displayName,
                     photoUrl = summary.contactPhoto,
                     isOnline = summary.isOnline,
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(AVATAR_SIZE),
                 )
                 Column(
                     modifier = Modifier.weight(1f),
@@ -172,14 +175,24 @@ fun ConversationListRow(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Text(
-                            text = previewText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier.weight(1f, fill = false),
-                        )
+                        ) {
+                            if (isOutgoing) {
+                                MessageStatusIcon(
+                                    status = summary.lastMessage.status,
+                                )
+                            }
+                            Text(
+                                text = previewText,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                         Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
                         Column(
                             horizontalAlignment = Alignment.End,
@@ -363,6 +376,50 @@ private fun UnreadBadge(count: Int) {
 }
 
 @Composable
+private fun MessageStatusIcon(
+    status: MessageStatus,
+    modifier: Modifier = Modifier,
+) {
+    when (status) {
+        MessageStatus.SENDING -> {
+            // No icon for sending state to keep it simple
+        }
+        MessageStatus.SENT -> {
+            Icon(
+                imageVector = AppIcons.check,
+                contentDescription = "Sent",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = modifier.size(14.dp),
+            )
+        }
+        MessageStatus.DELIVERED -> {
+            Icon(
+                imageVector = AppIcons.doneAll,
+                contentDescription = "Delivered",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = modifier.size(14.dp),
+            )
+        }
+        MessageStatus.READ -> {
+            Icon(
+                imageVector = AppIcons.doneAll,
+                contentDescription = "Read",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = modifier.size(14.dp),
+            )
+        }
+        MessageStatus.ERROR -> {
+            Icon(
+                imageVector = AppIcons.error,
+                contentDescription = "Error",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = modifier.size(14.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun rememberAvatarBitmap(photoUrl: String?): ImageBitmap? {
     val context = rememberPlatformContext()
     val cacheKey = photoUrl?.takeIf { it.isNotBlank() }
@@ -371,16 +428,29 @@ private fun rememberAvatarBitmap(photoUrl: String?): ImageBitmap? {
 
     LaunchedEffect(cacheKey, photoUrl, context) {
         if (photoUrl.isNullOrBlank() || cacheKey == null) return@LaunchedEffect
+
+        // Initial load if not cached
+        if (bitmap == null) {
+            val loaded = loadAvatarImageBitmap(photoUrl, context)
+            if (loaded != null) {
+                AvatarImageCache.put(cacheKey, loaded)
+                bitmap = loaded
+            }
+        }
+
+        // Periodic refresh for stale cache entries
         while (isActive) {
             val entry = AvatarImageCache.getEntry(cacheKey)
-            val shouldRefresh = entry?.let { AvatarImageCache.isStale(it) } ?: true
-            if (bitmap == null || shouldRefresh) {
+            val shouldRefresh = entry?.let { AvatarImageCache.isStale(it) } ?: false
+
+            if (shouldRefresh) {
                 val loaded = loadAvatarImageBitmap(photoUrl, context)
                 if (loaded != null) {
                     AvatarImageCache.put(cacheKey, loaded)
                     bitmap = loaded
                 }
             }
+
             val refreshedEntry = AvatarImageCache.getEntry(cacheKey)
             val delayMs =
                 refreshedEntry?.let { AvatarImageCache.timeUntilStale(it) }
