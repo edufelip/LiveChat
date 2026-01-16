@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BatteryFull
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Lock
@@ -27,8 +26,6 @@ import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shield
-import androidx.compose.material.icons.rounded.SignalCellularAlt
-import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -98,7 +95,7 @@ fun SettingsScreen(
     val sectionRequests = remember(settingsStrings) { buildSectionRequests(settingsStrings) }
     val onSectionSelectedAction = rememberStableAction(onSectionSelected)
     val rows =
-        remember(sectionRequests, onSectionSelectedAction) {
+        remember(sectionRequests, onSectionSelectedAction, searchQuery) {
             sectionRequests.map { request ->
                 SettingsRowItem(
                     id = request.section.name,
@@ -106,7 +103,10 @@ fun SettingsScreen(
                     icon = request.icon(),
                     iconBackground = request.iconBackground(),
                     trailingIcon = Icons.Rounded.ChevronRight,
-                    onClick = { onSectionSelectedAction(request) },
+                    onClick = {
+                        searchQuery = "" // Clear search when navigating
+                        onSectionSelectedAction(request)
+                    },
                 )
             }
         }
@@ -152,19 +152,13 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
     ) {
-        SettingsStatusBar(
-            modifier =
-                Modifier
-                    .padding(horizontal = MaterialTheme.spacing.gutter)
-                    .padding(top = MaterialTheme.spacing.lg),
-        )
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(horizontal = MaterialTheme.spacing.gutter)
-                    .padding(top = MaterialTheme.spacing.md, bottom = MaterialTheme.spacing.xxxl),
+                    .padding(top = MaterialTheme.spacing.lg, bottom = MaterialTheme.spacing.xxxl),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.lg),
         ) {
             SettingsHeader(title = settingsStrings.screenTitle)
@@ -183,44 +177,17 @@ fun SettingsScreen(
                 SettingsGroupCard(rows = listOf(privacyPolicyRow))
             }
 
+            // Show empty state when searching with no results
+            if (normalizedQuery.isNotBlank() && filteredRows.isEmpty() && !showPrivacyPolicy) {
+                SettingsEmptySearchState(
+                    query = normalizedQuery,
+                    modifier = Modifier.padding(vertical = MaterialTheme.spacing.xl),
+                )
+            }
+
             SettingsFooter(
                 appName = appName,
                 versionLabel = versionLabel,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingsStatusBar(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "9:41",
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
-            Icon(
-                imageVector = Icons.Rounded.SignalCellularAlt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(18.dp),
-            )
-            Icon(
-                imageVector = Icons.Rounded.Wifi,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(18.dp),
-            )
-            Icon(
-                imageVector = Icons.Rounded.BatteryFull,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -357,6 +324,30 @@ private fun SettingsIconTile(
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+@Composable
+private fun SettingsEmptySearchState(
+    query: String,
+    modifier: Modifier = Modifier,
+) {
+    val strings = liveChatStrings()
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+    ) {
+        Text(
+            text = strings.settings.searchNoResults,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = strings.settings.searchNoResultsHint,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         )
     }
 }
