@@ -16,6 +16,7 @@ import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
@@ -81,6 +82,12 @@ fun AppearanceSettingsRoute(
 
     val targetScale = scaleFromSlider(sliderValue)
     val sampleScale = if (state.settings.textScale > 0f) targetScale / state.settings.textScale else 1f
+
+    // Enable back gesture support
+    SettingsSubmenuBackHandler(
+        enabled = true,
+        onBack = onBack,
+    )
 
     AppearanceSettingsScreen(
         state = state,

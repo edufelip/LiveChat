@@ -21,6 +21,7 @@ import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.utils.phoneNumberFromE164
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.features.settings.account.components.AccountDeleteBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEmailBottomSheet
@@ -316,6 +317,12 @@ fun AccountSettingsRoute(
     }
 
     val allowEdits = !state.isLoading && !state.isUpdating && !state.isDeleting
+
+    // Enable back gesture support
+    SettingsSubmenuBackHandler(
+        enabled = true,
+        onBack = onBack,
+    )
 
     AccountSettingsScreen(
         modifier = modifier,

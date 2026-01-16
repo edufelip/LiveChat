@@ -17,6 +17,7 @@ import com.edufelip.livechat.notifications.NotificationPermissionState
 import com.edufelip.livechat.notifications.rememberNotificationPermissionManager
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationQuietHoursBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundOption
@@ -154,6 +155,12 @@ fun NotificationSettingsRoute(
             isUpdating = state.isUpdating,
         )
     }
+
+    // Enable back gesture support
+    SettingsSubmenuBackHandler(
+        enabled = true,
+        onBack = onBack,
+    )
 
     NotificationSettingsScreen(
         state = state,
