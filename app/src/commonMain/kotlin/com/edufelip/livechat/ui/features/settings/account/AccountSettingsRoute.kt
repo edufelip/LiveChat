@@ -75,9 +75,17 @@ fun AccountSettingsRoute(
     var otpCode by remember { mutableStateOf("") }
     var reauthError by remember { mutableStateOf<String?>(null) }
     var showErrorDialog by remember { mutableStateOf(false) }
+    var emailResendCountdown by remember { mutableStateOf(0) }
 
     LaunchedEffect(state.errorMessage) {
         showErrorDialog = state.errorMessage != null
+    }
+
+    LaunchedEffect(emailResendCountdown) {
+        if (emailResendCountdown > 0) {
+            delay(1_000)
+            emailResendCountdown -= 1
+        }
     }
 
     LaunchedEffect(activeEdit, state.profile) {
@@ -195,6 +203,12 @@ fun AccountSettingsRoute(
         )
     }
 
+    LaunchedEffect(state.isUpdating) {
+        if (!state.isUpdating && state.errorMessage == null) {
+            activeEdit = EditField.None
+        }
+    }
+
     if (activeEdit == EditField.DisplayName || activeEdit == EditField.StatusMessage) {
         AccountEditBottomSheet(
             title = activeEdit.title(strings),
@@ -212,7 +226,6 @@ fun AccountSettingsRoute(
                     EditField.None,
                     -> Unit
                 }
-                activeEdit = EditField.None
             },
             confirmEnabled = activeEdit.canSave(editValue),
             isUpdating = state.isUpdating,
@@ -237,13 +250,21 @@ fun AccountSettingsRoute(
             changeLabel = strings.account.editEmailChangeCta,
             resendLabel = strings.account.editEmailResendCta,
             onEmailChange = { emailValue = it },
-            onSendVerification = { presenter.sendEmailVerification(emailValue) },
+            onSendVerification = {
+                presenter.sendEmailVerification(emailValue)
+                emailResendCountdown = EMAIL_RESEND_DELAY_SECONDS
+            },
             onConfirmVerified = { presenter.confirmEmailUpdate(emailValue) },
             onChangeEmail = {
                 emailStep = EmailBottomSheetStep.Entry
                 presenter.clearEmailUpdateState()
             },
-            onResend = { presenter.sendEmailVerification(emailValue) },
+            onResend = {
+                if (emailResendCountdown <= 0) {
+                    presenter.sendEmailVerification(emailValue)
+                    emailResendCountdown = EMAIL_RESEND_DELAY_SECONDS
+                }
+            },
             onDismiss = {
                 activeEdit = EditField.None
                 presenter.clearEmailUpdateState()
@@ -251,6 +272,7 @@ fun AccountSettingsRoute(
             isLoading = state.isUpdating,
             confirmEnabled = emailValue.trim().isNotEmpty(),
             keyboardOptions = EditField.Email.keyboardOptions(),
+            resendCountdown = emailResendCountdown,
         )
     }
 
@@ -327,6 +349,7 @@ fun AccountSettingsRoute(
     AccountSettingsScreen(
         modifier = modifier,
         state = state,
+        phoneNumberOverride = sessionPhone,
         onBack = onBack,
         onEditDisplayName = { if (allowEdits) activeEdit = EditField.DisplayName },
         onEditStatus = { if (allowEdits) activeEdit = EditField.StatusMessage },
@@ -434,6 +457,7 @@ private fun previewState(): AccountUiState =
     )
 
 private const val DELETE_COUNTDOWN_SECONDS = 15
+private const val EMAIL_RESEND_DELAY_SECONDS = 300 // 5 minutes
 
 @DevicePreviews
 @Preview

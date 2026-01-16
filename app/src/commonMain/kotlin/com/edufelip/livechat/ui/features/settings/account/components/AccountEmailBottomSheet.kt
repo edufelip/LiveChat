@@ -56,6 +56,7 @@ internal fun AccountEmailBottomSheet(
     isLoading: Boolean,
     confirmEnabled: Boolean,
     keyboardOptions: KeyboardOptions,
+    resendCountdown: Int = 0,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
@@ -183,12 +184,19 @@ internal fun AccountEmailBottomSheet(
                 )
             }
             if (step == EmailBottomSheetStep.AwaitVerification) {
+                val resendEnabled = !isLoading && resendCountdown <= 0
+                val finalResendLabel =
+                    if (resendCountdown > 0) {
+                        "Resend available in ${resendCountdown}s"
+                    } else {
+                        resendLabel
+                    }
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
                 TextButton(
                     onClick = onResend,
-                    enabled = !isLoading,
+                    enabled = resendEnabled,
                 ) {
-                    Text(resendLabel)
+                    Text(finalResendLabel)
                 }
                 TextButton(
                     onClick = onChangeEmail,

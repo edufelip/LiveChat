@@ -28,6 +28,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun AccountSettingsScreen(
     state: AccountUiState,
     modifier: Modifier = Modifier,
+    phoneNumberOverride: String? = null,
     onBack: () -> Unit = {},
     onEditDisplayName: () -> Unit = {},
     onEditStatus: () -> Unit = {},
@@ -39,7 +40,7 @@ fun AccountSettingsScreen(
     val generalStrings = strings.general
     val scrollState = rememberScrollState()
     val displayData =
-        remember(state.profile, accountStrings) {
+        remember(state.profile, accountStrings, phoneNumberOverride) {
             val profile = state.profile
             val displayName =
                 profile?.displayName?.takeIf { it.isNotBlank() }
@@ -48,7 +49,8 @@ fun AccountSettingsScreen(
                 profile?.statusMessage?.takeIf { it.isNotBlank() }
                     ?: accountStrings.statusPlaceholder
             val phoneNumber =
-                profile?.phoneNumber?.takeIf { it.isNotBlank() }
+                phoneNumberOverride
+                    ?: profile?.phoneNumber?.takeIf { it.isNotBlank() }
                     ?: accountStrings.phoneMissing
             val email = profile?.email?.takeIf { it.isNotBlank() } ?: accountStrings.emailMissing
             val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
