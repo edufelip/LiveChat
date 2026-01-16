@@ -20,6 +20,8 @@
     <!-- Settings -->
     <string name="settings_screen_title">Settings</string>
     <string name="settings_search_placeholder">Search</string>
+    <string name="settings_search_no_results">No settings found</string>
+    <string name="settings_search_no_results_hint">Try a different search term</string>
     <string name="settings_account_title">Account</string>
     <string name="settings_account_description">Profile, status, and linked phone number</string>
     <string name="settings_notifications_title">Notifications</string>

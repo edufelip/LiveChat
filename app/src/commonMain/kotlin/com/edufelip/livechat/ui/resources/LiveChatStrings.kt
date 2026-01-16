@@ -31,6 +31,8 @@ data class ContactsStrings(
 data class SettingsStrings(
     val screenTitle: String = "Settings",
     val searchPlaceholder: String = "Search",
+    val searchNoResults: String = "No settings found",
+    val searchNoResultsHint: String = "Try a different search term",
     val accountTitle: String = "Account",
     val accountDescription: String = "Profile, status, and linked phone number",
     val notificationsTitle: String = "Notifications",
@@ -382,6 +384,8 @@ fun rememberLiveChatStrings(): LiveChatStrings {
         SettingsStrings(
             screenTitle = stringResource(Res.string.settings_screen_title),
             searchPlaceholder = stringResource(Res.string.settings_search_placeholder),
+            searchNoResults = stringResource(Res.string.settings_search_no_results),
+            searchNoResultsHint = stringResource(Res.string.settings_search_no_results_hint),
             accountTitle = stringResource(Res.string.settings_account_title),
             accountDescription = stringResource(Res.string.settings_account_description),
             notificationsTitle = stringResource(Res.string.settings_notifications_title),
