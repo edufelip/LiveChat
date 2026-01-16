@@ -114,8 +114,10 @@ class FirebaseRestAccountRemoteData(
     ) {
         withContext(dispatcher) {
             ensureConfigured(idToken)
-            deleteAuthUser(idToken)
+            // Mark Firestore document as deleted first while we still have a valid token
             markAccountDeleted(userId, idToken)
+            // Then delete the Auth user
+            deleteAuthUser(idToken)
         }
     }
 
