@@ -41,8 +41,9 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         if (!settings.pushEnabled) return
         if (isQuietModeActive(settings)) return
 
-        val title = payload.title.ifBlank { defaults.title }
-        val body = if (settings.showMessagePreview) payload.body else defaults.hiddenBody
+        val showPreview = settings.showMessagePreview
+        val title = if (showPreview) payload.title.ifBlank { defaults.title } else defaults.title
+        val body = if (showPreview) payload.body else defaults.hiddenBody
 
         if (AppForegroundTracker.isForeground.value) {
             InAppNotificationCenter.emit(
