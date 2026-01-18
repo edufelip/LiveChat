@@ -2,7 +2,7 @@
 
 ## Summary
 
-- Goal: Avoid triggering filter transition animations on every list mutation.
+- Goal: Prevent filter transition animations from running on every list mutation while preserving transitions between filters.
 - Measurement artifacts used (Layout Inspector / compiler reports / benchmarks / traces): None (heuristic review only).
 - Scope (modules/screens): Conversation list screen.
 
@@ -12,21 +12,17 @@
 
 ## Changes by Rule
 
-### Rule B — Use derivedStateOf for Fast-Changing Inputs
-
-- No issues observed; no changes applied.
-
 ### Rule E — Add Stable Keys in Lists
 
 - **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/conversations/list/screens/ConversationListScreen.kt
 - **Composables:** ConversationListScreen
-- **Pattern observed:** AnimatedContent `targetState` included the full conversations list, causing transitions on any list change.
-- **Fix applied:** Target the filter only and keep list rendering inside content block.
-- **Why it reduces recomposition:** Prevents animation restart on list updates, reducing unnecessary transitions.
+- **Pattern observed:** AnimatedContent target state included the full conversations list, so any list update triggered a fade transition.
+- **Fix applied:** Keep target state as (filter, list) to preserve before/after content, but gate transitions to only animate when filter changes.
+- **Why it reduces recomposition:** Prevents animation work on list updates while preserving the intended filter transition.
 - **Risk level:** Low
 - **Validation:** Not measured; recommend Layout Inspector recomposition counters during incoming message updates.
 
-### Rule A/C/D/F/G
+### Rule A/B/C/D/F/G
 
 - No changes applied.
 

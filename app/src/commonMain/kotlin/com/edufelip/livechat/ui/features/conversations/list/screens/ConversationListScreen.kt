@@ -158,14 +158,19 @@ fun ConversationListScreen(
 
                 else ->
                     AnimatedContent(
-                        targetState = state.selectedFilter,
+                        targetState = state.selectedFilter to conversations,
                         transitionSpec = {
-                            fadeIn(animationSpec = tween(300)) togetherWith
-                                fadeOut(animationSpec = tween(200))
+                            if (targetState.first != initialState.first) {
+                                fadeIn(animationSpec = tween(300)) togetherWith
+                                    fadeOut(animationSpec = tween(200))
+                            } else {
+                                fadeIn(animationSpec = tween(0)) togetherWith
+                                    fadeOut(animationSpec = tween(0))
+                            }
                         },
                         modifier = Modifier.fillMaxSize(),
                         label = "conversation_filter_transition",
-                    ) { _ ->
+                    ) { (_, conversationList) ->
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
@@ -177,7 +182,7 @@ fun ConversationListScreen(
                                 ),
                         ) {
                             itemsIndexed(
-                                items = conversations,
+                                items = conversationList,
                                 key = { _, item -> item.conversationId },
                             ) { index, summary ->
                                 println(
@@ -191,7 +196,7 @@ fun ConversationListScreen(
                                     onToggleMute = onToggleMuteAction,
                                     onToggleArchive = onToggleArchiveAction,
                                     onClick = onConversationSelectedAction,
-                                    showDivider = index != conversations.lastIndex,
+                                    showDivider = index != conversationList.lastIndex,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
