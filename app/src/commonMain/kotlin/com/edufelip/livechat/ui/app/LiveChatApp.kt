@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.analytics.rememberAnalyticsController
@@ -28,14 +29,17 @@ import com.edufelip.livechat.domain.models.AppDestination
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
+import com.edufelip.livechat.notifications.NotificationNavigation
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
+import com.edufelip.livechat.ui.components.molecules.InAppNotificationHost
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.home.view.HomeScreen
 import com.edufelip.livechat.ui.features.onboarding.OnboardingFlowScreen
 import com.edufelip.livechat.ui.features.onboarding.WelcomeScreen
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.edufelip.livechat.ui.platform.AppLifecycleObserver
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
@@ -111,12 +115,24 @@ fun LiveChatApp(
             val analyticsController = rememberAnalyticsController()
 
             AppLifecycleObserver(
-                onForeground = presenter::onAppForeground,
-                onBackground = presenter::onAppBackground,
+                onForeground = {
+                    AppForegroundTracker.onForeground()
+                    presenter.onAppForeground()
+                },
+                onBackground = {
+                    AppForegroundTracker.onBackground()
+                    presenter.onAppBackground()
+                },
             )
 
             LaunchedEffect(privacyState.settings.shareUsageData) {
                 analyticsController.setCollectionEnabled(privacyState.settings.shareUsageData)
+            }
+
+            LaunchedEffect(Unit) {
+                NotificationNavigation.events.collect { target ->
+                    presenter.openConversation(target.conversationId, target.senderName)
+                }
             }
 
             LaunchedEffect(presenter) {
@@ -188,6 +204,13 @@ fun LiveChatApp(
                         )
                 }
             }
+
+            InAppNotificationHost(
+                modifier = Modifier.align(Alignment.TopCenter),
+                onOpenConversation = { conversationId ->
+                    presenter.openConversation(conversationId)
+                },
+            )
         }
     }
 }

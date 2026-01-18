@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_message_title">New message</string>
+    <string name="notification_message_hidden_body">Open app to read</string>
+</resources>

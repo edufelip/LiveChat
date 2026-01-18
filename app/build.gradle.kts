@@ -54,6 +54,7 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.browser)
                 implementation(libs.firebase.analytics)
+                implementation(libs.firebase.messaging)
             }
         }
         val iosX64Main by getting

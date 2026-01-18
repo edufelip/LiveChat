@@ -19,6 +19,7 @@ firebase-firestore-android = "26.0.2"
 firebase-functions-android = "22.0.1"
 firebase-storage-android = "22.0.1"
 firebase-analytics-android = "22.5.0"
+firebase-messaging-android = "24.0.1"
 libphonenumber = "9.0.17"
 kotlinDateTime = "0.7.1"
 compose-multiplatform = "1.9.1"
@@ -78,6 +79,7 @@ firebase-firestore = { module = "com.google.firebase:firebase-firestore", versio
 firebase-functions = { module = "com.google.firebase:firebase-functions", version.ref = "firebase-functions-android" }
 firebase-storage = { module = "com.google.firebase:firebase-storage", version.ref = "firebase-storage-android" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx", version.ref = "firebase-analytics-android" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx", version.ref = "firebase-messaging-android" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-common-kt = { module = "dev.gitlive:firebase-common", version.ref = "firebase-kotlin" }
 firebase-app-kt = { module = "dev.gitlive:firebase-app", version.ref = "firebase-kotlin" }

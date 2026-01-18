@@ -9,6 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import com.edufelip.livechat.contacts.AndroidContactsProvider
+import com.edufelip.livechat.notifications.NotificationIntentKeys
+import com.edufelip.livechat.notifications.NotificationNavigation
+import com.edufelip.livechat.notifications.NotificationNavigationTarget
 import com.edufelip.livechat.ui.app.LiveChatApp
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
@@ -38,6 +41,15 @@ class MainActivity : ComponentActivity() {
                 },
             )
         }
+        handleNotificationIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent != null) {
+            setIntent(intent)
+            handleNotificationIntent(intent)
+        }
     }
 
     private fun shareInvite(request: InviteShareRequest) {
@@ -57,5 +69,11 @@ class MainActivity : ComponentActivity() {
 
     private fun showSettingsSection(request: SettingsNavigationRequest) {
         Toast.makeText(this, request.placeholderMessage, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        val conversationId = intent?.getStringExtra(NotificationIntentKeys.EXTRA_CONVERSATION_ID) ?: return
+        val senderName = intent.getStringExtra(NotificationIntentKeys.EXTRA_SENDER_NAME)
+        NotificationNavigation.emit(NotificationNavigationTarget(conversationId, senderName))
     }
 }
