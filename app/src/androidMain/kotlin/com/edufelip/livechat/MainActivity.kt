@@ -44,12 +44,10 @@ class MainActivity : ComponentActivity() {
         handleNotificationIntent(intent)
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent != null) {
-            setIntent(intent)
-            handleNotificationIntent(intent)
-        }
+        setIntent(intent)
+        handleNotificationIntent(intent)
     }
 
     private fun shareInvite(request: InviteShareRequest) {

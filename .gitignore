@@ -17,7 +17,7 @@
 .cxx
 local.properties
 /.idea
-docs/*
+docs/internal/*
 !docs/FirebaseScenarioMatrix.md
 .kotlin/
 .project_context

@@ -50,6 +50,6 @@ object LiveChatNotificationChannels {
 
     private fun channelId(settings: NotificationSettings): String {
         val soundSuffix = if (settings.sound == NotificationSound.Silent.id) "silent" else "sound"
-        return "$CHANNEL_PREFIX_$soundSuffix"
+        return "${CHANNEL_PREFIX}_$soundSuffix"
     }
 }

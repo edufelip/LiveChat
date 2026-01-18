@@ -47,7 +47,7 @@ internal fun AccountEmailBottomSheet(
     verifyLabel: String,
     changeLabel: String,
     resendLabel: String,
-    resendCountdownLabel: (Int) -> String,
+    resendCountdownLabel: @Composable (Int) -> String,
     onEmailChange: (String) -> Unit,
     onSendVerification: () -> Unit,
     onConfirmVerified: () -> Unit,

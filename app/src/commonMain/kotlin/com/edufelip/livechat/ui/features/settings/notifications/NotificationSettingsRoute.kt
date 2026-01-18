@@ -22,10 +22,11 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.common.audio.rememberSoundPlayer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
-import com.edufelip.livechat.ui.features.conversations.detail.openAppSettings
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationQuietHoursBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundOption
+import com.edufelip.livechat.ui.platform.AppLifecycleObserver
+import com.edufelip.livechat.ui.platform.openAppSettings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberNotificationSettingsPresenter
@@ -95,6 +96,15 @@ fun NotificationSettingsRoute(
     LaunchedEffect(Unit) {
         permissionState = permissionManager.refreshStatus()
     }
+
+    AppLifecycleObserver(
+        onForeground = {
+            coroutineScope.launch {
+                permissionState = permissionManager.refreshStatus()
+            }
+        },
+        onBackground = {},
+    )
 
     LaunchedEffect(state.errorMessage) {
         showErrorDialog = state.errorMessage != null

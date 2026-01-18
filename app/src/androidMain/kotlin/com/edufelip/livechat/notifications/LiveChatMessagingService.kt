@@ -16,9 +16,8 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalTime
+import java.time.LocalTime as JavaLocalTime
 
 val DEFAULT_VIBRATION_PATTERN = longArrayOf(0, 50, 40, 50)
 
@@ -115,7 +114,14 @@ class LiveChatMessagingService : FirebaseMessagingService() {
     }
 
     private fun isQuietModeActive(settings: NotificationSettings): Boolean {
-        val currentTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).time
+        val now = JavaLocalTime.now()
+        val currentTime =
+            LocalTime(
+                hour = now.hour,
+                minute = now.minute,
+                second = now.second,
+                nanosecond = now.nano,
+            )
         return quietModeUseCase(settings, currentTime)
     }
 

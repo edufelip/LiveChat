@@ -1,4 +1,4 @@
-package com.edufelip.livechat.ui.features.conversations.detail
+package com.edufelip.livechat.ui.platform
 
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
