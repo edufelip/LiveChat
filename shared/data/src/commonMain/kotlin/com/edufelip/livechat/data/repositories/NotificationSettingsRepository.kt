@@ -2,6 +2,7 @@ package com.edufelip.livechat.data.repositories
 
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.domain.models.NotificationSettings
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -48,8 +49,9 @@ class NotificationSettingsRepository(
 
     override suspend fun updateSound(sound: String) {
         val session = requireSession()
-        remoteData.updateSound(session.userId, session.idToken, sound)
-        settingsState.value = settingsState.value.copy(sound = sound)
+        val normalizedSound = NotificationSound.normalizeId(sound)
+        remoteData.updateSound(session.userId, session.idToken, normalizedSound)
+        settingsState.value = settingsState.value.copy(sound = normalizedSound)
     }
 
     override suspend fun updateQuietHoursEnabled(enabled: Boolean) {

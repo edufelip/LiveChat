@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationOptionCard
@@ -24,6 +25,7 @@ import com.edufelip.livechat.ui.features.settings.notifications.components.Notif
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSettingsHeader
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationToggleCard
 import com.edufelip.livechat.ui.features.settings.notifications.components.QuietHoursCard
+import com.edufelip.livechat.ui.resources.NotificationsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -48,8 +50,9 @@ fun NotificationSettingsScreen(
     val settings = state.settings
     val allowEdits = !state.isUpdating && !state.isLoading
     val soundLabel =
-        settings.sound.takeIf { it.isNotBlank() }
-            ?: notificationStrings.soundOptionPopcorn
+        remember(settings.sound, notificationStrings) {
+            notificationStrings.labelForSound(settings.sound)
+        }
     val permissionHint =
         if (systemPermissionGranted) {
             null
@@ -163,6 +166,16 @@ fun NotificationSettingsScreen(
             enabled = allowEdits,
             onClick = onResetNotificationsAction,
         )
+    }
+}
+
+private fun NotificationsStrings.labelForSound(soundId: String): String {
+    return when (NotificationSound.normalizeId(soundId)) {
+        NotificationSound.Popcorn.id -> soundOptionPopcorn
+        NotificationSound.Chime.id -> soundOptionChime
+        NotificationSound.Ripple.id -> soundOptionRipple
+        NotificationSound.Silent.id -> soundOptionSilent
+        else -> soundOptionPopcorn
     }
 }
 

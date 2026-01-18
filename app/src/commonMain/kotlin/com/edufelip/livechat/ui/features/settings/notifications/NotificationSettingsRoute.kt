@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.notifications.NotificationPermissionState
 import com.edufelip.livechat.notifications.rememberNotificationPermissionManager
 import com.edufelip.livechat.preview.DevicePreviews
@@ -51,7 +52,11 @@ fun NotificationSettingsRoute(
     var permissionState by remember { mutableStateOf(permissionManager.status()) }
 
     var activeSheet by remember { mutableStateOf(NotificationSheet.None) }
-    var selectedSound by remember { mutableStateOf(state.settings.sound) }
+    val normalizedSound =
+        remember(state.settings.sound) {
+            NotificationSound.normalizeId(state.settings.sound)
+        }
+    var selectedSound by remember { mutableStateOf(normalizedSound) }
     var quietFrom by remember { mutableStateOf(state.settings.quietHours.from) }
     var quietTo by remember { mutableStateOf(state.settings.quietHours.to) }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -60,19 +65,19 @@ fun NotificationSettingsRoute(
         remember(strings) {
             listOf(
                 NotificationSoundOption(
-                    id = strings.notifications.soundOptionPopcorn,
+                    id = NotificationSound.Popcorn.id,
                     label = strings.notifications.soundOptionPopcorn,
                 ),
                 NotificationSoundOption(
-                    id = strings.notifications.soundOptionChime,
+                    id = NotificationSound.Chime.id,
                     label = strings.notifications.soundOptionChime,
                 ),
                 NotificationSoundOption(
-                    id = strings.notifications.soundOptionRipple,
+                    id = NotificationSound.Ripple.id,
                     label = strings.notifications.soundOptionRipple,
                 ),
                 NotificationSoundOption(
-                    id = strings.notifications.soundOptionSilent,
+                    id = NotificationSound.Silent.id,
                     label = strings.notifications.soundOptionSilent,
                 ),
             )
@@ -88,7 +93,7 @@ fun NotificationSettingsRoute(
 
     LaunchedEffect(activeSheet) {
         when (activeSheet) {
-            NotificationSheet.Sound -> selectedSound = state.settings.sound
+            NotificationSheet.Sound -> selectedSound = normalizedSound
             NotificationSheet.QuietHours -> {
                 quietFrom = state.settings.quietHours.from
                 quietTo = state.settings.quietHours.to
@@ -138,7 +143,7 @@ fun NotificationSettingsRoute(
                 activeSheet = NotificationSheet.None
                 soundPlayer.stop()
             },
-            confirmEnabled = !state.isUpdating && selectedSound != state.settings.sound,
+            confirmEnabled = !state.isUpdating && selectedSound != normalizedSound,
             confirmLabel = strings.notifications.saveCta,
         )
     }

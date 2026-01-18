@@ -2,6 +2,7 @@ package com.edufelip.livechat.data.remote
 
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.domain.models.NotificationSettings
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.models.QuietHours
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -187,9 +188,10 @@ class FirebaseRestNotificationSettingsRemoteData(
                 from = fields[FIELD_QUIET_FROM]?.stringValue ?: defaults.quietHours.from,
                 to = fields[FIELD_QUIET_TO]?.stringValue ?: defaults.quietHours.to,
             )
+        val rawSound = fields[FIELD_SOUND]?.stringValue ?: defaults.sound
         return defaults.copy(
             pushEnabled = fields[FIELD_PUSH_ENABLED]?.booleanValue ?: defaults.pushEnabled,
-            sound = fields[FIELD_SOUND]?.stringValue ?: defaults.sound,
+            sound = NotificationSound.normalizeId(rawSound),
             quietHoursEnabled = fields[FIELD_QUIET_ENABLED]?.booleanValue ?: defaults.quietHoursEnabled,
             quietHours = quietHours,
             inAppVibration = fields[FIELD_IN_APP_VIBRATION]?.booleanValue ?: defaults.inAppVibration,

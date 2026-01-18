@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.components.atoms.BottomSheetDragHandle
@@ -215,15 +216,15 @@ private fun NotificationSoundBottomSheetPreview() {
             options =
                 listOf(
                     NotificationSoundOption(
-                        strings.notifications.soundOptionPopcorn,
+                        NotificationSound.Popcorn.id,
                         strings.notifications.soundOptionPopcorn,
                     ),
                     NotificationSoundOption(
-                        strings.notifications.soundOptionChime,
+                        NotificationSound.Chime.id,
                         strings.notifications.soundOptionChime,
                     ),
                 ),
-            selectedId = strings.notifications.soundOptionPopcorn,
+            selectedId = NotificationSound.Popcorn.id,
             onSelect = {},
             onDismiss = {},
             onConfirm = {},

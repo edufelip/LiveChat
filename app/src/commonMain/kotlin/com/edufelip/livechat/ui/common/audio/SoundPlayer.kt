@@ -9,7 +9,7 @@ interface SoundPlayer {
     /**
      * Plays a notification sound by its name/id.
      *
-     * @param soundName The name of the sound to play (e.g., "Popcorn", "Chime")
+     * @param soundName The stable sound ID to play (e.g., "popcorn", "chime")
      */
     fun playNotificationSound(soundName: String)
 

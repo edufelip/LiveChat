@@ -2,6 +2,7 @@ package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.useCases.ObserveNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateInAppVibrationUseCase
@@ -63,10 +64,11 @@ class NotificationSettingsPresenter(
     }
 
     fun updateSound(sound: String) {
-        if (sound.isBlank()) return
+        val normalizedSound = NotificationSound.normalizeId(sound)
+        if (normalizedSound.isBlank()) return
         updateSettings(
-            update = { updateSound(sound) },
-            localUpdate = { it.copy(sound = sound) },
+            update = { updateSound(normalizedSound) },
+            localUpdate = { it.copy(sound = normalizedSound) },
         )
     }
 
