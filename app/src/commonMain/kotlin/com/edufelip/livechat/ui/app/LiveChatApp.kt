@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.edufelip.livechat.analytics.rememberAnalyticsController
 import com.edufelip.livechat.domain.models.AppDestination
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
@@ -40,6 +41,7 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
+import com.edufelip.livechat.ui.state.rememberPrivacySettingsPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
 import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import com.edufelip.livechat.ui.util.isE2eMode
@@ -104,11 +106,18 @@ fun LiveChatApp(
             val isE2e = isE2eMode()
             val reduceMotion = LocalReduceMotion.current
             val strings = liveChatStrings()
+            val privacyPresenter = rememberPrivacySettingsPresenter()
+            val privacyState by privacyPresenter.collectState()
+            val analyticsController = rememberAnalyticsController()
 
             AppLifecycleObserver(
                 onForeground = presenter::onAppForeground,
                 onBackground = presenter::onAppBackground,
             )
+
+            LaunchedEffect(privacyState.settings.shareUsageData) {
+                analyticsController.setCollectionEnabled(privacyState.settings.shareUsageData)
+            }
 
             LaunchedEffect(presenter) {
                 presenter.onAppForeground()
