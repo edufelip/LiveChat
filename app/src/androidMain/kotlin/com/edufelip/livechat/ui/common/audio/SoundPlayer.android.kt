@@ -31,11 +31,15 @@ class AndroidSoundPlayer(private val context: Context) : SoundPlayer {
                             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build(),
                     )
-                    prepare()
-                    start()
+                    setOnPreparedListener { player -> player.start() }
                     setOnCompletionListener {
                         stop()
                     }
+                    setOnErrorListener { _, _, _ ->
+                        stop()
+                        true
+                    }
+                    prepareAsync()
                 }
         } catch (e: Exception) {
             e.printStackTrace()
