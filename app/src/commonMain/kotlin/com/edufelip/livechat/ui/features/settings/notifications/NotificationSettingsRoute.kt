@@ -22,6 +22,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.common.audio.rememberSoundPlayer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
+import com.edufelip.livechat.ui.features.conversations.detail.openAppSettings
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationQuietHoursBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundBottomSheet
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundOption
@@ -210,6 +211,7 @@ fun NotificationSettingsRoute(
         onToggleVibration = presenter::updateInAppVibration,
         onToggleMessagePreview = presenter::updateShowMessagePreview,
         onResetNotifications = presenter::resetNotificationSettings,
+        onOpenSystemSettings = { openAppSettings() },
     )
 }
 

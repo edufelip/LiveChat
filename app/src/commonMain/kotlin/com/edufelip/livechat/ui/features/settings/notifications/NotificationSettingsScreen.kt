@@ -11,9 +11,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
 import com.edufelip.livechat.domain.models.NotificationSound
@@ -43,6 +45,7 @@ fun NotificationSettingsScreen(
     onToggleVibration: (Boolean) -> Unit = {},
     onToggleMessagePreview: (Boolean) -> Unit = {},
     onResetNotifications: () -> Unit = {},
+    onOpenSystemSettings: (() -> Unit)? = null,
 ) {
     val strings = liveChatStrings()
     val notificationStrings = strings.notifications
@@ -68,6 +71,7 @@ fun NotificationSettingsScreen(
     val onToggleVibrationAction = rememberStableAction(onToggleVibration)
     val onToggleMessagePreviewAction = rememberStableAction(onToggleMessagePreview)
     val onResetNotificationsAction = rememberStableAction(onResetNotifications)
+    val onOpenSystemSettingsAction = rememberStableAction(onOpenSystemSettings ?: {})
     val quietHoursPresentation =
         remember(settings.quietHours, generalStrings) {
             QuietHoursPresentation(
@@ -116,6 +120,15 @@ fun NotificationSettingsScreen(
             enabled = allowEdits,
             onCheckedChange = onTogglePushAction,
         )
+        if (!systemPermissionGranted && onOpenSystemSettings != null) {
+            TextButton(
+                modifier = Modifier.align(Alignment.End),
+                onClick = onOpenSystemSettingsAction,
+                enabled = allowEdits,
+            ) {
+                Text(generalStrings.openSettings)
+            }
+        }
 
         NotificationOptionCard(
             title = notificationStrings.soundTitle,
