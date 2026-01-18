@@ -33,12 +33,13 @@ object LiveChatNotificationChannels {
                 if (settings.sound == NotificationSound.Silent.id) {
                     setSound(null, null)
                 } else {
+                    val soundUri = NotificationSoundResolver.resolve(context, settings.sound)
                     val attributes =
                         AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build()
-                    setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, attributes)
+                    setSound(soundUri, attributes)
                 }
             }
 

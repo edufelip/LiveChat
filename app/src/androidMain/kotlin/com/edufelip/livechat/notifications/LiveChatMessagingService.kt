@@ -9,7 +9,6 @@ import com.edufelip.livechat.MainActivity
 import com.edufelip.livechat.R
 import com.edufelip.livechat.di.AndroidKoinBridge
 import com.edufelip.livechat.domain.models.NotificationSettings
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -101,9 +100,12 @@ class LiveChatMessagingService : FirebaseMessagingService() {
             builder.setVibrate(DEFAULT_VIBRATION_PATTERN)
         }
 
-        if (settings.sound == NotificationSound.Silent.id) {
+        val soundUri = NotificationSoundResolver.resolve(this, settings.sound)
+        if (soundUri == null) {
             builder.setSound(null)
             builder.setSilent(true)
+        } else {
+            builder.setSound(soundUri)
         }
 
         NotificationManagerCompat.from(this).notify(payload.notificationId, builder.build())
