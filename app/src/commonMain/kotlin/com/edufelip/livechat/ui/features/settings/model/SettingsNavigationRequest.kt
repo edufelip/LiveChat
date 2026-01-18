@@ -7,4 +7,5 @@ data class SettingsNavigationRequest(
     val title: String,
     val description: String,
     val placeholderMessage: String,
+    val targetItemId: String? = null,
 )

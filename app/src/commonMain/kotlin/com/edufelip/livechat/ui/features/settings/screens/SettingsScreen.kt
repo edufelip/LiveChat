@@ -55,9 +55,11 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 import com.edufelip.livechat.ui.platform.appVersionInfo
 import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.platform.openWebViewUrl
+import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.SettingsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
+import com.edufelip.livechat.ui.util.FuzzyMatcher
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 enum class SettingsSection {
@@ -92,49 +94,96 @@ fun SettingsScreen(
     val settingsStrings = strings.settings
     val scrollState = rememberScrollState()
     var searchQuery by remember { mutableStateOf("") }
-    val sectionRequests = remember(settingsStrings) { buildSectionRequests(settingsStrings) }
+    val allSearchableItems = remember(strings) { buildAllSearchableItems(strings) }
     val onSectionSelectedAction = rememberStableAction(onSectionSelected)
-    val rows =
-        remember(sectionRequests, onSectionSelectedAction, searchQuery) {
-            sectionRequests.map { request ->
-                SettingsRowItem(
-                    id = request.section.name,
-                    title = request.title,
-                    icon = request.icon(),
-                    iconBackground = request.iconBackground(),
-                    trailingIcon = Icons.Rounded.ChevronRight,
-                    onClick = {
-                        searchQuery = "" // Clear search when navigating
-                        onSectionSelectedAction(request)
-                    },
-                )
-            }
-        }
-    val privacyPolicyRow =
-        remember(settingsStrings.privacyPolicyTitle, settingsStrings.privacyPolicyUrl) {
-            SettingsRowItem(
-                id = "privacy_policy",
-                title = settingsStrings.privacyPolicyTitle,
-                icon = Icons.Rounded.Shield,
-                iconBackground = SettingsIconGray,
-                trailingIcon = Icons.Rounded.OpenInNew,
-                onClick = { openWebViewUrl(settingsStrings.privacyPolicyUrl) },
-            )
-        }
     val normalizedQuery = remember(searchQuery) { searchQuery.trim() }
-    val filteredRows =
-        remember(rows, normalizedQuery) {
+    val filteredItems =
+        remember(allSearchableItems, normalizedQuery) {
             if (normalizedQuery.isBlank()) {
-                rows
+                // Show only top-level sections when not searching
+                allSearchableItems.filterIsInstance<SettingsSearchableItem.Section>()
             } else {
-                rows.filter { item ->
-                    item.title.contains(normalizedQuery, ignoreCase = true)
+                // Search both sections and subitems with fuzzy matching
+                allSearchableItems.filter { item ->
+                    // Exact match (substring)
+                    item.title.contains(normalizedQuery, ignoreCase = true) ||
+                        item.keywords.any { keyword ->
+                            keyword.contains(normalizedQuery, ignoreCase = true)
+                        } ||
+                        // Fuzzy match (typo tolerance)
+                        FuzzyMatcher.matches(normalizedQuery, item.title) ||
+                        item.keywords.any { keyword ->
+                            FuzzyMatcher.matches(normalizedQuery, keyword)
+                        }
                 }
             }
         }
-    val showPrivacyPolicy =
-        remember(privacyPolicyRow.title, normalizedQuery) {
-            normalizedQuery.isBlank() || privacyPolicyRow.title.contains(normalizedQuery, ignoreCase = true)
+    val rows =
+        remember(filteredItems, onSectionSelectedAction, strings) {
+            filteredItems.mapNotNull { item ->
+                when (item) {
+                    is SettingsSearchableItem.Section ->
+                        SettingsRowItem(
+                            id = item.id,
+                            title = item.title,
+                            icon = item.navigationRequest.icon(),
+                            iconBackground = item.navigationRequest.iconBackground(),
+                            trailingIcon = Icons.Rounded.ChevronRight,
+                            onClick = {
+                                searchQuery = ""
+                                onSectionSelectedAction(item.navigationRequest)
+                            },
+                            parentLabel = null,
+                        )
+
+                    is SettingsSearchableItem.SubItem -> {
+                        val parentTitle = item.parentSection.title(strings.settings)
+                        SettingsRowItem(
+                            id = item.id,
+                            title = item.title,
+                            icon = getSectionIcon(item.parentSection),
+                            iconBackground = getSectionIconBackground(item.parentSection),
+                            trailingIcon = Icons.Rounded.ChevronRight,
+                            onClick = {
+                                searchQuery = ""
+                                val navRequest =
+                                    SettingsNavigationRequest(
+                                        section = item.parentSection,
+                                        title = parentTitle,
+                                        description = item.parentSection.description(strings.settings),
+                                        placeholderMessage =
+                                            buildOpeningSectionMessage(
+                                                strings.settings.openingSectionTemplate,
+                                                parentTitle,
+                                            ),
+                                        targetItemId = item.id,
+                                    )
+                                onSectionSelectedAction(navRequest)
+                            },
+                            parentLabel = parentTitle,
+                        )
+                    }
+                }
+            }
+        }
+    val privacyPolicyRow =
+        remember(settingsStrings.privacyPolicyTitle, settingsStrings.privacyPolicyUrl, normalizedQuery) {
+            val shouldShow =
+                normalizedQuery.isBlank() ||
+                    settingsStrings.privacyPolicyTitle.contains(normalizedQuery, ignoreCase = true)
+            if (shouldShow) {
+                SettingsRowItem(
+                    id = "privacy_policy",
+                    title = settingsStrings.privacyPolicyTitle,
+                    icon = Icons.Rounded.Shield,
+                    iconBackground = SettingsIconGray,
+                    trailingIcon = Icons.Rounded.OpenInNew,
+                    onClick = { openWebViewUrl(settingsStrings.privacyPolicyUrl) },
+                    parentLabel = null,
+                )
+            } else {
+                null
+            }
         }
     val appVersion = remember { appVersionInfo() }
     val appName =
@@ -169,16 +218,16 @@ fun SettingsScreen(
                 modifier = Modifier.testTag(SettingsTestTags.SEARCH_FIELD),
             )
 
-            if (filteredRows.isNotEmpty()) {
-                SettingsGroupCard(rows = filteredRows)
+            if (rows.isNotEmpty()) {
+                SettingsGroupCard(rows = rows)
             }
 
-            if (showPrivacyPolicy) {
+            if (privacyPolicyRow != null) {
                 SettingsGroupCard(rows = listOf(privacyPolicyRow))
             }
 
             // Show empty state when searching with no results
-            if (normalizedQuery.isNotBlank() && filteredRows.isEmpty() && !showPrivacyPolicy) {
+            if (normalizedQuery.isNotBlank() && rows.isEmpty() && privacyPolicyRow == null) {
                 SettingsEmptySearchState(
                     query = normalizedQuery,
                     modifier = Modifier.padding(vertical = MaterialTheme.spacing.xl),
@@ -290,13 +339,23 @@ private fun SettingsRow(
             backgroundColor = item.iconBackground,
         )
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, fontSize = 17.sp),
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            if (item.parentLabel != null) {
+                Text(
+                    text = "${item.parentLabel} › ${item.title}",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, fontSize = 17.sp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            } else {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, fontSize = 17.sp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
         Icon(
             imageVector = item.trailingIcon,
             contentDescription = null,
@@ -383,7 +442,30 @@ private data class SettingsRowItem(
     val iconBackground: Color,
     val trailingIcon: ImageVector,
     val onClick: () -> Unit,
+    val parentLabel: String? = null,
 )
+
+private sealed interface SettingsSearchableItem {
+    val id: String
+    val title: String
+    val parentSection: SettingsSection?
+    val keywords: List<String>
+
+    data class Section(
+        override val id: String,
+        override val title: String,
+        override val parentSection: SettingsSection? = null,
+        override val keywords: List<String>,
+        val navigationRequest: SettingsNavigationRequest,
+    ) : SettingsSearchableItem
+
+    data class SubItem(
+        override val id: String,
+        override val title: String,
+        override val parentSection: SettingsSection,
+        override val keywords: List<String>,
+    ) : SettingsSearchableItem
+}
 
 private fun buildSectionRequests(strings: SettingsStrings): List<SettingsNavigationRequest> {
     val sections = SettingsSection.values()
@@ -445,6 +527,191 @@ private fun <T> rememberStableAction(action: (T) -> Unit): (T) -> Unit {
     val actionState = rememberUpdatedState(action)
     return remember { { value -> actionState.value(value) } }
 }
+
+private fun buildAllSearchableItems(strings: LiveChatStrings): List<SettingsSearchableItem> {
+    val sections = buildSectionRequests(strings.settings)
+    val items = mutableListOf<SettingsSearchableItem>()
+
+    // Add all main sections
+    sections.forEach { request ->
+        items.add(
+            SettingsSearchableItem.Section(
+                id = request.section.name,
+                title = request.title,
+                keywords = listOf(request.description),
+                navigationRequest = request,
+            ),
+        )
+    }
+
+    // Add Account subitems
+    items.addAll(
+        listOf(
+            SettingsSearchableItem.SubItem(
+                id = "account_display_name",
+                title = strings.account.displayNameLabel,
+                parentSection = SettingsSection.Account,
+                keywords = listOf("name", "profile", "username", "identity"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "account_status",
+                title = strings.account.statusLabel,
+                parentSection = SettingsSection.Account,
+                keywords = listOf("status", "message", "bio", "about", "available", "online status"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "account_phone",
+                title = strings.account.phoneLabel,
+                parentSection = SettingsSection.Account,
+                keywords = listOf("phone", "number", "linked", "mobile"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "account_email",
+                title = strings.account.emailLabel,
+                parentSection = SettingsSection.Account,
+                keywords = listOf("email", "address", "recovery", "contact"),
+            ),
+        ),
+    )
+
+    // Add Notification subitems
+    items.addAll(
+        listOf(
+            SettingsSearchableItem.SubItem(
+                id = "notifications_push",
+                title = strings.notifications.pushTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("push", "alert", "banner", "badge", "notification"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "notifications_sound",
+                title = strings.notifications.soundTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("sound", "tone", "ringtone", "audio", "chime", "popcorn", "ripple"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "notifications_quiet_hours",
+                title = strings.notifications.quietHoursTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("quiet", "hours", "schedule", "mute", "do not disturb", "dnd", "silent"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "notifications_vibration",
+                title = strings.notifications.vibrationTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("vibration", "haptic", "feedback"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "notifications_preview",
+                title = strings.notifications.previewTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("preview", "message", "show", "display", "content"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "notifications_reset",
+                title = strings.notifications.resetTitle,
+                parentSection = SettingsSection.Notifications,
+                keywords = listOf("reset", "default", "restore"),
+            ),
+        ),
+    )
+
+    // Add Appearance subitems
+    items.addAll(
+        listOf(
+            SettingsSearchableItem.SubItem(
+                id = "appearance_theme_system",
+                title = strings.appearance.themeSystemTitle,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("system", "auto", "automatic", "default", "device", "theme"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "appearance_theme_light",
+                title = strings.appearance.themeLightTitle,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("light", "bright", "day", "theme"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "appearance_theme_dark",
+                title = strings.appearance.themeDarkTitle,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("dark", "night", "black", "theme"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "appearance_text_scale",
+                title = strings.appearance.typographySection,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("text", "font", "size", "scale", "typography", "large", "small"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "appearance_reduce_motion",
+                title = strings.appearance.reduceMotionTitle,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("motion", "animation", "reduce", "minimize", "accessibility"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "appearance_high_contrast",
+                title = strings.appearance.highContrastTitle,
+                parentSection = SettingsSection.Appearance,
+                keywords = listOf("contrast", "high", "accessibility", "legibility", "visibility"),
+            ),
+        ),
+    )
+
+    // Add Privacy subitems
+    items.addAll(
+        listOf(
+            SettingsSearchableItem.SubItem(
+                id = "privacy_blocked_contacts",
+                title = strings.privacy.blockedContactsTitle,
+                parentSection = SettingsSection.Privacy,
+                keywords = listOf("blocked", "block", "contacts", "users", "ban", "restrict"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "privacy_invite_preferences",
+                title = strings.privacy.invitePreferencesTitle,
+                parentSection = SettingsSection.Privacy,
+                keywords = listOf("invite", "group", "preferences", "who can add", "permissions"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "privacy_last_seen",
+                title = strings.privacy.lastSeenTitle,
+                parentSection = SettingsSection.Privacy,
+                keywords = listOf("last seen", "online", "status", "visibility", "presence"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "privacy_read_receipts",
+                title = strings.privacy.readReceiptsTitle,
+                parentSection = SettingsSection.Privacy,
+                keywords = listOf("read", "receipts", "seen", "checkmarks", "blue ticks"),
+            ),
+            SettingsSearchableItem.SubItem(
+                id = "privacy_usage_data",
+                title = strings.privacy.shareUsageDataTitle,
+                parentSection = SettingsSection.Privacy,
+                keywords = listOf("usage", "data", "analytics", "diagnostic", "telemetry", "share"),
+            ),
+        ),
+    )
+
+    return items
+}
+
+private fun getSectionIcon(section: SettingsSection): ImageVector =
+    when (section) {
+        SettingsSection.Account -> Icons.Rounded.Person
+        SettingsSection.Notifications -> Icons.Rounded.Notifications
+        SettingsSection.Appearance -> Icons.Rounded.DarkMode
+        SettingsSection.Privacy -> Icons.Rounded.Lock
+    }
+
+private fun getSectionIconBackground(section: SettingsSection): Color =
+    when (section) {
+        SettingsSection.Account -> SettingsIconBlue
+        SettingsSection.Notifications -> SettingsIconRed
+        SettingsSection.Appearance -> SettingsIconPurple
+        SettingsSection.Privacy -> SettingsIconGreen
+    }
 
 private val SettingsIconBlue = Color(0xFF007AFF)
 private val SettingsIconRed = Color(0xFFFF3B30)

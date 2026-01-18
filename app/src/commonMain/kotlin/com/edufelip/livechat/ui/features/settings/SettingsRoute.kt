@@ -38,29 +38,33 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onSectionSelected: (SettingsNavigationRequest) -> Unit = {},
     onChromeVisibilityChanged: (SettingsChromeVisibility) -> Unit = {},
-    accountContent: SettingsSectionContent = { routeModifier, onBack ->
+    accountContent: SettingsSectionContent = { routeModifier, onBack, targetItemId ->
         AccountSettingsRoute(
             modifier = routeModifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
     },
-    notificationsContent: SettingsSectionContent = { routeModifier, onBack ->
+    notificationsContent: SettingsSectionContent = { routeModifier, onBack, targetItemId ->
         NotificationSettingsRoute(
             modifier = routeModifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
     },
-    appearanceContent: SettingsSectionContent = { routeModifier, onBack ->
+    appearanceContent: SettingsSectionContent = { routeModifier, onBack, targetItemId ->
         AppearanceSettingsRoute(
             modifier = routeModifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
     },
-    privacyContent: SettingsSectionContent = { routeModifier, onBack ->
+    privacyContent: SettingsSectionContent = { routeModifier, onBack, targetItemId ->
         val privacyUrl = liveChatStrings().settings.privacyPolicyUrl
         PrivacySettingsRoute(
             modifier = routeModifier,
             onBack = onBack,
+            targetItemId = targetItemId,
             onOpenPrivacyPolicy = {
                 if (privacyUrl.isNotBlank()) {
                     openWebViewUrl(privacyUrl)
@@ -72,6 +76,7 @@ fun SettingsRoute(
     val strings = liveChatStrings()
     val reduceMotion = LocalReduceMotion.current
     var destination by rememberSaveable { mutableStateOf(SettingsDestination.List) }
+    var targetItemId by rememberSaveable { mutableStateOf<String?>(null) }
     val chromeVisibility =
         remember(destination) {
             when (destination) {
@@ -136,6 +141,7 @@ fun SettingsRoute(
                 SettingsScreen(
                     modifier = modifier,
                     onSectionSelected = { request ->
+                        targetItemId = request.targetItemId
                         when (request.section) {
                             SettingsSection.Account -> destination = SettingsDestination.Account
                             SettingsSection.Notifications -> destination = SettingsDestination.Notifications
@@ -148,31 +154,47 @@ fun SettingsRoute(
             SettingsDestination.Account ->
                 accountContent(
                     modifier,
-                    { destination = SettingsDestination.List },
+                    {
+                        targetItemId = null
+                        destination = SettingsDestination.List
+                    },
+                    targetItemId,
                 )
 
             SettingsDestination.Notifications ->
                 notificationsContent(
                     modifier,
-                    { destination = SettingsDestination.List },
+                    {
+                        targetItemId = null
+                        destination = SettingsDestination.List
+                    },
+                    targetItemId,
                 )
 
             SettingsDestination.Appearance ->
                 appearanceContent(
                     modifier,
-                    { destination = SettingsDestination.List },
+                    {
+                        targetItemId = null
+                        destination = SettingsDestination.List
+                    },
+                    targetItemId,
                 )
 
             SettingsDestination.Privacy ->
                 privacyContent(
                     modifier,
-                    { destination = SettingsDestination.List },
+                    {
+                        targetItemId = null
+                        destination = SettingsDestination.List
+                    },
+                    targetItemId,
                 )
         }
     }
 }
 
-private typealias SettingsSectionContent = @Composable (Modifier, () -> Unit) -> Unit
+private typealias SettingsSectionContent = @Composable (Modifier, () -> Unit, String?) -> Unit
 
 private enum class SettingsDestination {
     List,
