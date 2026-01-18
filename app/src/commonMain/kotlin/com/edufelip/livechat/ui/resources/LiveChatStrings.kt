@@ -80,6 +80,9 @@ data class AccountStrings(
     val editEmailVerifyCta: String = "I've verified",
     val editEmailChangeCta: String = "Change email",
     val editEmailResendCta: String = "Resend email",
+    val editEmailResendCountdownLabel: @Composable (Int) -> String = { seconds ->
+        "Resend available in ${seconds.coerceAtLeast(0)}s"
+    },
     val saveCta: String = "Save",
     val deleteFarewellTitle: String = "We're sorry to see you go",
     val deleteFarewellBody: String = "Ok, hope we see you back soon.",
@@ -434,6 +437,12 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             editEmailVerifyCta = stringResource(Res.string.account_edit_email_verify_cta),
             editEmailChangeCta = stringResource(Res.string.account_edit_email_change_cta),
             editEmailResendCta = stringResource(Res.string.account_edit_email_resend_cta),
+            editEmailResendCountdownLabel = { seconds ->
+                stringResource(
+                    Res.string.account_edit_email_resend_countdown_label,
+                    seconds.coerceAtLeast(0),
+                )
+            },
             saveCta = stringResource(Res.string.account_save_cta),
             deleteFarewellTitle = stringResource(Res.string.account_delete_farewell_title),
             deleteFarewellBody = stringResource(Res.string.account_delete_farewell_body),

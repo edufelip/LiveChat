@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -75,7 +76,7 @@ fun AccountSettingsRoute(
     var otpCode by remember { mutableStateOf("") }
     var reauthError by remember { mutableStateOf<String?>(null) }
     var showErrorDialog by remember { mutableStateOf(false) }
-    var emailResendCountdown by remember { mutableStateOf(0) }
+    var emailResendCountdown by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(state.errorMessage) {
         showErrorDialog = state.errorMessage != null
@@ -203,8 +204,12 @@ fun AccountSettingsRoute(
         )
     }
 
-    LaunchedEffect(state.isUpdating) {
-        if (!state.isUpdating && state.errorMessage == null) {
+    LaunchedEffect(state.isUpdating, state.errorMessage, activeEdit) {
+        val shouldCloseEdit =
+            !state.isUpdating &&
+                state.errorMessage == null &&
+                (activeEdit == EditField.DisplayName || activeEdit == EditField.StatusMessage)
+        if (shouldCloseEdit) {
             activeEdit = EditField.None
         }
     }
@@ -249,6 +254,7 @@ fun AccountSettingsRoute(
             verifyLabel = strings.account.editEmailVerifyCta,
             changeLabel = strings.account.editEmailChangeCta,
             resendLabel = strings.account.editEmailResendCta,
+            resendCountdownLabel = strings.account.editEmailResendCountdownLabel,
             onEmailChange = { emailValue = it },
             onSendVerification = {
                 presenter.sendEmailVerification(emailValue)

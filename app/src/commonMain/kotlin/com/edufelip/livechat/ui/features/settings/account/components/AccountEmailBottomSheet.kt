@@ -47,6 +47,7 @@ internal fun AccountEmailBottomSheet(
     verifyLabel: String,
     changeLabel: String,
     resendLabel: String,
+    resendCountdownLabel: (Int) -> String,
     onEmailChange: (String) -> Unit,
     onSendVerification: () -> Unit,
     onConfirmVerified: () -> Unit,
@@ -187,7 +188,7 @@ internal fun AccountEmailBottomSheet(
                 val resendEnabled = !isLoading && resendCountdown <= 0
                 val finalResendLabel =
                     if (resendCountdown > 0) {
-                        "Resend available in ${resendCountdown}s"
+                        resendCountdownLabel(resendCountdown)
                     } else {
                         resendLabel
                     }
