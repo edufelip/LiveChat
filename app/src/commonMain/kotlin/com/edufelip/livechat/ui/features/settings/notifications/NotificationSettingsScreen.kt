@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.settings.notifications
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import com.edufelip.livechat.domain.models.NotificationSettingsUiState
 import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationOptionCard
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationResetCard
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSectionHeader
@@ -39,6 +41,7 @@ fun NotificationSettingsScreen(
     modifier: Modifier = Modifier,
     systemPermissionGranted: Boolean = true,
     onBack: () -> Unit = {},
+    targetItemId: String? = null,
     onTogglePush: (Boolean) -> Unit = {},
     onEditSound: () -> Unit = {},
     onToggleQuietHours: (Boolean) -> Unit = {},
@@ -113,14 +116,16 @@ fun NotificationSettingsScreen(
 
         NotificationSectionHeader(title = notificationStrings.generalSection)
 
-        NotificationToggleCard(
-            title = notificationStrings.pushTitle,
-            subtitle = notificationStrings.pushSubtitle,
-            supportingText = permissionHint,
-            checked = settings.pushEnabled,
-            enabled = allowEdits,
-            onCheckedChange = onTogglePushAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_push", targetItemId)) {
+            NotificationToggleCard(
+                title = notificationStrings.pushTitle,
+                subtitle = notificationStrings.pushSubtitle,
+                supportingText = permissionHint,
+                checked = settings.pushEnabled,
+                enabled = allowEdits,
+                onCheckedChange = onTogglePushAction,
+            )
+        }
         if (!systemPermissionGranted && onOpenSystemSettings != null) {
             TextButton(
                 modifier = Modifier.align(Alignment.End),
@@ -131,55 +136,65 @@ fun NotificationSettingsScreen(
             }
         }
 
-        NotificationOptionCard(
-            title = notificationStrings.soundTitle,
-            value = soundLabel,
-            enabled = allowEdits,
-            onClick = onEditSoundAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_sound", targetItemId)) {
+            NotificationOptionCard(
+                title = notificationStrings.soundTitle,
+                value = soundLabel,
+                enabled = allowEdits,
+                onClick = onEditSoundAction,
+            )
+        }
 
         NotificationSectionHeader(title = notificationStrings.quietHoursSection)
 
-        QuietHoursCard(
-            title = notificationStrings.quietHoursTitle,
-            subtitle = notificationStrings.quietHoursSubtitle,
-            checked = settings.quietHoursEnabled,
-            enabled = allowEdits,
-            fromLabel = notificationStrings.quietHoursFromLabel,
-            toLabel = notificationStrings.quietHoursToLabel,
-            fromTime = quietHoursPresentation.fromTime,
-            toTime = quietHoursPresentation.toTime,
-            onCheckedChange = onToggleQuietHoursAction,
-            onEditQuietHours = if (allowEdits) onEditQuietHoursAction else null,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_quiet_hours", targetItemId)) {
+            QuietHoursCard(
+                title = notificationStrings.quietHoursTitle,
+                subtitle = notificationStrings.quietHoursSubtitle,
+                checked = settings.quietHoursEnabled,
+                enabled = allowEdits,
+                fromLabel = notificationStrings.quietHoursFromLabel,
+                toLabel = notificationStrings.quietHoursToLabel,
+                fromTime = quietHoursPresentation.fromTime,
+                toTime = quietHoursPresentation.toTime,
+                onCheckedChange = onToggleQuietHoursAction,
+                onEditQuietHours = if (allowEdits) onEditQuietHoursAction else null,
+            )
+        }
 
         NotificationSectionHeader(title = notificationStrings.advancedSection)
 
-        NotificationToggleCard(
-            title = notificationStrings.vibrationTitle,
-            subtitle = null,
-            supportingText = null,
-            checked = settings.inAppVibration,
-            enabled = allowEdits,
-            onCheckedChange = onToggleVibrationAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_vibration", targetItemId)) {
+            NotificationToggleCard(
+                title = notificationStrings.vibrationTitle,
+                subtitle = null,
+                supportingText = null,
+                checked = settings.inAppVibration,
+                enabled = allowEdits,
+                onCheckedChange = onToggleVibrationAction,
+            )
+        }
 
-        NotificationToggleCard(
-            title = notificationStrings.previewTitle,
-            subtitle = notificationStrings.previewSubtitle,
-            supportingText = null,
-            checked = settings.showMessagePreview,
-            enabled = allowEdits,
-            onCheckedChange = onToggleMessagePreviewAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_preview", targetItemId)) {
+            NotificationToggleCard(
+                title = notificationStrings.previewTitle,
+                subtitle = notificationStrings.previewSubtitle,
+                supportingText = null,
+                checked = settings.showMessagePreview,
+                enabled = allowEdits,
+                onCheckedChange = onToggleMessagePreviewAction,
+            )
+        }
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
 
-        NotificationResetCard(
-            title = notificationStrings.resetTitle,
-            enabled = allowEdits,
-            onClick = onResetNotificationsAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("notifications_reset", targetItemId)) {
+            NotificationResetCard(
+                title = notificationStrings.resetTitle,
+                enabled = allowEdits,
+                onClick = onResetNotificationsAction,
+            )
+        }
     }
 }
 

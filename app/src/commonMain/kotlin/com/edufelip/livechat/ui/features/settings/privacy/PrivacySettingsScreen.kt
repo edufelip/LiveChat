@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.settings.privacy
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import com.edufelip.livechat.domain.models.InvitePreference
 import com.edufelip.livechat.domain.models.PrivacySettingsUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyChevronCard
 import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyRadioOptionRow
 import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacySectionCard
@@ -32,6 +34,7 @@ fun PrivacySettingsScreen(
     lastSeenSummary: String,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
+    targetItemId: String? = null,
     onOpenBlockedContacts: () -> Unit = {},
     onInvitePreferenceSelected: (InvitePreference) -> Unit = {},
     onOpenLastSeen: () -> Unit = {},
@@ -91,57 +94,67 @@ fun PrivacySettingsScreen(
             )
         }
 
-        PrivacyChevronCard(
-            title = privacyStrings.blockedContactsTitle,
-            subtitle = privacyStrings.blockedContactsSubtitle,
-            enabled = allowEdits,
-            onClick = onOpenBlockedContactsAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("privacy_blocked_contacts", targetItemId)) {
+            PrivacyChevronCard(
+                title = privacyStrings.blockedContactsTitle,
+                subtitle = privacyStrings.blockedContactsSubtitle,
+                enabled = allowEdits,
+                onClick = onOpenBlockedContactsAction,
+            )
+        }
 
-        PrivacySectionCard(
-            title = privacyStrings.invitePreferencesTitle,
-            subtitle = privacyStrings.invitePreferencesSubtitle,
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        Box(modifier = Modifier.settingsItemHighlight("privacy_invite_preferences", targetItemId)) {
+            PrivacySectionCard(
+                title = privacyStrings.invitePreferencesTitle,
+                subtitle = privacyStrings.invitePreferencesSubtitle,
             ) {
-                inviteOptions.forEach { option ->
-                    val onClick =
-                        remember(option.preference, onInvitePreferenceSelectedAction) {
-                            { onInvitePreferenceSelectedAction(option.preference) }
-                        }
-                    PrivacyRadioOptionRow(
-                        label = option.label,
-                        selected = settings.invitePreference == option.preference,
-                        enabled = allowEdits,
-                        onClick = onClick,
-                    )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                ) {
+                    inviteOptions.forEach { option ->
+                        val onClick =
+                            remember(option.preference, onInvitePreferenceSelectedAction) {
+                                { onInvitePreferenceSelectedAction(option.preference) }
+                            }
+                        PrivacyRadioOptionRow(
+                            label = option.label,
+                            selected = settings.invitePreference == option.preference,
+                            enabled = allowEdits,
+                            onClick = onClick,
+                        )
+                    }
                 }
             }
         }
 
-        PrivacyChevronCard(
-            title = privacyStrings.lastSeenTitle,
-            subtitle = lastSeenSummary,
-            enabled = allowEdits,
-            onClick = onOpenLastSeenAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("privacy_last_seen", targetItemId)) {
+            PrivacyChevronCard(
+                title = privacyStrings.lastSeenTitle,
+                subtitle = lastSeenSummary,
+                enabled = allowEdits,
+                onClick = onOpenLastSeenAction,
+            )
+        }
 
-        PrivacyToggleCard(
-            title = privacyStrings.readReceiptsTitle,
-            subtitle = privacyStrings.readReceiptsSubtitle,
-            checked = settings.readReceiptsEnabled,
-            enabled = allowEdits,
-            onCheckedChange = onToggleReadReceiptsAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("privacy_read_receipts", targetItemId)) {
+            PrivacyToggleCard(
+                title = privacyStrings.readReceiptsTitle,
+                subtitle = privacyStrings.readReceiptsSubtitle,
+                checked = settings.readReceiptsEnabled,
+                enabled = allowEdits,
+                onCheckedChange = onToggleReadReceiptsAction,
+            )
+        }
 
-        PrivacyToggleCard(
-            title = privacyStrings.shareUsageDataTitle,
-            subtitle = privacyStrings.shareUsageDataSubtitle,
-            checked = settings.shareUsageData,
-            enabled = allowEdits,
-            onCheckedChange = onToggleShareUsageDataAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("privacy_usage_data", targetItemId)) {
+            PrivacyToggleCard(
+                title = privacyStrings.shareUsageDataTitle,
+                subtitle = privacyStrings.shareUsageDataSubtitle,
+                checked = settings.shareUsageData,
+                enabled = allowEdits,
+                onCheckedChange = onToggleShareUsageDataAction,
+            )
+        }
 
         PrivacyChevronCard(
             title = privacyStrings.privacyPolicyTitle,

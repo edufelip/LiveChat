@@ -37,6 +37,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun NotificationSettingsRoute(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
+    targetItemId: String? = null,
 ) {
     val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
@@ -44,6 +45,7 @@ fun NotificationSettingsRoute(
             state = previewState(),
             modifier = modifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
         return
     }
@@ -201,6 +203,7 @@ fun NotificationSettingsRoute(
         modifier = modifier,
         systemPermissionGranted = permissionState is NotificationPermissionState.Granted,
         onBack = onBack,
+        targetItemId = targetItemId,
         onTogglePush = { enabled ->
             if (!enabled) {
                 presenter.updatePushNotifications(false)

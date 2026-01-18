@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.settings.appearance
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import com.edufelip.livechat.ui.features.settings.appearance.components.Appearan
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceThemeCard
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceToggleCard
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceTypographyCard
+import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -38,6 +40,7 @@ fun AppearanceSettingsScreen(
     sampleScale: Float,
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
+    targetItemId: String? = null,
     onThemeSelected: (ThemeMode) -> Unit = {},
     onTextScaleChange: (Float) -> Unit = {},
     onTextScaleChangeFinished: () -> Unit = {},
@@ -112,48 +115,62 @@ fun AppearanceSettingsScreen(
                 } else {
                     null
                 }
-            AppearanceThemeCard(
-                title = option.title,
-                subtitle = option.subtitle,
-                icon = option.icon,
-                iconTint = if (isSelected) selectedColor else unselectedColor,
-                selected = isSelected,
-                enabled = allowEdits,
-                onClick = onClick,
-            )
+            val itemId =
+                when (option.mode) {
+                    ThemeMode.System -> "appearance_theme_system"
+                    ThemeMode.Light -> "appearance_theme_light"
+                    ThemeMode.Dark -> "appearance_theme_dark"
+                }
+            Box(modifier = Modifier.settingsItemHighlight(itemId, targetItemId)) {
+                AppearanceThemeCard(
+                    title = option.title,
+                    subtitle = option.subtitle,
+                    icon = option.icon,
+                    iconTint = if (isSelected) selectedColor else unselectedColor,
+                    selected = isSelected,
+                    enabled = allowEdits,
+                    onClick = onClick,
+                )
+            }
         }
 
         AppearanceSectionHeader(title = appearanceStrings.typographySection)
 
-        AppearanceTypographyCard(
-            smallLabel = appearanceStrings.typographySmallLabel,
-            defaultLabel = appearanceStrings.typographyDefaultLabel,
-            largeLabel = appearanceStrings.typographyLargeLabel,
-            sliderValue = sliderValue,
-            enabled = allowEdits,
-            onValueChange = onTextScaleChangeAction,
-            onValueChangeFinished = onTextScaleChangeFinishedAction,
-            sampleText = appearanceStrings.typographySample,
-            sampleScale = sampleScale,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("appearance_text_scale", targetItemId)) {
+            AppearanceTypographyCard(
+                smallLabel = appearanceStrings.typographySmallLabel,
+                defaultLabel = appearanceStrings.typographyDefaultLabel,
+                largeLabel = appearanceStrings.typographyLargeLabel,
+                sliderValue = sliderValue,
+                enabled = allowEdits,
+                onValueChange = onTextScaleChangeAction,
+                onValueChangeFinished = onTextScaleChangeFinishedAction,
+                sampleText = appearanceStrings.typographySample,
+                sampleScale = sampleScale,
+            )
+        }
 
         AppearanceSectionHeader(title = appearanceStrings.accessibilitySection)
 
-        AppearanceToggleCard(
-            title = appearanceStrings.reduceMotionTitle,
-            subtitle = appearanceStrings.reduceMotionSubtitle,
-            checked = settings.reduceMotion,
-            enabled = allowEdits,
-            onCheckedChange = onToggleReduceMotionAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("appearance_reduce_motion", targetItemId)) {
+            AppearanceToggleCard(
+                title = appearanceStrings.reduceMotionTitle,
+                subtitle = appearanceStrings.reduceMotionSubtitle,
+                checked = settings.reduceMotion,
+                enabled = allowEdits,
+                onCheckedChange = onToggleReduceMotionAction,
+            )
+        }
 
-        AppearanceToggleCard(
-            title = appearanceStrings.highContrastTitle,
-            subtitle = appearanceStrings.highContrastSubtitle,
-            checked = settings.highContrast,
-            enabled = allowEdits,
-            onCheckedChange = onToggleHighContrastAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("appearance_high_contrast", targetItemId)) {
+            AppearanceToggleCard(
+                title = appearanceStrings.highContrastTitle,
+                subtitle = appearanceStrings.highContrastSubtitle,
+                checked = settings.highContrast,
+                enabled = allowEdits,
+                onCheckedChange = onToggleHighContrastAction,
+            )
+        }
     }
 }
 

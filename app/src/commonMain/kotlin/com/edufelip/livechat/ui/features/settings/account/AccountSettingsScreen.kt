@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.settings.account
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import com.edufelip.livechat.ui.features.settings.account.components.AccountDele
 import com.edufelip.livechat.ui.features.settings.account.components.AccountFieldCard
 import com.edufelip.livechat.ui.features.settings.account.components.AccountProfileCard
 import com.edufelip.livechat.ui.features.settings.account.components.AccountSettingsHeader
+import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -29,6 +31,7 @@ fun AccountSettingsScreen(
     state: AccountUiState,
     modifier: Modifier = Modifier,
     phoneNumberOverride: String? = null,
+    targetItemId: String? = null,
     onBack: () -> Unit = {},
     onEditDisplayName: () -> Unit = {},
     onEditStatus: () -> Unit = {},
@@ -95,31 +98,39 @@ fun AccountSettingsScreen(
             initials = displayData.initials,
         )
 
-        AccountFieldCard(
-            title = accountStrings.displayNameLabel,
-            value = displayData.displayName,
-            onClick = onEditDisplayNameAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("account_display_name", targetItemId)) {
+            AccountFieldCard(
+                title = accountStrings.displayNameLabel,
+                value = displayData.displayName,
+                onClick = onEditDisplayNameAction,
+            )
+        }
 
-        AccountFieldCard(
-            title = accountStrings.statusLabel,
-            value = displayData.statusMessage,
-            onClick = onEditStatusAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("account_status", targetItemId)) {
+            AccountFieldCard(
+                title = accountStrings.statusLabel,
+                value = displayData.statusMessage,
+                onClick = onEditStatusAction,
+            )
+        }
 
-        AccountFieldCard(
-            title = accountStrings.phoneLabel,
-            value = displayData.phoneNumber,
-            helper = accountStrings.phoneReadOnlyHint,
-            onClick = null,
-            showChevron = false,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("account_phone", targetItemId)) {
+            AccountFieldCard(
+                title = accountStrings.phoneLabel,
+                value = displayData.phoneNumber,
+                helper = accountStrings.phoneReadOnlyHint,
+                onClick = null,
+                showChevron = false,
+            )
+        }
 
-        AccountFieldCard(
-            title = accountStrings.emailLabel,
-            value = displayData.email,
-            onClick = onEditEmailAction,
-        )
+        Box(modifier = Modifier.settingsItemHighlight("account_email", targetItemId)) {
+            AccountFieldCard(
+                title = accountStrings.emailLabel,
+                value = displayData.email,
+                onClick = onEditEmailAction,
+            )
+        }
 
         AccountDeleteCard(
             title = accountStrings.deleteTitle,

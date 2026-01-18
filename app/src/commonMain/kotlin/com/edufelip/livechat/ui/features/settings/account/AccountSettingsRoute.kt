@@ -42,6 +42,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun AccountSettingsRoute(
     modifier: Modifier = Modifier,
+    targetItemId: String? = null,
     onBack: () -> Unit = {},
     onAccountDeleted: () -> Unit = onBack,
 ) {
@@ -356,6 +357,7 @@ fun AccountSettingsRoute(
         modifier = modifier,
         state = state,
         phoneNumberOverride = sessionPhone,
+        targetItemId = targetItemId,
         onBack = onBack,
         onEditDisplayName = { if (allowEdits) activeEdit = EditField.DisplayName },
         onEditStatus = { if (allowEdits) activeEdit = EditField.StatusMessage },

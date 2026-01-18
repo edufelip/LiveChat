@@ -28,6 +28,7 @@ import kotlin.math.roundToInt
 fun AppearanceSettingsRoute(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
+    targetItemId: String? = null,
 ) {
     val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
@@ -37,6 +38,7 @@ fun AppearanceSettingsRoute(
             sampleScale = previewState().settings.textScale,
             modifier = modifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
         return
     }
@@ -95,6 +97,7 @@ fun AppearanceSettingsRoute(
         sampleScale = sampleScale,
         modifier = modifier,
         onBack = onBack,
+        targetItemId = targetItemId,
         onThemeSelected = { mode ->
             if (mode != state.settings.themeMode) {
                 presenter.updateThemeMode(mode)

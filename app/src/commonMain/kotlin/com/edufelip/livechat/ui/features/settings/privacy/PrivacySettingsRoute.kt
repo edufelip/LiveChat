@@ -40,6 +40,7 @@ fun PrivacySettingsRoute(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
+    targetItemId: String? = null,
 ) {
     val strings = liveChatStrings()
     val reduceMotion = LocalReduceMotion.current
@@ -50,6 +51,7 @@ fun PrivacySettingsRoute(
             lastSeenSummary = strings.privacy.lastSeenNobody,
             modifier = modifier,
             onBack = onBack,
+            targetItemId = targetItemId,
         )
         return
     }
@@ -173,6 +175,7 @@ fun PrivacySettingsRoute(
                     lastSeenSummary = lastSeenSummary,
                     modifier = modifier,
                     onBack = onBack,
+                    targetItemId = targetItemId,
                     onOpenBlockedContacts = { destination = PrivacyDestination.BlockedContacts },
                     onInvitePreferenceSelected = { preference ->
                         if (preference != state.settings.invitePreference) {
