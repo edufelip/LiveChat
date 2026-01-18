@@ -47,11 +47,13 @@ class AndroidSoundPlayer(private val context: Context) : SoundPlayer {
     }
 
     override fun stop() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()
+        mediaPlayer?.let { player ->
+            runCatching {
+                if (player.isPlaying) {
+                    player.stop()
+                }
             }
-            it.release()
+            player.release()
         }
         mediaPlayer = null
     }
