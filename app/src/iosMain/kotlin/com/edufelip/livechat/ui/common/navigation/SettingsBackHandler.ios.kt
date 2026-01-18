@@ -1,6 +1,5 @@
 package com.edufelip.livechat.ui.common.navigation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 
 /**
@@ -15,6 +14,6 @@ actual fun SettingsSubmenuBackHandler(
     onBack: () -> Unit,
 ) {
     // iOS native swipe-back gesture is handled by UIKit
-    // We only need to handle programmatic back navigation
-    BackHandler(enabled = enabled, onBack = onBack)
+    // Programmatic back navigation is handled by the UI components (e.g. BackButton)
+    // No additional back handling is needed here as there's no system back button on iOS
 }
