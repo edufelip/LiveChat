@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -229,11 +230,15 @@ class MessagesRepository(
     }
 
     override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
-        val currentUserId = sessionProvider.currentUserId()
-        if (currentUserId.isNullOrBlank()) {
-            return flowOf(emptyList())
-        }
-        return localData.observeConversationSummaries(currentUserId)
+        return sessionProvider.session
+            .flatMapLatest { session ->
+                val userId = session?.userId
+                if (userId.isNullOrBlank()) {
+                    flowOf(emptyList())
+                } else {
+                    localData.observeConversationSummaries(userId)
+                }
+            }
             .let { flow ->
                 flowOfMaybeReadReceipts(flow)
             }
