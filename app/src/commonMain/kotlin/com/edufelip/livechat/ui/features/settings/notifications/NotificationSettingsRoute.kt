@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -27,6 +28,7 @@ import com.edufelip.livechat.ui.features.settings.notifications.components.Notif
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberNotificationSettingsPresenter
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -55,6 +57,7 @@ fun NotificationSettingsRoute(
 
     val permissionManager = rememberNotificationPermissionManager()
     var permissionState by remember { mutableStateOf(permissionManager.status()) }
+    val coroutineScope = rememberCoroutineScope()
 
     var activeSheet by remember { mutableStateOf(NotificationSheet.None) }
     val normalizedSound =
@@ -187,7 +190,20 @@ fun NotificationSettingsRoute(
         modifier = modifier,
         systemPermissionGranted = permissionState is NotificationPermissionState.Granted,
         onBack = onBack,
-        onTogglePush = presenter::updatePushNotifications,
+        onTogglePush = { enabled ->
+            if (!enabled) {
+                presenter.updatePushNotifications(false)
+                return@NotificationSettingsScreen
+            }
+
+            coroutineScope.launch {
+                val result = permissionManager.requestPermission()
+                permissionState = result
+                if (result is NotificationPermissionState.Granted) {
+                    presenter.updatePushNotifications(true)
+                }
+            }
+        },
         onEditSound = { activeSheet = NotificationSheet.Sound },
         onToggleQuietHours = presenter::updateQuietHoursEnabled,
         onEditQuietHours = { activeSheet = NotificationSheet.QuietHours },

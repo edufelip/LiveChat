@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 interface NotificationPermissionManager {
     suspend fun refreshStatus(): NotificationPermissionState
 
+    suspend fun requestPermission(): NotificationPermissionState
+
     fun status(): NotificationPermissionState
 }
 

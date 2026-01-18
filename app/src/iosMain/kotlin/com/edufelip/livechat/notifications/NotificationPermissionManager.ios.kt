@@ -3,6 +3,9 @@ package com.edufelip.livechat.notifications
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.suspendCancellableCoroutine
+import platform.UserNotifications.UNAuthorizationOptionAlert
+import platform.UserNotifications.UNAuthorizationOptionBadge
+import platform.UserNotifications.UNAuthorizationOptionSound
 import platform.UserNotifications.UNAuthorizationStatusAuthorized
 import platform.UserNotifications.UNAuthorizationStatusDenied
 import platform.UserNotifications.UNAuthorizationStatusEphemeral
@@ -17,6 +20,36 @@ private class IosNotificationPermissionManager : NotificationPermissionManager {
     override suspend fun refreshStatus(): NotificationPermissionState {
         currentState = fetchStatus()
         return currentState
+    }
+
+    override suspend fun requestPermission(): NotificationPermissionState {
+        val current = fetchStatus()
+        if (current is NotificationPermissionState.Granted) {
+            currentState = current
+            return current
+        }
+
+        return suspendCancellableCoroutine { continuation ->
+            UNUserNotificationCenter.currentNotificationCenter()
+                .requestAuthorizationWithOptions(
+                    options =
+                        UNAuthorizationOptionAlert or
+                            UNAuthorizationOptionSound or
+                            UNAuthorizationOptionBadge,
+                    completionHandler = { granted, _ ->
+                        val nextState =
+                            if (granted) {
+                                NotificationPermissionState.Granted
+                            } else {
+                                NotificationPermissionState.Denied
+                            }
+                        currentState = nextState
+                        if (continuation.isActive) {
+                            continuation.resume(nextState)
+                        }
+                    },
+                )
+        }
     }
 
     override fun status(): NotificationPermissionState = currentState
