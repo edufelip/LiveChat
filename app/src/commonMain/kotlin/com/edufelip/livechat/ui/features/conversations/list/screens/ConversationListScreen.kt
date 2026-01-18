@@ -158,13 +158,14 @@ fun ConversationListScreen(
 
                 else ->
                     AnimatedContent(
-                        targetState = state.selectedFilter to conversations,
+                        targetState = state.selectedFilter,
                         transitionSpec = {
                             fadeIn(animationSpec = tween(300)) togetherWith
                                 fadeOut(animationSpec = tween(200))
                         },
                         modifier = Modifier.fillMaxSize(),
-                    ) { (_, conversationList) ->
+                        label = "conversation_filter_transition",
+                    ) { _ ->
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
@@ -176,7 +177,7 @@ fun ConversationListScreen(
                                 ),
                         ) {
                             itemsIndexed(
-                                items = conversationList,
+                                items = conversations,
                                 key = { _, item -> item.conversationId },
                             ) { index, summary ->
                                 println(
@@ -190,7 +191,7 @@ fun ConversationListScreen(
                                     onToggleMute = onToggleMuteAction,
                                     onToggleArchive = onToggleArchiveAction,
                                     onClick = onConversationSelectedAction,
-                                    showDivider = index != conversationList.lastIndex,
+                                    showDivider = index != conversations.lastIndex,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                             }
