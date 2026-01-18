@@ -28,9 +28,10 @@ object LiveChatNotificationChannels {
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
                 description = "LiveChat message notifications"
-                enableVibration(true)
-                vibrationPattern = DEFAULT_VIBRATION_PATTERN
-                if (settings.sound == NotificationSound.Silent.id) {
+                val isSilent = settings.sound == NotificationSound.Silent.id
+                enableVibration(!isSilent)
+                vibrationPattern = if (isSilent) null else DEFAULT_VIBRATION_PATTERN
+                if (isSilent) {
                     setSound(null, null)
                 } else {
                     val soundUri = NotificationSoundResolver.resolve(context, settings.sound)

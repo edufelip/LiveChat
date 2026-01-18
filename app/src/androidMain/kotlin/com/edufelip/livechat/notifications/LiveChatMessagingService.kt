@@ -9,6 +9,7 @@ import com.edufelip.livechat.MainActivity
 import com.edufelip.livechat.R
 import com.edufelip.livechat.di.AndroidKoinBridge
 import com.edufelip.livechat.domain.models.NotificationSettings
+import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -42,6 +43,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         if (isQuietModeActive(settings)) return
 
         val showPreview = settings.showMessagePreview
+        val isSilent = NotificationSound.normalizeId(settings.sound) == NotificationSound.Silent.id
         val title = if (showPreview) payload.title.ifBlank { defaults.title } else defaults.title
         val body = if (showPreview) payload.body else defaults.hiddenBody
 
@@ -54,11 +56,11 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                     messageId = payload.messageId,
                 ),
             )
-            if (settings.inAppVibration) {
+            if (!isSilent && settings.inAppVibration) {
                 NotificationVibrationHelper.vibrate(this)
             }
         } else {
-            showNotification(title, body, payload, settings)
+            showNotification(title, body, payload, settings, isSilent)
         }
     }
 
@@ -71,6 +73,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         body: String,
         payload: NotificationPayload,
         settings: NotificationSettings,
+        isSilent: Boolean,
     ) {
         val channelId = LiveChatNotificationChannels.ensureChannel(this, settings)
         val intent =
@@ -97,10 +100,10 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setVibrate(DEFAULT_VIBRATION_PATTERN)
+            builder.setVibrate(if (isSilent) null else DEFAULT_VIBRATION_PATTERN)
         }
 
-        val soundUri = NotificationSoundResolver.resolve(this, settings.sound)
+        val soundUri = if (isSilent) null else NotificationSoundResolver.resolve(this, settings.sound)
         if (soundUri == null) {
             builder.setSound(null)
             builder.setSilent(true)
