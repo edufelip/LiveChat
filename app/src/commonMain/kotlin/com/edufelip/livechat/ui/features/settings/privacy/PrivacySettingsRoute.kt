@@ -127,7 +127,13 @@ fun PrivacySettingsRoute(
     // Enable back gesture support
     SettingsSubmenuBackHandler(
         enabled = true,
-        onBack = onBack,
+        onBack = {
+            if (destination == PrivacyDestination.BlockedContacts) {
+                destination = PrivacyDestination.Main
+            } else {
+                onBack()
+            }
+        },
     )
 
     AnimatedContent(
