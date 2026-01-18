@@ -28,12 +28,8 @@ object LiveChatNotificationChannels {
                 NotificationManager.IMPORTANCE_HIGH,
             ).apply {
                 description = "LiveChat message notifications"
-                enableVibration(settings.inAppVibration)
-                if (settings.inAppVibration) {
-                    vibrationPattern = DEFAULT_VIBRATION_PATTERN
-                } else {
-                    vibrationPattern = null
-                }
+                enableVibration(true)
+                vibrationPattern = DEFAULT_VIBRATION_PATTERN
                 if (settings.sound == NotificationSound.Silent.id) {
                     setSound(null, null)
                 } else {
@@ -52,7 +48,6 @@ object LiveChatNotificationChannels {
 
     private fun channelId(settings: NotificationSettings): String {
         val soundSuffix = if (settings.sound == NotificationSound.Silent.id) "silent" else "sound"
-        val vibrationSuffix = if (settings.inAppVibration) "vibrate" else "novibrate"
-        return "$CHANNEL_PREFIX_$soundSuffix_$vibrationSuffix"
+        return "$CHANNEL_PREFIX_$soundSuffix"
     }
 }

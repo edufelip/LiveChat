@@ -2,6 +2,7 @@ package com.edufelip.livechat.notifications
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.edufelip.livechat.MainActivity
@@ -96,10 +97,8 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        if (settings.inAppVibration) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             builder.setVibrate(DEFAULT_VIBRATION_PATTERN)
-        } else {
-            builder.setVibrate(null)
         }
 
         if (settings.sound == NotificationSound.Silent.id) {
