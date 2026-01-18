@@ -2,7 +2,7 @@
 
 ## Summary
 
-- Goal: Prevent filter transition animations from running on every list mutation while preserving transitions between filters.
+- Goal: Prevent filter transition animations from running on every list mutation while preserving transitions between filters, and remove side-effect logging during composition.
 - Measurement artifacts used (Layout Inspector / compiler reports / benchmarks / traces): None (heuristic review only).
 - Scope (modules/screens): Conversation list screen.
 
@@ -22,7 +22,17 @@
 - **Risk level:** Low
 - **Validation:** Not measured; recommend Layout Inspector recomposition counters during incoming message updates.
 
-### Rule A/B/C/D/F/G
+### Rule C — Use snapshotFlow for Side Effects
+
+- **File:** app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/conversations/list/screens/ConversationListScreen.kt
+- **Composables:** ConversationListScreen
+- **Pattern observed:** Logging side effects inside list item composition.
+- **Fix applied:** Removed `println` from item rendering.
+- **Why it reduces recomposition:** Avoids work on every recomposition and reduces UI-thread noise.
+- **Risk level:** Low
+- **Validation:** Not measured; manual check of logs for absence during scrolling.
+
+### Rule A/B/D/F/G
 
 - No changes applied.
 

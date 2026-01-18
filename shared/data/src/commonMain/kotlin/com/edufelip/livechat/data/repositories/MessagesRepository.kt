@@ -147,7 +147,6 @@ class MessagesRepository(
 
     override suspend fun sendMessage(draft: MessageDraft): Message {
         return withContext(dispatcher) {
-            println("$logTag: repo sendMessage to=${draft.conversationId} localId=${draft.localId}")
             val resolvedDraft =
                 if (draft.senderId.isNotBlank()) {
                     draft
@@ -157,10 +156,6 @@ class MessagesRepository(
                             ?: error("User must be authenticated before sending messages.")
                     draft.copy(senderId = userId)
                 }
-            println(
-                "$logTag: [STORAGE] Before insert - senderId=${resolvedDraft.senderId}, " +
-                    "conversationId=${resolvedDraft.conversationId}, localId=${resolvedDraft.localId}",
-            )
             val pending = resolvedDraft.toPendingMessage(status = MessageStatus.SENDING)
             val existingStatus = localData.getMessageStatus(resolvedDraft.localId)
             if (existingStatus == MessageStatus.ERROR) {
@@ -173,24 +168,12 @@ class MessagesRepository(
             }
             try {
                 val remoteMessage = remoteData.sendMessage(resolvedDraft)
-                println(
-                    "$logTag: repo sendMessage delivered id=${remoteMessage.id} " +
-                        "conv=${remoteMessage.conversationId}",
-                )
-                println(
-                    "$logTag: [STORAGE] Remote returned - id=${remoteMessage.id}, " +
-                        "senderId=${remoteMessage.senderId}, conversationId=${remoteMessage.conversationId}",
-                )
                 localData.updateMessageStatusByLocalId(
                     localId = resolvedDraft.localId,
                     serverId = remoteMessage.id,
                     status = remoteMessage.status,
                 )
                 localData.upsertMessages(listOf(remoteMessage.copy(localTempId = null)))
-                println(
-                    "$logTag: [STORAGE] After upsert - id=${remoteMessage.id}, " +
-                        "senderId=${remoteMessage.senderId}",
-                )
                 remoteMessage
             } catch (error: Throwable) {
                 localData.updateMessageStatus(
