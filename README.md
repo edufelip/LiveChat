@@ -61,6 +61,37 @@ Firebase configuration files:
 >
 > Gradle runs on the bundled JetBrains Runtime 17 (`org.gradle.java.home` in `gradle.properties`). Keep that runtime installed locally or update the path if you swap JDKs.
 
+### Compose Hot Reload (JVM Desktop Only)
+
+> **Note:** Compose Hot Reload 1.0.0 currently supports **JVM Desktop targets only**. Android hot reload is not yet available. This project is primarily an Android/iOS app, so hot reload capabilities are limited. If you add a desktop target in the future, you can use hot reload with that target.
+
+The project includes Compose Hot Reload 1.0.0 plugin configuration:
+- **JetBrains Runtime Provisioning**: Automatically managed via Foojay Toolchain Resolver
+- **Plugin Version**: 1.0.0 (stable release)
+- **Requirements**: Kotlin 2.2.20+, Compose Multiplatform 1.10.0+
+
+If you add a JVM desktop target to this project:
+```kotlin
+// In app/build.gradle.kts
+kotlin {
+    jvm("desktop") // Add desktop target
+}
+```
+
+Then you can use hot reload:
+```bash
+# Run desktop app with hot reload
+./gradlew :app:hotRunDesktop --mainClass com.edufelip.livechat.MainKt
+
+# Or configure mainClass in build.gradle.kts:
+tasks.withType<ComposeHotRun>().configureEach {
+    mainClass.set("com.edufelip.livechat.MainKt")
+}
+```
+
+For Android development, continue using standard Android Studio hot reload via **Live Edit** or **Apply Changes** features.
+
+
 ### Shared Modules
 - `:shared:data` — SQDelight database, Koin modules, Firebase REST client (Ktor), multiplatform repositories.
 - `:shared:domain` — Models, use cases, validation utilities, shared Koin module.

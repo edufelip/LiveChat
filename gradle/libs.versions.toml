@@ -23,6 +23,7 @@ firebase-messaging-android = "24.0.1"
 libphonenumber = "9.0.17"
 kotlinDateTime = "0.7.1"
 compose-multiplatform = "1.10.0"
+compose-hot-reload = "1.0.0"
 spotless = "6.25.0"
 kotlinx-serialization = "1.7.3"
 androidxTestCore = "1.5.0"
@@ -92,6 +93,7 @@ firebase-storage-android = { module = "com.google.firebase:firebase-storage-ktx"
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+compose-hot-reload = { id = "org.jetbrains.compose.hot-reload", version.ref = "compose-hot-reload" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
