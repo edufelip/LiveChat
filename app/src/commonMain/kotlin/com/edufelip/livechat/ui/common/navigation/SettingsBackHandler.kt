@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
  *
  * On Android 13+, this provides predictive back gesture support with visual preview.
  * On Android <13, it uses standard BackHandler without visual preview.
- * On iOS, the native swipe-back gesture is already handled by UIKit navigation.
+ * On iOS, a left-edge swipe gesture triggers the provided back callback.
  *
  * @param enabled Whether the back handler is currently enabled
  * @param onBack Callback invoked when the back gesture or button is triggered

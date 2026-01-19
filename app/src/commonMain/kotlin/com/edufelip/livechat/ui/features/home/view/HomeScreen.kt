@@ -31,6 +31,7 @@ import com.edufelip.livechat.domain.models.HomeDestination
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.HomeUiState
 import com.edufelip.livechat.ui.app.navigation.defaultHomeTabs
+import com.edufelip.livechat.ui.common.navigation.PlatformBackGestureHandler
 import com.edufelip.livechat.ui.features.calls.CallsRoute
 import com.edufelip.livechat.ui.features.contacts.ContactsRoute
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
@@ -134,6 +135,21 @@ internal fun HomeScreen(
                             .windowInsetsPadding(WindowInsets.navigationBars)
                     },
                 )
+        val backGestureEnabled =
+            destination is HomeDestination.ConversationDetail ||
+                destination == HomeDestination.Contacts
+        val backGestureAction =
+            when (destination) {
+                is HomeDestination.ConversationDetail -> onBackFromConversationAction
+                HomeDestination.Contacts -> onCloseContactsAction
+                else -> {
+                    {}
+                }
+            }
+        PlatformBackGestureHandler(
+            enabled = backGestureEnabled,
+            onBack = backGestureAction,
+        )
 
         AnimatedContent(
             modifier = bodyModifier,
