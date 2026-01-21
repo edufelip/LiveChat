@@ -1,26 +1,19 @@
 #!/bin/bash
+# Script to copy the correct Firebase configuration based on build configuration
+# This script should be added as a "Run Script" build phase in Xcode
 
-# Script to copy the correct GoogleService-Info.plist based on the build configuration
-# This script should be run as a build phase in Xcode
+# Determine the flavor based on user-defined setting
+FLAVOR="${FLAVOR:-prod}"
 
-set -e
+echo "Using Firebase config for flavor: ${FLAVOR}"
 
-PLIST_DESTINATION="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist"
+SOURCE_PATH="${PROJECT_DIR}/config/${FLAVOR}/GoogleService-Info.plist"
+DEST_PATH="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist"
 
-# Determine which plist to use based on PRODUCT_BUNDLE_IDENTIFIER
-if [[ "${PRODUCT_BUNDLE_IDENTIFIER}" == *".dev" ]]; then
-    PLIST_SOURCE="${SRCROOT}/iosApp/GoogleService-Info-Dev.plist"
-    echo "Using Dev Firebase configuration"
-else
-    PLIST_SOURCE="${SRCROOT}/iosApp/GoogleService-Info-Prod.plist"
-    echo "Using Prod Firebase configuration"
-fi
-
-if [ ! -f "$PLIST_SOURCE" ]; then
-    echo "error: Firebase config file not found at $PLIST_SOURCE"
-    echo "Please download the appropriate GoogleService-Info.plist from Firebase Console"
+if [ ! -f "${SOURCE_PATH}" ]; then
+    echo "Error: Firebase config not found at ${SOURCE_PATH}"
     exit 1
 fi
 
-cp "$PLIST_SOURCE" "$PLIST_DESTINATION"
-echo "Copied $PLIST_SOURCE to $PLIST_DESTINATION"
+cp "${SOURCE_PATH}" "${DEST_PATH}"
+echo "Copied Firebase config from ${SOURCE_PATH}"
