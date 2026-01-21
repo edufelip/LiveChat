@@ -126,9 +126,38 @@ android {
         }
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "LiveChat Dev")
+            buildConfigField("String", "FLAVOR_NAME", "\"dev\"")
+            buildConfigField("boolean", "IS_DEV", "true")
+        }
+        create("prod") {
+            dimension = "environment"
+            resValue("string", "app_name", "LiveChat")
+            buildConfigField("String", "FLAVOR_NAME", "\"prod\"")
+            buildConfigField("boolean", "IS_DEV", "false")
+        }
+    }
+
     buildTypes {
-        getByName("release") {
+        getByName("debug") {
+            isDebuggable = true
             isMinifyEnabled = false
+            isShrinkResources = false
+        }
+        getByName("release") {
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
