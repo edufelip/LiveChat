@@ -18,7 +18,6 @@
 local.properties
 /.idea
 docs/internal/*
-!docs/FirebaseScenarioMatrix.md
 .kotlin/
 .project_context
 iosApp/iosApp/GoogleService-Info.plist
