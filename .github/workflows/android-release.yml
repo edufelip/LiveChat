@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "release/**"
-      - "hotfix/**"
   workflow_dispatch:
     inputs:
       track:
@@ -32,7 +30,6 @@ jobs:
       RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
-      GOOGLE_SERVICES_JSON_BASE64_PROD: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}
       PLAY_TRACK: ${{ github.event.inputs.track || 'internal' }}
       PLAY_RELEASE_STATUS: ${{ github.event.inputs.status || 'draft' }}
     steps:
@@ -54,12 +51,12 @@ jobs:
       - name: Validate keystore credentials
         run: keytool -list -keystore "$RELEASE_STORE_FILE" -storepass "$RELEASE_STORE_PASSWORD" -alias "$RELEASE_KEY_ALIAS" -keypass "$RELEASE_KEY_PASSWORD" >/dev/null
 
-      - name: Write google-services.json
+      - name: Write google-services.json for prod flavor
         run: |
           mkdir -p app/src/prod
-          echo "$GOOGLE_SERVICES_JSON_BASE64_PROD" | base64 --decode > app/src/prod/google-services.json
+          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/src/prod/google-services.json
 
-      - name: Build release bundle
+      - name: Build release bundle (prod flavor)
         run: |
           ./gradlew :app:bundleProdRelease \
             -PversionCode="$GITHUB_RUN_NUMBER" \
@@ -73,7 +70,7 @@ jobs:
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release.aab
+          name: app-prod-release.aab
           path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
 
       - name: Upload to Play Console

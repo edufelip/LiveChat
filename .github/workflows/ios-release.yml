@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "release/**"
-      - "hotfix/**"
   workflow_dispatch:
     inputs:
       export_method:
@@ -66,43 +64,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-konan-
 
-      - name: Write GoogleService-Info.plist
+      - name: Write GoogleService-Info.plist for prod flavor
         env:
-          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD }}
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
         run: |
-          mkdir -p iosApp/iosApp
-          if [ -z "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" ]; then
-            echo "IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD is not set" >&2
-            exit 1
-          fi
-          printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info-Prod.plist
-          plutil -lint iosApp/iosApp/GoogleService-Info-Prod.plist
-          plutil -convert xml1 iosApp/iosApp/GoogleService-Info-Prod.plist -o iosApp/iosApp/GoogleService-Info.plist
-          plutil -lint iosApp/iosApp/GoogleService-Info.plist
-
-      - name: Preflight iOS scheme + Firebase config
-        run: |
-          if [[ "$BUNDLE_ID" == *.dev ]]; then
-            echo "BUNDLE_ID is set to a dev bundle id: $BUNDLE_ID"
-            exit 1
-          fi
-
-          if [ ! -f "iosApp/iosApp/GoogleService-Info-Prod.plist" ]; then
-            echo "Missing iosApp/iosApp/GoogleService-Info-Prod.plist"
-            exit 1
-          fi
-
-          export SCHEMES_LIST
-          SCHEMES_LIST=$(xcodebuild -workspace iosApp/iosApp.xcworkspace -list)
-          echo "$SCHEMES_LIST"
-          python - <<'PY'
-          import os, sys
-
-          scheme_lines = [line.strip() for line in os.environ["SCHEMES_LIST"].splitlines()]
-          if "iosApp" not in scheme_lines:
-              print("Scheme iosApp not found in workspace.")
-              sys.exit(1)
-          PY
+          mkdir -p iosApp/config/prod
+          echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/config/prod/GoogleService-Info.plist
 
       - name: Set up keychain and certificates
         env:
@@ -182,9 +149,11 @@ jobs:
           KEYCHAIN_PATH: ${{ runner.temp }}/live-chat.keychain-db
           IOS_PROFILE_NAME: ${{ env.PROFILE_NAME }}
         run: |
+          # Note: -configuration Release will use 'prod' flavor when Xcode is configured
+          # with user-defined FLAVOR build setting (see IOS_SETUP_INSTRUCTIONS.md)
           xcodebuild \
             -workspace iosApp/iosApp.xcworkspace \
-            -scheme "iosApp" \
+            -scheme iosApp \
             -configuration Release \
             -sdk iphoneos \
             -archivePath iosApp/build/iosApp.xcarchive \
