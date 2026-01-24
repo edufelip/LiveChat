@@ -5,6 +5,7 @@ import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IBlockedContactsRemoteData
 import com.edufelip.livechat.data.contracts.IContactsLocalData
+import com.edufelip.livechat.data.contracts.IDeviceTokenRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IPrivacySettingsRemoteData
@@ -15,6 +16,7 @@ import com.edufelip.livechat.data.repositories.AppearanceSettingsRepository
 import com.edufelip.livechat.data.repositories.BlockedContactsRepository
 import com.edufelip.livechat.data.repositories.ContactsRepository
 import com.edufelip.livechat.data.repositories.ConversationParticipantsRepository
+import com.edufelip.livechat.data.repositories.DeviceTokenRepository
 import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.repositories.NotificationSettingsRepository
 import com.edufelip.livechat.data.repositories.PresenceRepository
@@ -26,6 +28,7 @@ import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
+import com.edufelip.livechat.domain.repositories.IDeviceTokenRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IPresenceRepository
@@ -75,5 +78,8 @@ val sharedDataModule: Module =
         }
         single<IBlockedContactsRepository> {
             BlockedContactsRepository(get<IBlockedContactsRemoteData>(), get())
+        }
+        single<IDeviceTokenRepository> {
+            DeviceTokenRepository(get<IDeviceTokenRemoteData>(), get())
         }
     }

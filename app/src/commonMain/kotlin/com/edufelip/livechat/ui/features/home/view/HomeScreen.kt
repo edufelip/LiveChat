@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -19,13 +20,22 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.zIndex
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
+import com.edufelip.livechat.ui.components.molecules.InAppNotificationBanner
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeDestination
 import com.edufelip.livechat.domain.models.HomeTab
@@ -98,6 +108,34 @@ internal fun HomeScreen(
         destination !is HomeDestination.ConversationDetail &&
             destination != HomeDestination.Contacts &&
             (destination != HomeDestination.Settings || settingsChrome.showBottomBar)
+    
+    var currentNotification by remember { mutableStateOf<InAppNotification?>(null) }
+    var showNotification by remember { mutableStateOf(false) }
+    var dismissJob by remember { mutableStateOf<Job?>(null) }
+    
+    LaunchedEffect(Unit) {
+        InAppNotificationCenter.events.collect { notification ->
+            // Don't show notification if we're viewing that conversation
+            if (destination is HomeDestination.ConversationDetail && 
+                destination.conversationId == notification.conversationId) {
+                return@collect
+            }
+            
+            // Cancel any existing dismiss timer
+            dismissJob?.cancel()
+            
+            currentNotification = notification
+            showNotification = true
+            
+            // Start new dismiss timer
+            dismissJob = launch {
+                delay(5000)
+                showNotification = false
+                delay(300) // Wait for animation to complete
+                currentNotification = null
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -123,102 +161,130 @@ internal fun HomeScreen(
             }
         },
     ) { padding ->
-        val bodyModifier =
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .then(
-                    if (showBottomBar) {
-                        Modifier
-                    } else {
-                        Modifier
-                            .windowInsetsPadding(WindowInsets.navigationBars)
-                    },
-                )
-        val backGestureEnabled =
-            destination is HomeDestination.ConversationDetail ||
-                destination == HomeDestination.Contacts
-        val backGestureAction =
-            when (destination) {
-                is HomeDestination.ConversationDetail -> onBackFromConversationAction
-                HomeDestination.Contacts -> onCloseContactsAction
-                else -> {
-                    {}
-                }
-            }
-        PlatformBackGestureHandler(
-            enabled = backGestureEnabled,
-            onBack = backGestureAction,
-        )
-
-        AnimatedContent(
-            modifier = bodyModifier,
-            targetState = destination,
-            transitionSpec = {
-                if (reduceMotion) {
-                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
-                } else {
-                    val direction =
-                        when {
-                            targetState.animationOrder() > initialState.animationOrder() -> 1
-                            targetState.animationOrder() < initialState.animationOrder() -> -1
-                            else -> 0
-                        }
-                    if (direction == 0) {
-                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                    } else {
-                        (
-                            slideInHorizontally(
-                                animationSpec = tween(300),
-                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                        ) togetherWith
-                            (
-                                slideOutHorizontally(
-                                    animationSpec = tween(300),
-                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            val bodyModifier =
+                Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .then(
+                        if (showBottomBar) {
+                            Modifier
+                        } else {
+                            Modifier
+                                .windowInsetsPadding(WindowInsets.navigationBars)
+                        },
+                    )
+            val backGestureEnabled =
+                destination is HomeDestination.ConversationDetail ||
+                    destination == HomeDestination.Contacts
+            val backGestureAction =
+                when (destination) {
+                    is HomeDestination.ConversationDetail -> onBackFromConversationAction
+                    HomeDestination.Contacts -> onCloseContactsAction
+                    else -> {
+                        {}
                     }
                 }
-            },
-            label = strings.general.homeDestinationTransitionLabel,
-        ) { target ->
-            when (target) {
-                is HomeDestination.ConversationDetail ->
-                    ConversationDetailRoute(
-                        modifier = Modifier.fillMaxSize(),
-                        conversationId = target.conversationId,
-                        contactName = target.contactName,
-                        onBack = onBackFromConversationAction,
-                    )
+            PlatformBackGestureHandler(
+                enabled = backGestureEnabled,
+                onBack = backGestureAction,
+            )
 
-                HomeDestination.ConversationList ->
-                    ConversationListRoute(
-                        modifier = Modifier.fillMaxSize(),
-                        onConversationSelected = onOpenConversationAction,
-                        onCompose = onOpenContactsAction,
-                        onEmptyStateAction = onOpenContactsAction,
-                    )
+            AnimatedContent(
+                modifier = bodyModifier,
+                targetState = destination,
+                transitionSpec = {
+                    if (reduceMotion) {
+                        fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                    } else {
+                        val direction =
+                            when {
+                                targetState.animationOrder() > initialState.animationOrder() -> 1
+                                targetState.animationOrder() < initialState.animationOrder() -> -1
+                                else -> 0
+                            }
+                        if (direction == 0) {
+                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                        } else {
+                            (
+                                slideInHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                            ) togetherWith
+                                (
+                                    slideOutHorizontally(
+                                        animationSpec = tween(300),
+                                    ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                                )
+                        }
+                    }
+                },
+                label = strings.general.homeDestinationTransitionLabel,
+            ) { target ->
+                when (target) {
+                    is HomeDestination.ConversationDetail ->
+                        ConversationDetailRoute(
+                            modifier = Modifier.fillMaxSize(),
+                            conversationId = target.conversationId,
+                            contactName = target.contactName,
+                            onBack = onBackFromConversationAction,
+                        )
 
-                HomeDestination.Contacts ->
-                    ContactsRoute(
-                        modifier = Modifier.fillMaxSize(),
-                        phoneContactsProvider = phoneContactsProviderAction,
-                        onContactSelected = onStartConversationWithContactAction,
-                        onShareInvite = onShareInviteAction,
-                        onBack = onCloseContactsAction,
-                    )
+                    HomeDestination.ConversationList ->
+                        ConversationListRoute(
+                            modifier = Modifier.fillMaxSize(),
+                            onConversationSelected = onOpenConversationAction,
+                            onCompose = onOpenContactsAction,
+                            onEmptyStateAction = onOpenContactsAction,
+                        )
 
-                HomeDestination.Calls ->
-                    CallsRoute(
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    HomeDestination.Contacts ->
+                        ContactsRoute(
+                            modifier = Modifier.fillMaxSize(),
+                            phoneContactsProvider = phoneContactsProviderAction,
+                            onContactSelected = onStartConversationWithContactAction,
+                            onShareInvite = onShareInviteAction,
+                            onBack = onCloseContactsAction,
+                        )
 
-                HomeDestination.Settings ->
-                    SettingsRoute(
-                        modifier = Modifier.fillMaxSize(),
-                        onSectionSelected = onOpenSettingsSectionAction,
-                        onChromeVisibilityChanged = onChromeVisibilityChanged,
-                    )
+                    HomeDestination.Calls ->
+                        CallsRoute(
+                            modifier = Modifier.fillMaxSize(),
+                        )
+
+                    HomeDestination.Settings ->
+                        SettingsRoute(
+                            modifier = Modifier.fillMaxSize(),
+                            onSectionSelected = onOpenSettingsSectionAction,
+                            onChromeVisibilityChanged = onChromeVisibilityChanged,
+                        )
+                }
+            }
+            
+            // In-app notification banner overlay
+            currentNotification?.let { notification ->
+                InAppNotificationBanner(
+                    notification = notification,
+                    visible = showNotification,
+                    onDismiss = {
+                        dismissJob?.cancel()
+                        showNotification = false
+                        currentNotification = null
+                    },
+                    onClick = {
+                        dismissJob?.cancel()
+                        showNotification = false
+                        currentNotification = null
+                        // Navigate to the conversation
+                        notification.conversationId?.let { conversationId ->
+                            onOpenConversationAction(conversationId, null)
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = padding.calculateTopPadding())
+                        .zIndex(10f)
+                )
             }
         }
     }

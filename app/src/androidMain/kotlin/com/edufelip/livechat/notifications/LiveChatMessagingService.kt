@@ -8,9 +8,12 @@ import androidx.core.app.NotificationManagerCompat
 import com.edufelip.livechat.MainActivity
 import com.edufelip.livechat.R
 import com.edufelip.livechat.di.AndroidKoinBridge
+import com.edufelip.livechat.domain.models.DevicePlatform
+import com.edufelip.livechat.domain.models.DeviceTokenRegistration
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
+import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -23,6 +26,7 @@ val DEFAULT_VIBRATION_PATTERN = longArrayOf(0, 50, 40, 50)
 
 class LiveChatMessagingService : FirebaseMessagingService() {
     private val notificationSettingsRepository = AndroidKoinBridge.notificationSettingsRepository()
+    private val registerDeviceTokenUseCase = AndroidKoinBridge.registerDeviceTokenUseCase()
     private val quietModeUseCase = IsQuietModeActiveUseCase()
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -64,7 +68,42 @@ class LiveChatMessagingService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        // TODO: send token to backend when push registration is implemented.
+        // Register token with backend
+        runBlocking {
+            runCatching {
+                val deviceId = getDeviceId()
+                val appVersion = getAppVersion()
+                registerDeviceTokenUseCase(
+                    DeviceTokenRegistration(
+                        deviceId = deviceId,
+                        fcmToken = token,
+                        platform = DevicePlatform.Android,
+                        appVersion = appVersion,
+                    ),
+                )
+            }.onFailure { error ->
+                // Log error but don't crash
+                android.util.Log.e(TAG, "Failed to register FCM token", error)
+            }
+        }
+    }
+
+    private fun getDeviceId(): String {
+        val prefs = getSharedPreferences("livechat_device", MODE_PRIVATE)
+        var deviceId = prefs.getString("device_id", null)
+        if (deviceId == null) {
+            deviceId = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString("device_id", deviceId).apply()
+        }
+        return deviceId
+    }
+
+    private fun getAppVersion(): String? {
+        return try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun showNotification(
@@ -125,7 +164,9 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         return quietModeUseCase(settings, currentTime)
     }
 
-    private companion object
+    private companion object {
+        const val TAG = "LiveChatMessagingService"
+    }
 }
 
 private data class NotificationDefaults(

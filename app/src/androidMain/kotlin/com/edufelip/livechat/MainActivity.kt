@@ -12,6 +12,7 @@ import com.edufelip.livechat.contacts.AndroidContactsProvider
 import com.edufelip.livechat.notifications.NotificationIntentKeys
 import com.edufelip.livechat.notifications.NotificationNavigation
 import com.edufelip.livechat.notifications.NotificationNavigationTarget
+import com.edufelip.livechat.notifications.PlatformTokenRegistrar
 import com.edufelip.livechat.ui.app.LiveChatApp
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
@@ -19,6 +20,10 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize platform token registrar
+        PlatformTokenRegistrar.initialize(applicationContext)
+        
         enableEdgeToEdge()
         // Ensure system bars are transparent so content can draw behind them.
         window.statusBarColor = Color.TRANSPARENT

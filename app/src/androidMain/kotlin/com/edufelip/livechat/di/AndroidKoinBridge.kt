@@ -12,6 +12,7 @@ import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
+import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
@@ -39,4 +40,6 @@ object AndroidKoinBridge : KoinComponent {
     fun privacySettingsPresenter(): PrivacySettingsPresenter = get()
 
     fun blockedContactsPresenter(): BlockedContactsPresenter = get()
+
+    fun registerDeviceTokenUseCase(): RegisterDeviceTokenUseCase = get()
 }

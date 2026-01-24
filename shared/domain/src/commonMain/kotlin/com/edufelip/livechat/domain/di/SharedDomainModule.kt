@@ -10,11 +10,13 @@ import com.edufelip.livechat.domain.presentation.ConversationPresenter
 import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
+import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
+import com.edufelip.livechat.domain.repositories.IDeviceTokenRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
@@ -32,6 +34,8 @@ import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
+import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
+import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveBlockedContactsUseCase
@@ -149,6 +153,8 @@ val sharedDomainModule: Module =
         factory { UpdateInAppVibrationUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateMessagePreviewUseCase(get<INotificationSettingsRepository>()) }
         factory { ResetNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
+        factory { RegisterDeviceTokenUseCase(get<IDeviceTokenRepository>()) }
+        factory { UnregisterDeviceTokenUseCase(get<IDeviceTokenRepository>()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>(), get<EnsureUserInboxUseCase>()) }
@@ -232,6 +238,7 @@ val sharedDomainModule: Module =
                 getWelcomeSeenSnapshot = get<GetWelcomeSeenSnapshotUseCase>(),
                 getLocalContactsSnapshot = get<GetLocalContactsSnapshotUseCase>(),
                 updateSelfPresence = get<UpdateSelfPresenceUseCase>(),
+                sessionProvider = get<UserSessionProvider>(),
                 scope = MainScope(),
             )
         }

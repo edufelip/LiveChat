@@ -28,6 +28,16 @@ service cloud.firestore {
         && (!('created_at_ms' in data) || data.created_at_ms is int);
     }
 
+    function isValidAction(data, conversationId) {
+      return data.sender_id is string
+        && data.receiver_id == conversationId
+        && data.payload_type == 'action'
+        && data.action_type in ['delivered', 'read']
+        && data.action_message_id is string
+        && data.created_at is timestamp
+        && (!('created_at_ms' in data) || data.created_at_ms is int);
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId && resource.data.is_deleted != true;
       allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.is_deleted != true;
@@ -39,6 +49,10 @@ service cloud.firestore {
     }
 
     match /users/{userId}/blockedContacts/{blockedUserId} {
+      allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/devices/{deviceId} {
       allow read, write: if isActiveUser(userId) && request.auth.uid == userId;
     }
 
@@ -63,7 +77,8 @@ service cloud.firestore {
         allow create:
           if isActiveUser(request.auth.uid)
             && request.resource.data.sender_id == request.auth.uid
-            && isValidMessage(request.resource.data, conversationId);
+            && (isValidMessage(request.resource.data, conversationId) 
+                || isValidAction(request.resource.data, conversationId));
       }
     }
   }

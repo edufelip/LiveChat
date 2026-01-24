@@ -194,6 +194,7 @@ class AppPresenterTest {
         getWelcomeSeenSnapshot = GetWelcomeSeenSnapshotUseCase(repository),
         getLocalContactsSnapshot = GetLocalContactsSnapshotUseCase(FakeContactsRepository()),
         updateSelfPresence = UpdateSelfPresenceUseCase(FakePresenceRepository()),
+        sessionProvider = FakeUserSessionProvider(),
         scope = scope,
     )
 
@@ -294,5 +295,16 @@ class AppPresenterTest {
         override fun observePresence(userIds: List<String>): Flow<Map<String, PresenceState>> = emptyFlow()
 
         override suspend fun updateSelfPresence(isOnline: Boolean) = Unit
+    }
+
+    private class FakeUserSessionProvider : UserSessionProvider {
+        override val session: Flow<com.edufelip.livechat.domain.providers.model.UserSession?>
+            get() = emptyFlow()
+
+        override suspend fun refreshSession(forceRefresh: Boolean): com.edufelip.livechat.domain.providers.model.UserSession? = null
+
+        override fun currentUserId(): String? = "test-user-id"
+
+        override fun currentUserPhone(): String? = "+1234567890"
     }
 }

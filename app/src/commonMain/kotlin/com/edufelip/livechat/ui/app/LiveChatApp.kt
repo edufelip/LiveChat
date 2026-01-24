@@ -30,6 +30,7 @@ import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
 import com.edufelip.livechat.notifications.NotificationNavigation
+import com.edufelip.livechat.notifications.PlatformTokenRegistrar
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -137,6 +138,13 @@ fun LiveChatApp(
 
             LaunchedEffect(presenter) {
                 presenter.onAppForeground()
+            }
+
+            // Register FCM token when user is authenticated
+            LaunchedEffect(state.isOnboardingComplete) {
+                if (state.isOnboardingComplete) {
+                    PlatformTokenRegistrar.registerCurrentToken()
+                }
             }
 
             LaunchedEffect(isUiTest, isE2e, uiTestOverrides.resetOnboarding) {

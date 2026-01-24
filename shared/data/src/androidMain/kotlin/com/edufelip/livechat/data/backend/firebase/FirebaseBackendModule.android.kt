@@ -10,6 +10,7 @@ import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IBlockedContactsRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
+import com.edufelip.livechat.data.contracts.IDeviceTokenRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.data.contracts.IPresenceRemoteData
@@ -19,6 +20,7 @@ import com.edufelip.livechat.data.remote.FirebaseRestAccountRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestAppearanceSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestBlockedContactsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestContactsRemoteData
+import com.edufelip.livechat.data.remote.FirebaseRestDeviceTokenRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestNotificationSettingsRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPresenceRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestPrivacySettingsRemoteData
@@ -104,6 +106,12 @@ actual val firebaseBackendModule: Module =
                 config = get(),
                 sessionProvider = get<UserSessionProvider>(),
                 blockedUserIdsProvider = blockedContactsStore::currentBlockedUserIds,
+            )
+        }
+        single<IDeviceTokenRemoteData> {
+            FirebaseRestDeviceTokenRemoteData(
+                config = get(),
+                httpClient = get(),
             )
         }
     }
