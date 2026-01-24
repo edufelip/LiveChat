@@ -17,9 +17,7 @@ class DeviceTokenRepository(
     override suspend fun registerDeviceToken(registration: DeviceTokenRegistration) {
         withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.registerDeviceToken: starting registration for deviceId=${registration.deviceId}, platform=${registration.platform}")
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to register device tokens")
+            val session = requireSession()
             println("[FCM] DeviceTokenRepository.registerDeviceToken: got session for userId=${session.userId}")
             remoteData.registerToken(
                 userId = session.userId,
@@ -33,9 +31,7 @@ class DeviceTokenRepository(
     override suspend fun unregisterDeviceToken(deviceId: String) {
         withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.unregisterDeviceToken: unregistering deviceId=$deviceId")
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to unregister device tokens")
+            val session = requireSession()
             remoteData.unregisterToken(
                 userId = session.userId,
                 idToken = session.idToken,
@@ -48,9 +44,7 @@ class DeviceTokenRepository(
     override suspend fun getDeviceTokens(): List<DeviceToken> {
         return withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.getDeviceTokens: fetching device tokens")
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to get device tokens")
+            val session = requireSession()
             val tokens = remoteData.getTokens(
                 userId = session.userId,
                 idToken = session.idToken,
