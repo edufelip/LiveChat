@@ -3,6 +3,7 @@ package com.edufelip.livechat.notifications
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.edufelip.livechat.MainActivity
@@ -30,27 +31,45 @@ class LiveChatMessagingService : FirebaseMessagingService() {
     private val quietModeUseCase = IsQuietModeActiveUseCase()
 
     override fun onMessageReceived(message: RemoteMessage) {
+        Log.i(TAG, "onMessageReceived: received FCM message from=${message.from}, messageId=${message.messageId}")
+        Log.d(TAG, "onMessageReceived: notification=${message.notification != null}, data=${message.data}")
+        
         val defaults =
             NotificationDefaults(
                 title = getString(R.string.notification_message_title),
                 hiddenBody = getString(R.string.notification_message_hidden_body),
             )
         val payload = NotificationPayload.from(message, defaults)
+        Log.d(TAG, "onMessageReceived: parsed payload - conversationId=${payload.conversationId}, senderName=${payload.senderName}, messageId=${payload.messageId}")
+        
         val settings =
             runBlocking {
                 runCatching { notificationSettingsRepository.observeSettings().first() }
-                    .getOrElse { NotificationSettings() }
+                    .getOrElse { 
+                        Log.w(TAG, "onMessageReceived: failed to load notification settings, using defaults")
+                        NotificationSettings() 
+                    }
             }
 
-        if (!settings.pushEnabled) return
-        if (isQuietModeActive(settings)) return
+        if (!settings.pushEnabled) {
+            Log.i(TAG, "onMessageReceived: push notifications disabled in settings, ignoring message")
+            return
+        }
+        if (isQuietModeActive(settings)) {
+            Log.i(TAG, "onMessageReceived: quiet mode is active, ignoring message")
+            return
+        }
 
         val showPreview = settings.showMessagePreview
         val isSilent = NotificationSound.normalizeId(settings.sound) == NotificationSound.Silent.id
         val title = if (showPreview) payload.title.ifBlank { defaults.title } else defaults.title
         val body = if (showPreview) payload.body else defaults.hiddenBody
 
-        if (AppForegroundTracker.isForeground.value) {
+        val isForeground = AppForegroundTracker.isForeground.value
+        Log.d(TAG, "onMessageReceived: app isForeground=$isForeground, showPreview=$showPreview, isSilent=$isSilent")
+
+        if (isForeground) {
+            Log.i(TAG, "onMessageReceived: app is foreground, emitting in-app notification")
             InAppNotificationCenter.emit(
                 InAppNotification(
                     title = title,
@@ -60,19 +79,24 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                 ),
             )
             if (!isSilent && settings.inAppVibration) {
+                Log.d(TAG, "onMessageReceived: triggering in-app vibration")
                 NotificationVibrationHelper.vibrate(this)
             }
         } else {
+            Log.i(TAG, "onMessageReceived: app is background, showing system notification")
             showNotification(title, body, payload, settings, isSilent)
         }
     }
 
     override fun onNewToken(token: String) {
+        Log.i(TAG, "onNewToken: new FCM token received, length=${token.length}")
+        Log.d(TAG, "onNewToken: token=$token")
         // Register token with backend
         runBlocking {
             runCatching {
                 val deviceId = getDeviceId()
                 val appVersion = getAppVersion()
+                Log.d(TAG, "onNewToken: registering token with backend (deviceId=$deviceId, appVersion=$appVersion)")
                 registerDeviceTokenUseCase(
                     DeviceTokenRegistration(
                         deviceId = deviceId,
@@ -81,9 +105,10 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                         appVersion = appVersion,
                     ),
                 )
+                Log.i(TAG, "onNewToken: FCM token registered successfully for deviceId=$deviceId")
             }.onFailure { error ->
                 // Log error but don't crash
-                android.util.Log.e(TAG, "Failed to register FCM token", error)
+                Log.e(TAG, "onNewToken: Failed to register FCM token", error)
             }
         }
     }
@@ -94,6 +119,9 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         if (deviceId == null) {
             deviceId = java.util.UUID.randomUUID().toString()
             prefs.edit().putString("device_id", deviceId).apply()
+            Log.d(TAG, "getDeviceId: generated new deviceId=$deviceId")
+        } else {
+            Log.d(TAG, "getDeviceId: using existing deviceId=$deviceId")
         }
         return deviceId
     }
@@ -102,6 +130,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         return try {
             packageManager.getPackageInfo(packageName, 0).versionName
         } catch (e: Exception) {
+            Log.w(TAG, "getAppVersion: failed to get app version", e)
             null
         }
     }
@@ -113,12 +142,21 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         settings: NotificationSettings,
         isSilent: Boolean,
     ) {
+        Log.d(TAG, "showNotification: creating system notification (title=$title, isSilent=$isSilent)")
         val channelId = LiveChatNotificationChannels.ensureChannel(this, settings)
+        Log.d(TAG, "showNotification: using channelId=$channelId")
+        
         val intent =
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                payload.conversationId?.let { putExtra(NotificationIntentKeys.EXTRA_CONVERSATION_ID, it) }
-                payload.senderName?.let { putExtra(NotificationIntentKeys.EXTRA_SENDER_NAME, it) }
+                payload.conversationId?.let { 
+                    putExtra(NotificationIntentKeys.EXTRA_CONVERSATION_ID, it)
+                    Log.d(TAG, "showNotification: added conversationId=$it to intent")
+                }
+                payload.senderName?.let { 
+                    putExtra(NotificationIntentKeys.EXTRA_SENDER_NAME, it) 
+                    Log.d(TAG, "showNotification: added senderName=$it to intent")
+                }
             }
         val pendingIntent =
             PendingIntent.getActivity(
@@ -145,11 +183,14 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         if (soundUri == null) {
             builder.setSound(null)
             builder.setSilent(true)
+            Log.d(TAG, "showNotification: notification is silent")
         } else {
             builder.setSound(soundUri)
+            Log.d(TAG, "showNotification: notification sound=$soundUri")
         }
 
         NotificationManagerCompat.from(this).notify(payload.notificationId, builder.build())
+        Log.i(TAG, "showNotification: system notification posted with id=${payload.notificationId}")
     }
 
     private fun isQuietModeActive(settings: NotificationSettings): Boolean {
@@ -165,7 +206,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
     }
 
     private companion object {
-        const val TAG = "LiveChatMessagingService"
+        const val TAG = "FCM"
     }
 }
 

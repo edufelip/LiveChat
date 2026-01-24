@@ -32,8 +32,12 @@ class FirebaseRestDeviceTokenRemoteData(
         registration: DeviceTokenRegistration,
     ) {
         withContext(dispatcher) {
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: starting registration")
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: userId=$userId, deviceId=${registration.deviceId}, platform=${registration.platform}")
             ensureConfigured(idToken)
             val url = deviceTokenDocumentUrl(userId, registration.deviceId)
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: Firestore URL=$url")
+            
             val fields =
                 mapOf(
                     FIELD_FCM_TOKEN to Value(stringValue = registration.fcmToken),
@@ -48,6 +52,7 @@ class FirebaseRestDeviceTokenRemoteData(
                     }
                 }
 
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: sending PATCH request to Firestore")
             httpClient.patch(url) {
                 header(AUTHORIZATION_HEADER, "Bearer $idToken")
                 if (config.apiKey.isNotBlank()) {
@@ -61,6 +66,7 @@ class FirebaseRestDeviceTokenRemoteData(
                     ),
                 )
             }
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: PATCH request completed successfully")
         }
     }
 
@@ -70,14 +76,17 @@ class FirebaseRestDeviceTokenRemoteData(
         deviceId: String,
     ) {
         withContext(dispatcher) {
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: userId=$userId, deviceId=$deviceId")
             ensureConfigured(idToken)
             val url = deviceTokenDocumentUrl(userId, deviceId)
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: DELETE URL=$url")
             httpClient.delete(url) {
                 header(AUTHORIZATION_HEADER, "Bearer $idToken")
                 if (config.apiKey.isNotBlank()) {
                     parameter("key", config.apiKey)
                 }
             }
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: DELETE completed successfully")
         }
     }
 
@@ -86,8 +95,10 @@ class FirebaseRestDeviceTokenRemoteData(
         idToken: String,
     ): List<DeviceToken> {
         return withContext(dispatcher) {
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: fetching tokens for userId=$userId")
             ensureConfigured(idToken)
             val url = deviceTokensCollectionUrl(userId)
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: GET URL=$url")
             val response =
                 httpClient.get(url) {
                     header(AUTHORIZATION_HEADER, "Bearer $idToken")
@@ -96,7 +107,9 @@ class FirebaseRestDeviceTokenRemoteData(
                     }
                 }.body<ListDocumentsResponse>()
 
-            response.documents?.mapNotNull { it.toDeviceToken() } ?: emptyList()
+            val tokens = response.documents?.mapNotNull { it.toDeviceToken() } ?: emptyList()
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: fetched ${tokens.size} tokens")
+            tokens
         }
     }
 
@@ -105,28 +118,35 @@ class FirebaseRestDeviceTokenRemoteData(
         idToken: String,
     ) {
         withContext(dispatcher) {
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: starting cleanup for userId=$userId")
             // Get all tokens
             val tokens = getTokens(userId, idToken)
             val now = currentEpochMillis()
             val thirtyDaysAgo = now - (30L * 24 * 60 * 60 * 1000)
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: checking ${tokens.size} tokens against cutoff=$thirtyDaysAgo")
 
             // Delete tokens older than 30 days
-            tokens
-                .filter { it.lastUpdatedAt < thirtyDaysAgo }
-                .forEach { token ->
-                    runCatching {
-                        unregisterToken(userId, idToken, token.deviceId)
-                    }
+            val oldTokens = tokens.filter { it.lastUpdatedAt < thirtyDaysAgo }
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: found ${oldTokens.size} tokens to delete")
+            
+            oldTokens.forEach { token ->
+                runCatching {
+                    println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: deleting deviceId=${token.deviceId}")
+                    unregisterToken(userId, idToken, token.deviceId)
+                }.onFailure { e ->
+                    println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: failed to delete deviceId=${token.deviceId}, error=$e")
                 }
+            }
+            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: cleanup completed")
         }
     }
 
     private fun deviceTokenDocumentUrl(
         userId: String,
         deviceId: String,
-    ): String = "${config.firestoreBaseUrl}/users/$userId/devices/$deviceId"
+    ): String = "${config.documentsEndpoint}/users/$userId/devices/$deviceId"
 
-    private fun deviceTokensCollectionUrl(userId: String): String = "${config.firestoreBaseUrl}/users/$userId/devices"
+    private fun deviceTokensCollectionUrl(userId: String): String = "${config.documentsEndpoint}/users/$userId/devices"
 
     private fun ensureConfigured(idToken: String) {
         if (config.projectId.isBlank() || idToken.isBlank()) {
