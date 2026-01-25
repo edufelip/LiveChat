@@ -10,8 +10,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -159,7 +161,10 @@ internal fun OnboardingFlowScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+        contentWindowInsets =
+            WindowInsets.safeDrawing
+                .only(WindowInsetsSides.Bottom)
+                .exclude(WindowInsets.ime),
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         val contentModifier =
@@ -319,7 +324,10 @@ internal fun UiTestOnboardingFlow(
             modifier
                 .fillMaxSize()
                 .testTag(OnboardingTestTags.UI_TEST_MODE),
-        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom),
+        contentWindowInsets =
+            WindowInsets.safeDrawing
+                .only(WindowInsetsSides.Bottom)
+                .exclude(WindowInsets.ime),
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         val contentModifier =

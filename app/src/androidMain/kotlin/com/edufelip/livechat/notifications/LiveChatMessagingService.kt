@@ -1,9 +1,11 @@
 package com.edufelip.livechat.notifications
 
+import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.edufelip.livechat.MainActivity
@@ -13,6 +15,8 @@ import com.edufelip.livechat.domain.models.DevicePlatform
 import com.edufelip.livechat.domain.models.DeviceTokenRegistration
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSound
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
 import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
@@ -94,7 +98,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         // Register token with backend
         runBlocking {
             runCatching {
-                val deviceId = getDeviceId()
+                val deviceId = getStoredDeviceId()
                 val appVersion = getAppVersion()
                 Log.d(TAG, "onNewToken: registering token with backend (deviceId=$deviceId, appVersion=$appVersion)")
                 registerDeviceTokenUseCase(
@@ -113,7 +117,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun getDeviceId(): String {
+    private fun getStoredDeviceId(): String {
         val prefs = getSharedPreferences("livechat_device", MODE_PRIVATE)
         var deviceId = prefs.getString("device_id", null)
         if (deviceId == null) {
@@ -135,6 +139,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         }
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showNotification(
         title: String,
         body: String,

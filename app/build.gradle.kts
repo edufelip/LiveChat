@@ -94,6 +94,7 @@ kotlin {
 android {
     namespace = "com.edufelip.livechat"
     compileSdk = libs.versions.compileSdk.get().toInt()
+    buildToolsVersion = "35.0.1"
 
     defaultConfig {
         applicationId = "com.edufelip.livechat"
