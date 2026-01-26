@@ -182,7 +182,7 @@ On iOS, `startKoinForiOS` registers the same shared modules alongside `iosPlatfo
 - Because we only ship fresh installs today, Room simply uses destructive migrations (schema export lives under `shared/data/schemas`). Update the entity definitions whenever you tweak tables and let the bundled driver recreate the DB on install.
 
 ### Firestore Security Rules Cheatsheet
-Keep the storage schema from `plan.md` locked down with the following baseline. The helper functions use brace bodies instead of assignment syntax, avoiding the `Unexpected '='` error you hit at lines 77/83:
+Inbox items are append-only action entries under `/inboxes/{ownerId}/items/{itemId}`. The owner can read + delete their queue; any active user can enqueue actions to a recipient as long as the payload is valid.
 
 ```firestore
 rules_version = '2';
@@ -193,46 +193,70 @@ service cloud.firestore {
     }
 
     function isDeleted(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
+      return exists(/databases/$(database)/documents/users/$(uid)) &&
+        get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
     }
 
-    function isParticipant(conversationId) {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/conversations/$(conversationId)/participants/$(request.auth.uid));
+    function isActiveUser(uid) {
+      return isSignedIn() && !isDeleted(uid);
+    }
+
+    function isInboxOwner(ownerId) {
+      return isActiveUser(request.auth.uid) && request.auth.uid == ownerId;
+    }
+
+    function isValidInboxWrite(data, ownerId) {
+      return data.owner_id == ownerId
+        && data.keys().hasOnly(['owner_id', 'updated_at', 'last_item_at'])
+        && data.updated_at is timestamp
+        && (!('last_item_at' in data) || data.last_item_at is timestamp);
+    }
+
+    function isValidInboxItemBase(data, ownerId) {
+      return data.sender_id is string
+        && data.receiver_id == ownerId
+        && data.action_type in ['message', 'delivered', 'read']
+        && data.created_at is timestamp
+        && (!('created_at_ms' in data) || data.created_at_ms is int);
+    }
+
+    function isValidMessageItem(data, ownerId) {
+      return isValidInboxItemBase(data, ownerId)
+        && data.action_type == 'message'
+        && data.message_id is string
+        && data.content_type in ['text', 'image', 'audio']
+        && data.content is string
+        && data.content.size() > 0
+        && !('action_message_id' in data);
+    }
+
+    function isValidReceiptItem(data, ownerId) {
+      return isValidInboxItemBase(data, ownerId)
+        && data.action_type in ['delivered', 'read']
+        && data.action_message_id is string
+        && !('message_id' in data)
+        && !('content' in data)
+        && !('content_type' in data);
     }
 
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId && !isDeleted(userId);
     }
 
-    match /conversations/{conversationId} {
-      allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
-      allow write: if false; // conversation docs are created server-side
+    match /inboxes/{ownerId} {
+      allow read: if isInboxOwner(ownerId);
+      allow create, update: if isActiveUser(request.auth.uid)
+        && (request.auth.uid == ownerId || isActiveUser(ownerId))
+        && isValidInboxWrite(request.resource.data, ownerId);
+      allow delete: if isInboxOwner(ownerId);
 
-      match /participants/{userId} {
-        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
-        allow write: if request.auth.uid == userId && !isDeleted(request.auth.uid);
-      }
-
-      match /messages/{messageId} {
-        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
-        allow create: if isParticipant(conversationId)
-          && !isDeleted(request.auth.uid)
-          && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false;
-      }
-
-      match /receipts/{receiptId} {
-        allow read: if isParticipant(conversationId) && !isDeleted(request.auth.uid);
-        allow write: if isParticipant(conversationId)
-          && !isDeleted(request.auth.uid)
-          && request.resource.data.userId == request.auth.uid;
-      }
-
-      match /reactions/{reactionId} {
-        allow read, write: if isParticipant(conversationId)
-          && !isDeleted(request.auth.uid)
-          && request.resource.data.userId == request.auth.uid;
+      match /items/{itemId} {
+        allow read, delete: if isInboxOwner(ownerId);
+        allow create: if isActiveUser(request.auth.uid)
+          && request.resource.data.sender_id == request.auth.uid
+          && (isValidMessageItem(request.resource.data, ownerId)
+              || isValidReceiptItem(request.resource.data, ownerId));
+        allow update: if false;
       }
     }
   }
