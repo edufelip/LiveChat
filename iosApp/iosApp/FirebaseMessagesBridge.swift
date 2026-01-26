@@ -77,8 +77,7 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         document.setData(payload.toFirestorePayload(), merge: false) { error in
             if let error = error {
                 let sender = payload.senderId ?? "nil"
-                let status = payload.status ?? "nil"
-                NSLog("FirebaseMessagesBridge: sendMessage error sender=%@ status=%@ error=%@", sender, status, error.localizedDescription)
+                NSLog("FirebaseMessagesBridge: sendMessage error sender=%@ error=%@", sender, error.localizedDescription)
                 completionHandler(nil, error)
                 return
             }
@@ -118,7 +117,13 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         #endif
         let doc = db.collection(config.conversationsCollection)
             .document(conversationId)
-        doc.setData(["created_at": FieldValue.serverTimestamp()], merge: true) { error in
+        doc.setData(
+            [
+                "owner_id": conversationId,
+                "updated_at": FieldValue.serverTimestamp(),
+            ],
+            merge: true
+        ) { error in
             if let error = error {
                 #if canImport(FirebaseAuth)
                 let authUid = Auth.auth().currentUser?.uid ?? "nil"
@@ -142,28 +147,30 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         let data = doc.data()
         let senderId = data["sender_id"] as? String
         let receiverId = data["receiver_id"] as? String
-        let payloadType = data["payload_type"] as? String
-        let type = data["type"] as? String
         let content = data["content"] as? String
-        let status = data["status"] as? String
         let actionType = data["action_type"] as? String
+        let messageId = data["message_id"] as? String
         let actionMessageId = data["action_message_id"] as? String
+        let contentType = data["content_type"] as? String
+        let serverMillis =
+            (data["created_at"] as? Timestamp).map { Int64($0.dateValue().timeIntervalSince1970 * 1000) }
         let createdAtMillis =
             (data["created_at_ms"] as? NSNumber)?.int64Value
-            ?? (data["created_at"] as? Timestamp).map { Int64($0.dateValue().timeIntervalSince1970 * 1000) }
+            ?? serverMillis
 
         let kotlinCreatedAt = createdAtMillis.map { KotlinLong(value: $0) }
+        let kotlinServerCreatedAt = serverMillis.map { KotlinLong(value: $0) }
         return TransportMessagePayload(
             id: doc.documentID,
             senderId: senderId,
             receiverId: receiverId,
             createdAtMillis: kotlinCreatedAt,
-            payloadType: payloadType,
-            type: type,
+            createdAtServerMillis: kotlinServerCreatedAt,
             content: content,
-            status: status,
             actionType: actionType,
-            actionMessageId: actionMessageId
+            messageId: messageId,
+            actionMessageId: actionMessageId,
+            contentType: contentType
         )
     }
 
@@ -204,15 +211,20 @@ private extension TransportMessagePayload {
             "sender_id": senderId ?? "",
             "receiver_id": receiverId ?? "",
             "created_at": FieldValue.serverTimestamp(),
-            "payload_type": payloadType ?? "message",
-            "type": type ?? "text",
-            "content": content ?? "",
-            "status": status ?? "pending",
         ]
-        if let actionType {
-            payload["action_type"] = actionType
-        }
-        if let actionMessageId {
+        let normalizedAction = (actionType ?? "message").lowercased()
+        payload["action_type"] = normalizedAction
+        if normalizedAction == "message" {
+            if let messageId {
+                payload["message_id"] = messageId
+            }
+            if let content {
+                payload["content"] = content
+            }
+            if let contentType {
+                payload["content_type"] = contentType
+            }
+        } else if let actionMessageId {
             payload["action_message_id"] = actionMessageId
         }
         if let createdAtMillis = createdAtMillis?.int64Value {

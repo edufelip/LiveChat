@@ -76,7 +76,7 @@ class FirebaseMessagesRemoteData(
                     return@forEach
                 }
 
-                if (payload.isActionPayload()) {
+                if (payload.isReceiptPayload()) {
                     val action = payload.toInboxAction(currentUserId)
                     if (action != null) {
                         mapped += InboxItem.ActionItem(action)
@@ -90,9 +90,19 @@ class FirebaseMessagesRemoteData(
                     return@forEach
                 }
 
+                if (!payload.isMessagePayload()) {
+                    deleteRemoteMessage(
+                        recipientId = currentUserId,
+                        documentId = payload.id,
+                        payload = payload,
+                        deleteMedia = false,
+                    )
+                    return@forEach
+                }
+
                 if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@forEach
 
-                val contentType = payload.type.toMessageContentType()
+                val contentType = payload.contentType.toMessageContentType()
                 val remoteContent = payload.content.orEmpty()
                 val mediaPath =
                     if (contentType.isMedia()) {
@@ -108,11 +118,12 @@ class FirebaseMessagesRemoteData(
                     }
                 val message =
                     payload.toDomainMessage(
-                        documentId = payload.id,
+                        documentId = payload.messageId ?: payload.id,
                         conversationId = payload.senderId.orEmpty(),
                         contentTypeOverride = contentType,
                         bodyOverride = mediaPath,
                         extraMetadata = extraMetadata,
+                        statusOverride = MessageStatus.SENT,
                     )
                 mapped += InboxItem.MessageItem(message)
                 sendDeliveryActionIfNeeded(currentUserId, payload)
@@ -153,9 +164,7 @@ class FirebaseMessagesRemoteData(
                     senderId = senderId,
                     timestamp = timestamp,
                     content = mediaUpload?.downloadUrl ?: draft.body,
-                    status = STATUS_PENDING,
                     documentId = documentId,
-                    payloadType = PAYLOAD_TYPE_MESSAGE,
                 )
 
             messagesBridge.sendMessage(
@@ -194,7 +203,6 @@ class FirebaseMessagesRemoteData(
                     senderId = action.senderId,
                     receiverId = action.receiverId,
                     createdAtMillis = action.actionAtMillis,
-                    payloadType = PAYLOAD_TYPE_ACTION,
                     actionType = action.actionType.toPayload(),
                     actionMessageId = action.messageId,
                 )
@@ -265,7 +273,17 @@ class FirebaseMessagesRemoteData(
                             return@mapNotNull null
                         }
 
-                        if (payload.isActionPayload()) {
+                        if (payload.isReceiptPayload()) {
+                            deleteRemoteMessage(
+                                recipientId = currentUserId,
+                                documentId = payload.id,
+                                payload = payload,
+                                deleteMedia = false,
+                            )
+                            return@mapNotNull null
+                        }
+
+                        if (!payload.isMessagePayload()) {
                             deleteRemoteMessage(
                                 recipientId = currentUserId,
                                 documentId = payload.id,
@@ -277,7 +295,7 @@ class FirebaseMessagesRemoteData(
 
                         if (conversationId.isNotBlank() && payload.senderId.orEmpty() != conversationId) return@mapNotNull null
 
-                        val contentType = payload.type.toMessageContentType()
+                        val contentType = payload.contentType.toMessageContentType()
                         val remoteContent = payload.content.orEmpty()
                         val mediaPath =
                             if (contentType.isMedia()) {
@@ -293,11 +311,12 @@ class FirebaseMessagesRemoteData(
                             }
                         val message =
                             payload.toDomainMessage(
-                                documentId = payload.id,
+                                documentId = payload.messageId ?: payload.id,
                                 conversationId = payload.senderId.orEmpty(),
                                 contentTypeOverride = contentType,
                                 bodyOverride = mediaPath,
                                 extraMetadata = extraMetadata,
+                                statusOverride = MessageStatus.SENT,
                             )
                         sendDeliveryActionIfNeeded(currentUserId, payload)
                         deleteRemoteMessage(
@@ -327,7 +346,7 @@ class FirebaseMessagesRemoteData(
 
     private fun TransportMessagePayload.isAddressedTo(userId: String): Boolean = receiverId?.isNotBlank() == true && receiverId == userId
 
-    private fun TransportMessagePayload.timestampMillis(): Long? = createdAtMillis
+    private fun TransportMessagePayload.timestampMillis(): Long? = createdAtServerMillis ?: createdAtMillis
 
     private fun TransportMessagePayload.toDomainMessage(
         documentId: String,
@@ -335,10 +354,11 @@ class FirebaseMessagesRemoteData(
         contentTypeOverride: MessageContentType? = null,
         bodyOverride: String? = null,
         extraMetadata: Map<String, String> = emptyMap(),
+        statusOverride: MessageStatus? = null,
     ): Message {
         val createdAt = timestampMillis() ?: currentEpochMillis()
-        val contentType = contentTypeOverride ?: type.toMessageContentType()
-        val status = status.toMessageStatus()
+        val contentType = contentTypeOverride ?: contentType.toMessageContentType()
+        val status = statusOverride ?: MessageStatus.SENT
         val resolvedConversationId = conversationId.takeIf { it.isNotBlank() } ?: senderId.orEmpty()
         val message =
             Message(
@@ -362,9 +382,7 @@ class FirebaseMessagesRemoteData(
         senderId: String,
         timestamp: Long,
         content: String,
-        status: String,
         documentId: String,
-        payloadType: String,
     ): TransportMessagePayload {
         val messageType = contentType.toTransportType()
         return TransportMessagePayload(
@@ -372,10 +390,10 @@ class FirebaseMessagesRemoteData(
             senderId = senderId,
             receiverId = conversationId,
             createdAtMillis = timestamp,
-            payloadType = payloadType,
-            type = messageType,
             content = content,
-            status = status,
+            actionType = "message",
+            messageId = documentId,
+            contentType = messageType,
         )
     }
 
@@ -391,13 +409,6 @@ class FirebaseMessagesRemoteData(
             MessageContentType.Image -> "image"
             MessageContentType.Audio -> "audio"
             else -> "text"
-        }
-
-    private fun String?.toMessageStatus(): MessageStatus =
-        when (this?.lowercase()) {
-            "pending" -> MessageStatus.SENDING
-            "delivered" -> MessageStatus.DELIVERED
-            else -> MessageStatus.SENT
         }
 
     private fun MessageContentType.isMedia(): Boolean = this == MessageContentType.Image || this == MessageContentType.Audio
@@ -461,13 +472,20 @@ class FirebaseMessagesRemoteData(
     }
 
     private fun TransportMessagePayload.isMediaMessage(): Boolean {
-        val normalized = type?.lowercase() ?: return false
+        val normalized = contentType?.lowercase() ?: return false
         return normalized == "image" || normalized == "audio"
     }
 
-    private fun TransportMessagePayload.isActionPayload(): Boolean {
-        val normalized = payloadType?.lowercase()
-        return normalized == PAYLOAD_TYPE_ACTION || actionType != null || actionMessageId != null
+    private fun TransportMessagePayload.isMessagePayload(): Boolean {
+        val normalized = actionType?.lowercase() ?: return false
+        if (normalized != "message") return false
+        return !messageId.isNullOrBlank() && !contentType.isNullOrBlank() && content != null
+    }
+
+    private fun TransportMessagePayload.isReceiptPayload(): Boolean {
+        val normalized = actionType?.lowercase() ?: return false
+        if (normalized != "delivered" && normalized != "read") return false
+        return !actionMessageId.isNullOrBlank()
     }
 
     private fun TransportMessagePayload.toInboxAction(currentUserId: String): InboxAction? {
@@ -475,7 +493,7 @@ class FirebaseMessagesRemoteData(
         val messageId = actionMessageId ?: return null
         val sender = senderId ?: return null
         val receiver = receiverId ?: currentUserId
-        val actionAt = createdAtMillis ?: currentEpochMillis()
+        val actionAt = timestampMillis() ?: currentEpochMillis()
         return InboxAction(
             id = id,
             messageId = messageId,
@@ -505,7 +523,7 @@ class FirebaseMessagesRemoteData(
     ) {
         val sender = payload.senderId ?: return
         if (sender == currentUserId) return
-        val messageId = payload.id
+        val messageId = payload.messageId ?: payload.id
         val action =
             InboxAction(
                 id = buildActionId(messageId, InboxActionType.DELIVERED, currentUserId),
@@ -513,7 +531,7 @@ class FirebaseMessagesRemoteData(
                 senderId = currentUserId,
                 receiverId = sender,
                 actionType = InboxActionType.DELIVERED,
-                actionAtMillis = payload.createdAtMillis ?: currentEpochMillis(),
+                actionAtMillis = payload.timestampMillis() ?: currentEpochMillis(),
             )
         sendAction(action)
     }
@@ -551,14 +569,11 @@ class FirebaseMessagesRemoteData(
     }
 
     private companion object {
-        const val STATUS_PENDING = "pending"
         const val META_REMOTE_URL = "remoteUrl"
         const val META_LOCAL_PATH = "localPath"
         const val META_RECEIVER_ID = "receiverId"
         const val MAX_DOWNLOAD_BYTES = 20L * 1024L * 1024L
         const val IMAGE_MAX_DIMENSION_PX = 1280
         const val IMAGE_JPEG_QUALITY = 80
-        const val PAYLOAD_TYPE_MESSAGE = "message"
-        const val PAYLOAD_TYPE_ACTION = "action"
     }
 }

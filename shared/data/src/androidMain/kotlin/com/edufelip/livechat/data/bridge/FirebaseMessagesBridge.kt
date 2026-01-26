@@ -63,7 +63,13 @@ class FirebaseMessagesBridge(
     override suspend fun ensureConversation(conversationId: String) {
         firestore.collection(config.conversationsCollection)
             .document(conversationId)
-            .set(mapOf(FIELD_CREATED_AT to FieldValue.serverTimestamp()), SetOptions.merge())
+            .set(
+                mapOf(
+                    FIELD_OWNER_ID to conversationId,
+                    FIELD_UPDATED_AT to FieldValue.serverTimestamp(),
+                ),
+                SetOptions.merge(),
+            )
             .await()
     }
 
@@ -74,19 +80,20 @@ class FirebaseMessagesBridge(
 
     private fun DocumentSnapshot.toPayloadOrNull(): TransportMessagePayload? =
         runCatching {
+            val serverMillis = getTimestamp(FIELD_CREATED_AT)?.toDate()?.time
             TransportMessagePayload(
                 id = id,
                 senderId = getString(FIELD_SENDER_ID),
                 receiverId = getString(FIELD_RECEIVER_ID),
                 createdAtMillis =
-                    getTimestamp(FIELD_CREATED_AT)?.toDate()?.time
+                    serverMillis
                         ?: getLong(FIELD_CREATED_AT_MS),
-                payloadType = getString(FIELD_PAYLOAD_TYPE),
-                type = getString(FIELD_TYPE),
+                createdAtServerMillis = serverMillis,
                 content = getString(FIELD_CONTENT),
-                status = getString(FIELD_STATUS),
                 actionType = getString(FIELD_ACTION_TYPE),
+                messageId = getString(FIELD_MESSAGE_ID),
                 actionMessageId = getString(FIELD_ACTION_MESSAGE_ID),
+                contentType = getString(FIELD_CONTENT_TYPE),
             )
         }.getOrNull()
 
@@ -96,12 +103,15 @@ class FirebaseMessagesBridge(
             put(FIELD_RECEIVER_ID, receiverId)
             put(FIELD_CREATED_AT, FieldValue.serverTimestamp())
             put(FIELD_CREATED_AT_MS, createdAtMillis)
-            put(FIELD_PAYLOAD_TYPE, payloadType)
-            put(FIELD_TYPE, type)
-            put(FIELD_CONTENT, content)
-            put(FIELD_STATUS, status)
-            put(FIELD_ACTION_TYPE, actionType)
-            put(FIELD_ACTION_MESSAGE_ID, actionMessageId)
+            val normalizedAction = actionType?.lowercase() ?: "message"
+            put(FIELD_ACTION_TYPE, normalizedAction)
+            if (normalizedAction == "message") {
+                put(FIELD_MESSAGE_ID, messageId)
+                put(FIELD_CONTENT, content)
+                put(FIELD_CONTENT_TYPE, contentType)
+            } else {
+                put(FIELD_ACTION_MESSAGE_ID, actionMessageId)
+            }
         }
 
     private companion object {
@@ -109,11 +119,12 @@ class FirebaseMessagesBridge(
         const val FIELD_RECEIVER_ID = "receiver_id"
         const val FIELD_CREATED_AT = "created_at"
         const val FIELD_CREATED_AT_MS = "created_at_ms"
-        const val FIELD_PAYLOAD_TYPE = "payload_type"
-        const val FIELD_TYPE = "type"
         const val FIELD_CONTENT = "content"
-        const val FIELD_STATUS = "status"
         const val FIELD_ACTION_TYPE = "action_type"
+        const val FIELD_MESSAGE_ID = "message_id"
         const val FIELD_ACTION_MESSAGE_ID = "action_message_id"
+        const val FIELD_CONTENT_TYPE = "content_type"
+        const val FIELD_OWNER_ID = "owner_id"
+        const val FIELD_UPDATED_AT = "updated_at"
     }
 }
