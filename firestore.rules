@@ -14,28 +14,42 @@ service cloud.firestore {
       return isSignedIn() && !isDeleted(uid);
     }
 
-    function isInboxOwner(conversationId) {
-      return isActiveUser(request.auth.uid) && request.auth.uid == conversationId;
+    function isInboxOwner(ownerId) {
+      return isActiveUser(request.auth.uid) && request.auth.uid == ownerId;
     }
 
-    function isValidMessage(data, conversationId) {
+    function isValidInboxWrite(data, ownerId) {
+      return data.owner_id == ownerId
+        && data.keys().hasOnly(['owner_id', 'updated_at', 'last_item_at'])
+        && data.updated_at is timestamp
+        && (!('last_item_at' in data) || data.last_item_at is timestamp);
+    }
+
+    function isValidInboxItemBase(data, ownerId) {
       return data.sender_id is string
-        && data.receiver_id == conversationId
-        && data.type in ['text', 'image', 'audio']
-        && data.content is string
-        && data.status in ['pending', 'sent', 'delivered']
+        && data.receiver_id == ownerId
+        && data.action_type in ['message', 'delivered', 'read']
         && data.created_at is timestamp
         && (!('created_at_ms' in data) || data.created_at_ms is int);
     }
 
-    function isValidAction(data, conversationId) {
-      return data.sender_id is string
-        && data.receiver_id == conversationId
-        && data.payload_type == 'action'
+    function isValidMessageItem(data, ownerId) {
+      return isValidInboxItemBase(data, ownerId)
+        && data.action_type == 'message'
+        && data.message_id is string
+        && data.content_type in ['text', 'image', 'audio']
+        && data.content is string
+        && data.content.size() > 0
+        && !('action_message_id' in data);
+    }
+
+    function isValidReceiptItem(data, ownerId) {
+      return isValidInboxItemBase(data, ownerId)
         && data.action_type in ['delivered', 'read']
         && data.action_message_id is string
-        && data.created_at is timestamp
-        && (!('created_at_ms' in data) || data.created_at_ms is int);
+        && !('message_id' in data)
+        && !('content' in data)
+        && !('content_type' in data);
     }
 
     match /users/{userId} {
@@ -61,24 +75,20 @@ service cloud.firestore {
       allow create, update: if isActiveUser(userId) && request.auth.uid == userId;
     }
 
-    match /conversations/{conversationId} {
-      // Conversation ID is the recipient user ID.
-      allow read: if isInboxOwner(conversationId);
-      // Allow users to create their own inbox or send messages to others
-      allow create, update: if isActiveUser(request.auth.uid) &&
-                               (request.auth.uid == conversationId || isActiveUser(conversationId));
-      allow delete: if isInboxOwner(conversationId);
+    match /inboxes/{ownerId} {
+      allow read: if isInboxOwner(ownerId);
+      allow create, update: if isActiveUser(request.auth.uid)
+        && (request.auth.uid == ownerId || isActiveUser(ownerId))
+        && isValidInboxWrite(request.resource.data, ownerId);
+      allow delete: if isInboxOwner(ownerId);
 
-      match /messages/{messageId} {
-        // Only the inbox owner can read or delete.
-        allow read, delete: if isInboxOwner(conversationId);
-
-        // Any authenticated sender can enqueue a message to a recipient inbox.
-        allow create:
-          if isActiveUser(request.auth.uid)
-            && request.resource.data.sender_id == request.auth.uid
-            && (isValidMessage(request.resource.data, conversationId) 
-                || isValidAction(request.resource.data, conversationId));
+      match /items/{itemId} {
+        allow read, delete: if isInboxOwner(ownerId);
+        allow create: if isActiveUser(request.auth.uid)
+          && request.resource.data.sender_id == request.auth.uid
+          && (isValidMessageItem(request.resource.data, ownerId)
+              || isValidReceiptItem(request.resource.data, ownerId));
+        allow update: if false;
       }
     }
   }
