@@ -147,6 +147,9 @@ class MessagesRepository(
 
     override suspend fun sendMessage(draft: MessageDraft): Message {
         return withContext(dispatcher) {
+            if (draft.body.isBlank()) {
+                error("Cannot send an empty message.")
+            }
             val resolvedDraft =
                 if (draft.senderId.isNotBlank()) {
                     draft

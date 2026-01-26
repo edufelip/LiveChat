@@ -4,6 +4,8 @@ import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.bridge.MessagesRemoteBridge
 import com.edufelip.livechat.data.bridge.MessagesRemoteListener
 import com.edufelip.livechat.data.bridge.TransportMessagePayload
+import com.edufelip.livechat.data.models.InboxAction
+import com.edufelip.livechat.data.models.InboxActionType
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.domain.models.MessageContentType
@@ -59,10 +61,10 @@ class FirebaseMessagesRemoteDataTest {
             val payload = bridge.lastPayload
             assertNotNull(payload)
             assertEquals("user-b", bridge.lastRecipient)
-            assertEquals("message", payload.payloadType)
-            assertEquals("image", payload.type)
+            assertEquals("message", payload.actionType)
+            assertEquals("image", payload.contentType)
             assertEquals("https://example.com/file.jpg", payload.content)
-            assertEquals("pending", payload.status)
+            assertEquals("local-1", payload.messageId)
             assertTrue(storage.uploadedPaths.single().contains("/user-a/1234"))
             assertEquals("local-1", sent.id)
         }
@@ -97,9 +99,47 @@ class FirebaseMessagesRemoteDataTest {
 
             val payload = bridge.lastPayload
             assertNotNull(payload)
-            assertEquals("audio", payload.type)
+            assertEquals("message", payload.actionType)
+            assertEquals("audio", payload.contentType)
             assertEquals("https://example.com/file.m4a", payload.content)
+            assertEquals("local-2", payload.messageId)
             assertTrue(storage.uploadedPaths.single().contains("/user-a/2345"))
+        }
+
+    @Test
+    fun sendActionWritesReceiptWithActionMessageId() =
+        runTest(dispatcher) {
+            val bridge = RecordingMessagesBridge()
+            val storage = RecordingStorageBridge(downloadUrl = "")
+            val session = FakeSessionProvider(userId = "user-a")
+            val remote =
+                FirebaseMessagesRemoteData(
+                    messagesBridge = bridge,
+                    storageBridge = storage,
+                    config = FirebaseRestConfig(projectId = "demo", apiKey = "key"),
+                    sessionProvider = session,
+                    dispatcher = dispatcher,
+                )
+
+            val action =
+                InboxAction(
+                    id = "action-1",
+                    messageId = "msg-1",
+                    senderId = "user-a",
+                    receiverId = "user-b",
+                    actionType = InboxActionType.DELIVERED,
+                    actionAtMillis = 1010L,
+                )
+
+            remote.sendAction(action)
+
+            val payload = bridge.lastPayload
+            assertNotNull(payload)
+            assertEquals("delivered", payload.actionType)
+            assertEquals("msg-1", payload.actionMessageId)
+            assertEquals("user-b", bridge.lastRecipient)
+            assertEquals(null, payload.messageId)
+            assertEquals(null, payload.contentType)
         }
 
     @Test
@@ -129,7 +169,6 @@ class FirebaseMessagesRemoteDataTest {
                     senderId = "user-b",
                     receiverId = "user-a",
                     createdAtMillis = 10L,
-                    payloadType = "action",
                     actionType = "delivered",
                     actionMessageId = null,
                 ),
@@ -167,10 +206,10 @@ class FirebaseMessagesRemoteDataTest {
                     senderId = "user-b",
                     receiverId = "user-a",
                     createdAtMillis = 100L,
-                    payloadType = "message",
-                    type = "text",
+                    actionType = "message",
+                    messageId = "msg-1",
+                    contentType = "text",
                     content = "hello",
-                    status = "sent",
                 ),
             )
             advanceUntilIdle()
