@@ -124,9 +124,9 @@ class FirebaseRestDeviceTokenRemoteData(
     private fun deviceTokenDocumentUrl(
         userId: String,
         deviceId: String,
-    ): String = "${config.firestoreBaseUrl}/users/$userId/devices/$deviceId"
+    ): String = "${config.documentsEndpoint}/users/$userId/devices/$deviceId"
 
-    private fun deviceTokensCollectionUrl(userId: String): String = "${config.firestoreBaseUrl}/users/$userId/devices"
+    private fun deviceTokensCollectionUrl(userId: String): String = "${config.documentsEndpoint}/users/$userId/devices"
 
     private fun ensureConfigured(idToken: String) {
         if (config.projectId.isBlank() || idToken.isBlank()) {

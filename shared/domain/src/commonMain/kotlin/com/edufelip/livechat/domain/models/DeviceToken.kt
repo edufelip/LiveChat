@@ -2,7 +2,7 @@ package com.edufelip.livechat.domain.models
 
 enum class DevicePlatform {
     Android,
-    Ios,
+    iOS,
 }
 
 data class DeviceToken(

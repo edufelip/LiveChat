@@ -27,8 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import com.edufelip.livechat.notifications.InAppNotification
-import com.edufelip.livechat.notifications.InAppNotificationCenter
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest

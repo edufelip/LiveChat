@@ -16,9 +16,7 @@ class DeviceTokenRepository(
 ) : IDeviceTokenRepository {
     override suspend fun registerDeviceToken(registration: DeviceTokenRegistration) {
         withContext(dispatcher) {
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to register device tokens")
+            val session = requireSession()
             remoteData.registerToken(
                 userId = session.userId,
                 idToken = session.idToken,
@@ -29,9 +27,7 @@ class DeviceTokenRepository(
 
     override suspend fun unregisterDeviceToken(deviceId: String) {
         withContext(dispatcher) {
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to unregister device tokens")
+            val session = requireSession()
             remoteData.unregisterToken(
                 userId = session.userId,
                 idToken = session.idToken,
@@ -42,9 +38,7 @@ class DeviceTokenRepository(
 
     override suspend fun getDeviceTokens(): List<DeviceToken> {
         return withContext(dispatcher) {
-            val session =
-                sessionProvider.requireSession()
-                    ?: error("User must be authenticated to get device tokens")
+            val session = requireSession()
             remoteData.getTokens(
                 userId = session.userId,
                 idToken = session.idToken,
@@ -54,11 +48,15 @@ class DeviceTokenRepository(
 
     override suspend fun cleanupInactiveTokens() {
         withContext(dispatcher) {
-            val session = sessionProvider.requireSession() ?: return@withContext
+            val session = sessionProvider.refreshSession(forceRefresh = false) ?: return@withContext
             remoteData.cleanupInactiveTokens(
                 userId = session.userId,
                 idToken = session.idToken,
             )
         }
     }
+
+    private suspend fun requireSession() =
+        sessionProvider.refreshSession(forceRefresh = false)
+            ?: error("No active session")
 }
