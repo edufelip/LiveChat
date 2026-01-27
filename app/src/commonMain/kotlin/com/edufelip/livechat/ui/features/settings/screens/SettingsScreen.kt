@@ -55,6 +55,7 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationReques
 import com.edufelip.livechat.ui.platform.appVersionInfo
 import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.platform.openWebViewUrl
+import com.edufelip.livechat.ui.features.settings.SETTINGS_PRIVACY_POLICY_URL
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.SettingsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -167,7 +168,7 @@ fun SettingsScreen(
             }
         }
     val privacyPolicyRow =
-        remember(settingsStrings.privacyPolicyTitle, settingsStrings.privacyPolicyUrl, normalizedQuery) {
+        remember(settingsStrings.privacyPolicyTitle, normalizedQuery) {
             val shouldShow =
                 normalizedQuery.isBlank() ||
                     settingsStrings.privacyPolicyTitle.contains(normalizedQuery, ignoreCase = true)
@@ -178,7 +179,7 @@ fun SettingsScreen(
                     icon = Icons.Rounded.Shield,
                     iconBackground = SettingsIconGray,
                     trailingIcon = Icons.Rounded.OpenInNew,
-                    onClick = { openWebViewUrl(settingsStrings.privacyPolicyUrl) },
+                    onClick = { openWebViewUrl(SETTINGS_PRIVACY_POLICY_URL) },
                     parentLabel = null,
                 )
             } else {
