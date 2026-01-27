@@ -18,7 +18,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class FirebaseRestDeviceTokenRemoteData(
@@ -140,8 +139,8 @@ class FirebaseRestDeviceTokenRemoteData(
         val platformStr = fields[FIELD_PLATFORM]?.stringValue ?: return null
         val platform =
             when (platformStr.lowercase()) {
-                "android" -> DevicePlatform.Android
-                "ios" -> DevicePlatform.iOS
+                "android" -> DevicePlatform.ANDROID
+                "ios" -> DevicePlatform.IOS
                 else -> return null
             }
         val lastUpdatedAt = fields[FIELD_LAST_UPDATED_AT]?.integerValue?.toLongOrNull() ?: 0L

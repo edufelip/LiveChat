@@ -1,8 +1,8 @@
 package com.edufelip.livechat.domain.models
 
 enum class DevicePlatform {
-    Android,
-    iOS,
+    ANDROID,
+    IOS,
 }
 
 data class DeviceToken(

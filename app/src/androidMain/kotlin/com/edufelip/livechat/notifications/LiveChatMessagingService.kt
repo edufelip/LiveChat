@@ -13,7 +13,6 @@ import com.edufelip.livechat.domain.models.DeviceTokenRegistration
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
-import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -77,7 +76,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                     DeviceTokenRegistration(
                         deviceId = deviceId,
                         fcmToken = token,
-                        platform = DevicePlatform.Android,
+                        platform = DevicePlatform.ANDROID,
                         appVersion = appVersion,
                     ),
                 )

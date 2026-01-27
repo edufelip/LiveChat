@@ -15,8 +15,8 @@ import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
-import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IDeviceTokenRepository
+import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
@@ -34,8 +34,6 @@ import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
-import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
-import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveBlockedContactsUseCase
@@ -48,6 +46,7 @@ import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
@@ -61,6 +60,7 @@ import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
 import com.edufelip.livechat.domain.useCases.UnblockContactUseCase
+import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase

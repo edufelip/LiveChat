@@ -27,7 +27,11 @@ data class HomeUiState(
     val destination: HomeDestination
         get() =
             when {
-                activeConversationId != null -> HomeDestination.DetailDestination.ConversationDetail(activeConversationId, activeConversationName)
+                activeConversationId != null ->
+                    HomeDestination.DetailDestination.ConversationDetail(
+                        activeConversationId,
+                        activeConversationName,
+                    )
                 isContactsVisible -> HomeDestination.DetailDestination.Contacts
                 selectedTab == HomeTab.Calls -> HomeDestination.TabDestination.Calls
                 selectedTab == HomeTab.Settings -> HomeDestination.TabDestination.Settings

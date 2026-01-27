@@ -52,7 +52,7 @@ actual object PlatformTokenRegistrar {
                     DeviceTokenRegistration(
                         deviceId = deviceId,
                         fcmToken = token,
-                        platform = DevicePlatform.Android,
+                        platform = DevicePlatform.ANDROID,
                         appVersion = appVersion,
                     ),
                 )

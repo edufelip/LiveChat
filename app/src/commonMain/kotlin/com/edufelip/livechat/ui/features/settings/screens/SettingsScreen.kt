@@ -50,12 +50,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.features.settings.SETTINGS_PRIVACY_POLICY_URL
 import com.edufelip.livechat.ui.features.settings.SettingsTestTags
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.platform.appVersionInfo
 import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.platform.openWebViewUrl
-import com.edufelip.livechat.ui.features.settings.SETTINGS_PRIVACY_POLICY_URL
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.SettingsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings

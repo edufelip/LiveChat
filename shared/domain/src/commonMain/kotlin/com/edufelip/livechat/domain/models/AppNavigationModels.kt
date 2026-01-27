@@ -10,11 +10,11 @@ sealed class AppDestination {
 
 /**
  * Represents navigation destinations within the Home context.
- * 
+ *
  * Destinations are categorized into two types:
  * - [TabDestination]: Shown within the main tab navigation with a bottom bar
  * - [DetailDestination]: Full-screen overlays without the bottom navigation bar
- * 
+ *
  * This type hierarchy follows the Open/Closed Principle - new destination types
  * can be added without modifying existing navigation logic. Each destination
  * defines its own animation order for transition sequencing.
@@ -26,7 +26,9 @@ sealed class HomeDestination {
      */
     sealed class TabDestination(val animationOrder: Int) : HomeDestination() {
         data object ConversationList : TabDestination(animationOrder = 0)
+
         data object Calls : TabDestination(animationOrder = 1)
+
         data object Settings : TabDestination(animationOrder = 2)
     }
 
@@ -35,7 +37,7 @@ sealed class HomeDestination {
      */
     sealed class DetailDestination : HomeDestination() {
         data object Contacts : DetailDestination()
-        
+
         data class ConversationDetail(
             val conversationId: String,
             val contactName: String? = null,

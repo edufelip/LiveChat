@@ -25,7 +25,6 @@ import com.edufelip.livechat.ui.features.settings.model.SettingsChromeVisibility
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.features.settings.notifications.NotificationSettingsRoute
 import com.edufelip.livechat.ui.features.settings.privacy.PrivacySettingsRoute
-import com.edufelip.livechat.ui.features.settings.SETTINGS_PRIVACY_POLICY_URL
 import com.edufelip.livechat.ui.features.settings.screens.SettingsScreen
 import com.edufelip.livechat.ui.features.settings.screens.SettingsSection
 import com.edufelip.livechat.ui.platform.openWebViewUrl

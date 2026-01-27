@@ -30,18 +30,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.zIndex
-import com.edufelip.livechat.domain.notifications.InAppNotification
-import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
-import com.edufelip.livechat.ui.components.molecules.InAppNotificationBanner
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeDestination
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.HomeUiState
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.ui.app.navigation.defaultHomeTabs
 import com.edufelip.livechat.ui.common.navigation.PlatformBackGestureHandler
+import com.edufelip.livechat.ui.components.molecules.InAppNotificationBanner
 import com.edufelip.livechat.ui.features.calls.CallsRoute
 import com.edufelip.livechat.ui.features.contacts.ContactsRoute
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
@@ -51,6 +48,9 @@ import com.edufelip.livechat.ui.features.settings.SettingsRoute
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LocalReduceMotion
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Layout mode for the Home screen.
@@ -59,6 +59,7 @@ import com.edufelip.livechat.ui.theme.LocalReduceMotion
  */
 private sealed interface HomeLayout {
     data class Tabs(val destination: HomeDestination.TabDestination) : HomeLayout
+
     data class Detail(val destination: HomeDestination.DetailDestination) : HomeLayout
 }
 
@@ -80,15 +81,16 @@ internal fun HomeScreen(
     val strings = liveChatStrings()
     val destination = state.destination
     val reduceMotion = LocalReduceMotion.current
-    
+
     // Determine layout mode based on destination type
-    val layout: HomeLayout = remember(destination) {
-        when (destination) {
-            is HomeDestination.TabDestination -> HomeLayout.Tabs(destination)
-            is HomeDestination.DetailDestination -> HomeLayout.Detail(destination)
+    val layout: HomeLayout =
+        remember(destination) {
+            when (destination) {
+                is HomeDestination.TabDestination -> HomeLayout.Tabs(destination)
+                is HomeDestination.DetailDestination -> HomeLayout.Detail(destination)
+            }
         }
-    }
-    
+
     // Keep track of last tab destination for smooth transitions
     var lastTabDestination by remember { mutableStateOf<HomeDestination.TabDestination>(HomeDestination.TabDestination.ConversationList) }
     LaunchedEffect(destination) {
@@ -96,14 +98,14 @@ internal fun HomeScreen(
             lastTabDestination = destination
         }
     }
-    
+
     // In-app notification state
     var currentNotification by remember { mutableStateOf<InAppNotification?>(null) }
     var showNotification by remember { mutableStateOf(false) }
     var dismissJob by remember { mutableStateOf<Job?>(null) }
-    
+
     val currentDestination by rememberUpdatedState(destination)
-    
+
     LaunchedEffect(Unit) {
         InAppNotificationCenter.events.collect { notification ->
             val destinationSnapshot = currentDestination
@@ -113,35 +115,37 @@ internal fun HomeScreen(
             ) {
                 return@collect
             }
-            
+
             // Cancel any existing dismiss timer
             dismissJob?.cancel()
-            
+
             currentNotification = notification
             showNotification = true
-            
+
             // Start new dismiss timer
-            dismissJob = launch {
-                delay(5000)
-                showNotification = false
-                delay(300) // Wait for animation to complete
-                currentNotification = null
-            }
+            dismissJob =
+                launch {
+                    delay(5000)
+                    showNotification = false
+                    delay(300) // Wait for animation to complete
+                    currentNotification = null
+                }
         }
     }
-    
+
     // Back gesture handling for detail destinations
     val backGestureEnabled = layout is HomeLayout.Detail
-    val backGestureAction = remember(layout) {
-        when (val detail = (layout as? HomeLayout.Detail)?.destination) {
-            is HomeDestination.DetailDestination.ConversationDetail -> onBackFromConversation
-            HomeDestination.DetailDestination.Contacts -> onCloseContacts
-            null -> {
-                {}
+    val backGestureAction =
+        remember(layout) {
+            when (val detail = (layout as? HomeLayout.Detail)?.destination) {
+                is HomeDestination.DetailDestination.ConversationDetail -> onBackFromConversation
+                HomeDestination.DetailDestination.Contacts -> onCloseContacts
+                null -> {
+                    {}
+                }
             }
         }
-    }
-    
+
     PlatformBackGestureHandler(
         enabled = backGestureEnabled,
         onBack = rememberStableAction(backGestureAction),
@@ -158,7 +162,7 @@ internal fun HomeScreen(
                 } else {
                     val isEnteringDetail = targetState is HomeLayout.Detail
                     val isExitingDetail = initialState is HomeLayout.Detail
-                    
+
                     when {
                         isEnteringDetail -> {
                             // Slide in from right when entering detail
@@ -213,7 +217,7 @@ internal fun HomeScreen(
                 }
             }
         }
-        
+
         // In-app notification banner overlay
         currentNotification?.let { notification ->
             InAppNotificationBanner(
@@ -233,9 +237,10 @@ internal fun HomeScreen(
                         onOpenConversation(conversationId, null)
                     }
                 },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .zIndex(10f)
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .zIndex(10f),
             )
         }
     }
@@ -259,16 +264,17 @@ private fun HomeTabsLayout(
     val strings = liveChatStrings()
     val homeStrings = strings.home
     val tabs = remember { defaultHomeTabs }
-    val tabOptions = remember(homeStrings, tabs) {
-        tabs.map { tabItem ->
-            HomeTabOption(
-                tab = tabItem.tab,
-                label = tabItem.labelSelector(homeStrings),
-                icon = tabItem.icon,
-            )
+    val tabOptions =
+        remember(homeStrings, tabs) {
+            tabs.map { tabItem ->
+                HomeTabOption(
+                    tab = tabItem.tab,
+                    label = tabItem.labelSelector(homeStrings),
+                    icon = tabItem.icon,
+                )
+            }
         }
-    }
-    
+
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0),
@@ -277,9 +283,10 @@ private fun HomeTabsLayout(
                 windowInsets = WindowInsets.navigationBars,
             ) {
                 tabOptions.forEach { tabItem ->
-                    val onTabClick = remember(tabItem.tab, onSelectTab) {
-                        { onSelectTab(tabItem.tab) }
-                    }
+                    val onTabClick =
+                        remember(tabItem.tab, onSelectTab) {
+                            { onSelectTab(tabItem.tab) }
+                        }
                     NavigationBarItem(
                         selected = selectedTab == tabItem.tab,
                         onClick = onTabClick,
@@ -290,12 +297,13 @@ private fun HomeTabsLayout(
             }
         },
     ) { padding ->
-        val contentModifier = remember(padding) {
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        }
-        
+        val contentModifier =
+            remember(padding) {
+                Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            }
+
         // Animate between tab destinations
         AnimatedContent(
             modifier = contentModifier,
@@ -304,11 +312,12 @@ private fun HomeTabsLayout(
                 if (reduceMotion) {
                     fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
                 } else {
-                    val direction = when {
-                        targetState.animationOrder > initialState.animationOrder -> 1
-                        targetState.animationOrder < initialState.animationOrder -> -1
-                        else -> 0
-                    }
+                    val direction =
+                        when {
+                            targetState.animationOrder > initialState.animationOrder -> 1
+                            targetState.animationOrder < initialState.animationOrder -> -1
+                            else -> 0
+                        }
                     if (direction == 0) {
                         fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
                     } else {
@@ -335,12 +344,12 @@ private fun HomeTabsLayout(
                         onCompose = onOpenContacts,
                         onEmptyStateAction = onOpenContacts,
                     )
-                
+
                 HomeDestination.TabDestination.Calls ->
                     CallsRoute(
                         modifier = Modifier.fillMaxSize(),
                     )
-                
+
                 HomeDestination.TabDestination.Settings ->
                     SettingsRoute(
                         modifier = Modifier.fillMaxSize(),
@@ -365,9 +374,10 @@ private fun HomeDetailLayout(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.navigationBars)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.navigationBars),
     ) {
         when (detailDestination) {
             is HomeDestination.DetailDestination.ConversationDetail ->
@@ -377,7 +387,7 @@ private fun HomeDetailLayout(
                     contactName = detailDestination.contactName,
                     onBack = onBackFromConversation,
                 )
-            
+
             HomeDestination.DetailDestination.Contacts ->
                 ContactsRoute(
                     modifier = Modifier.fillMaxSize(),

@@ -4,6 +4,8 @@ import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.MessageContentType
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
@@ -18,8 +20,6 @@ import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.ContactsSyncSession
 import com.edufelip.livechat.domain.utils.ContactsUiStateCache
 import com.edufelip.livechat.domain.utils.asCStateFlow
-import com.edufelip.livechat.domain.notifications.InAppNotification
-import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -102,39 +102,43 @@ class AppPresenter(
             // This listener will start receiving messages once inbox exists
             observeConversationUseCase.observeAll().collectLatest { messages ->
                 // Messages are persisted by repository; trigger notifications for new messages
-                val currentUserId = runCatching { 
-                    sessionProvider.currentUserId() 
-                }.getOrNull()
-                
+                val currentUserId =
+                    runCatching {
+                        sessionProvider.currentUserId()
+                    }.getOrNull()
+
                 messages.forEach { message ->
                     // Get unique message identifier
-                    val messageKey = message.id.takeIf { it.isNotBlank() } 
-                        ?: message.localTempId 
-                        ?: return@forEach
-                    
+                    val messageKey =
+                        message.id.takeIf { it.isNotBlank() }
+                            ?: message.localTempId
+                            ?: return@forEach
+
                     // Skip if already notified
                     if (notifiedMessageIds.contains(messageKey)) {
                         return@forEach
                     }
-                    
+
                     // Skip if sender is blank
                     if (message.senderId.isBlank()) {
                         return@forEach
                     }
-                    
+
                     // Don't notify for own messages or if conversation is currently open
-                    if (message.senderId != currentUserId && 
-                        message.senderId != currentOpenConversationId) {
+                    if (message.senderId != currentUserId &&
+                        message.senderId != currentOpenConversationId
+                    ) {
                         triggerInAppNotification(message)
                         notifiedMessageIds.add(messageKey)
                     }
                 }
-                
+
                 // Clean up old message IDs to prevent memory leak (keep max 1000)
                 if (notifiedMessageIds.size > 1000) {
-                    val currentMessageIds = messages.mapNotNull { 
-                        it.id.takeIf { it.isNotBlank() } ?: it.localTempId 
-                    }.toSet()
+                    val currentMessageIds =
+                        messages.mapNotNull {
+                            it.id.takeIf { it.isNotBlank() } ?: it.localTempId
+                        }.toSet()
                     notifiedMessageIds.retainAll(currentMessageIds)
                 }
             }
@@ -272,21 +276,22 @@ class AppPresenter(
     private fun triggerInAppNotification(message: com.edufelip.livechat.domain.models.Message) {
         // Get display name from contacts cache, fallback to sender ID (phone number)
         val senderName = contactsCache[message.senderId] ?: message.senderId
-        
-        val body = when (message.contentType) {
-            MessageContentType.Text -> message.body.take(100)
-            MessageContentType.Image -> "Image"
-            MessageContentType.Audio -> "Audio message"
-            else -> "New message"
-        }
-        
+
+        val body =
+            when (message.contentType) {
+                MessageContentType.Text -> message.body.take(100)
+                MessageContentType.Image -> "Image"
+                MessageContentType.Audio -> "Audio message"
+                else -> "New message"
+            }
+
         InAppNotificationCenter.emit(
             InAppNotification(
                 title = senderName,
                 body = body,
                 conversationId = message.senderId,
-                messageId = message.id.takeIf { it.isNotBlank() } ?: message.localTempId
-            )
+                messageId = message.id.takeIf { it.isNotBlank() } ?: message.localTempId,
+            ),
         )
     }
 
