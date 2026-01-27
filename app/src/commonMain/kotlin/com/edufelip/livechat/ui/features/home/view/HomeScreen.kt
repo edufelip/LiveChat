@@ -48,10 +48,19 @@ import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.conversations.detail.ConversationDetailRoute
 import com.edufelip.livechat.ui.features.conversations.list.ConversationListRoute
 import com.edufelip.livechat.ui.features.settings.SettingsRoute
-import com.edufelip.livechat.ui.features.settings.model.SettingsChromeVisibility
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LocalReduceMotion
+
+/**
+ * Layout mode for the Home screen.
+ * - [Tabs]: Shows tab-based navigation with bottom bar
+ * - [Detail]: Shows full-screen detail overlay without bottom bar
+ */
+private sealed interface HomeLayout {
+    data class Tabs(val destination: HomeDestination.TabDestination) : HomeLayout
+    data class Detail(val destination: HomeDestination.DetailDestination) : HomeLayout
+}
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -69,55 +78,39 @@ internal fun HomeScreen(
     onOpenSettingsSection: (SettingsNavigationRequest) -> Unit,
 ) {
     val strings = liveChatStrings()
-    val homeStrings = strings.home
-    val onSelectTabAction = rememberStableAction(onSelectTab)
-    val onOpenConversationAction = rememberStableAction(onOpenConversation)
-    val onStartConversationWithContactAction = rememberStableAction(onStartConversationWithContact)
-    val onOpenContactsAction = rememberStableAction(onOpenContacts)
-    val onCloseContactsAction = rememberStableAction(onCloseContacts)
-    val onShareInviteAction = rememberStableAction(onShareInvite)
-    val onBackFromConversationAction = rememberStableAction(onBackFromConversation)
-    val onOpenSettingsSectionAction = rememberStableAction(onOpenSettingsSection)
-    val phoneContactsProviderAction = rememberStableProvider(phoneContactsProvider)
-    val tabs = remember { defaultHomeTabs }
-    val tabOptions =
-        remember(homeStrings, tabs) {
-            tabs.map { tabItem ->
-                HomeTabOption(
-                    tab = tabItem.tab,
-                    label = tabItem.labelSelector(homeStrings),
-                    icon = tabItem.icon,
-                )
-            }
-        }
     val destination = state.destination
     val reduceMotion = LocalReduceMotion.current
-    var settingsChrome by remember {
-        mutableStateOf(
-            SettingsChromeVisibility(
-                showTopBar = true,
-                showBottomBar = true,
-            ),
-        )
-    }
-    val onChromeVisibilityChanged =
-        remember {
-            { chrome: SettingsChromeVisibility -> settingsChrome = chrome }
-        }
-    val showBottomBar =
-        destination !is HomeDestination.ConversationDetail &&
-            destination != HomeDestination.Contacts &&
-            (destination != HomeDestination.Settings || settingsChrome.showBottomBar)
     
+    // Determine layout mode based on destination type
+    val layout: HomeLayout = remember(destination) {
+        when (destination) {
+            is HomeDestination.TabDestination -> HomeLayout.Tabs(destination)
+            is HomeDestination.DetailDestination -> HomeLayout.Detail(destination)
+        }
+    }
+    
+    // Keep track of last tab destination for smooth transitions
+    var lastTabDestination by remember { mutableStateOf<HomeDestination.TabDestination>(HomeDestination.TabDestination.ConversationList) }
+    LaunchedEffect(destination) {
+        if (destination is HomeDestination.TabDestination) {
+            lastTabDestination = destination
+        }
+    }
+    
+    // In-app notification state
     var currentNotification by remember { mutableStateOf<InAppNotification?>(null) }
     var showNotification by remember { mutableStateOf(false) }
     var dismissJob by remember { mutableStateOf<Job?>(null) }
     
+    val currentDestination by rememberUpdatedState(destination)
+    
     LaunchedEffect(Unit) {
         InAppNotificationCenter.events.collect { notification ->
+            val destinationSnapshot = currentDestination
             // Don't show notification if we're viewing that conversation
-            if (destination is HomeDestination.ConversationDetail && 
-                destination.conversationId == notification.conversationId) {
+            if (destinationSnapshot is HomeDestination.DetailDestination.ConversationDetail &&
+                destinationSnapshot.conversationId == notification.conversationId
+            ) {
                 return@collect
             }
             
@@ -136,156 +129,263 @@ internal fun HomeScreen(
             }
         }
     }
+    
+    // Back gesture handling for detail destinations
+    val backGestureEnabled = layout is HomeLayout.Detail
+    val backGestureAction = remember(layout) {
+        when (val detail = (layout as? HomeLayout.Detail)?.destination) {
+            is HomeDestination.DetailDestination.ConversationDetail -> onBackFromConversation
+            HomeDestination.DetailDestination.Contacts -> onCloseContacts
+            null -> {
+                {}
+            }
+        }
+    }
+    
+    PlatformBackGestureHandler(
+        enabled = backGestureEnabled,
+        onBack = rememberStableAction(backGestureAction),
+    )
 
+    Box(modifier = modifier.fillMaxSize()) {
+        // Main content with layout switching
+        AnimatedContent(
+            modifier = Modifier.fillMaxSize(),
+            targetState = layout,
+            transitionSpec = {
+                if (reduceMotion) {
+                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                } else {
+                    val isEnteringDetail = targetState is HomeLayout.Detail
+                    val isExitingDetail = initialState is HomeLayout.Detail
+                    
+                    when {
+                        isEnteringDetail -> {
+                            // Slide in from right when entering detail
+                            (
+                                slideInHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> fullWidth / 3 } + fadeIn(animationSpec = tween(300))
+                            ) togetherWith
+                                fadeOut(animationSpec = tween(200))
+                        }
+                        isExitingDetail -> {
+                            // Slide out to right when exiting detail
+                            fadeIn(animationSpec = tween(300)) togetherWith
+                                (
+                                    slideOutHorizontally(
+                                        animationSpec = tween(300),
+                                    ) { fullWidth -> fullWidth / 3 } + fadeOut(animationSpec = tween(200))
+                                )
+                        }
+                        else -> {
+                            // Tab to tab transition (shouldn't happen at this level)
+                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                        }
+                    }
+                }
+            },
+            label = strings.general.homeDestinationTransitionLabel,
+        ) { currentLayout ->
+            when (currentLayout) {
+                is HomeLayout.Tabs -> {
+                    HomeTabsLayout(
+                        modifier = Modifier.fillMaxSize(),
+                        tabDestination = currentLayout.destination,
+                        selectedTab = state.selectedTab,
+                        onSelectTab = onSelectTab,
+                        onOpenConversation = onOpenConversation,
+                        onOpenContacts = onOpenContacts,
+                        onOpenSettingsSection = onOpenSettingsSection,
+                        reduceMotion = reduceMotion,
+                    )
+                }
+                is HomeLayout.Detail -> {
+                    HomeDetailLayout(
+                        modifier = Modifier.fillMaxSize(),
+                        detailDestination = currentLayout.destination,
+                        onBackFromConversation = onBackFromConversation,
+                        onCloseContacts = onCloseContacts,
+                        onStartConversationWithContact = onStartConversationWithContact,
+                        onShareInvite = onShareInvite,
+                        phoneContactsProvider = phoneContactsProvider,
+                    )
+                }
+            }
+        }
+        
+        // In-app notification banner overlay
+        currentNotification?.let { notification ->
+            InAppNotificationBanner(
+                notification = notification,
+                visible = showNotification,
+                onDismiss = {
+                    dismissJob?.cancel()
+                    showNotification = false
+                    currentNotification = null
+                },
+                onClick = {
+                    dismissJob?.cancel()
+                    showNotification = false
+                    currentNotification = null
+                    // Navigate to the conversation
+                    notification.conversationId?.let { conversationId ->
+                        onOpenConversation(conversationId, null)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .zIndex(10f)
+            )
+        }
+    }
+}
+
+/**
+ * Layout for tab-based navigation with bottom bar
+ */
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun HomeTabsLayout(
+    tabDestination: HomeDestination.TabDestination,
+    selectedTab: HomeTab,
+    onSelectTab: (HomeTab) -> Unit,
+    onOpenConversation: (String, String?) -> Unit,
+    onOpenContacts: () -> Unit,
+    onOpenSettingsSection: (SettingsNavigationRequest) -> Unit,
+    reduceMotion: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val strings = liveChatStrings()
+    val homeStrings = strings.home
+    val tabs = remember { defaultHomeTabs }
+    val tabOptions = remember(homeStrings, tabs) {
+        tabs.map { tabItem ->
+            HomeTabOption(
+                tab = tabItem.tab,
+                label = tabItem.labelSelector(homeStrings),
+                icon = tabItem.icon,
+            )
+        }
+    }
+    
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            if (showBottomBar) {
-                NavigationBar(
-                    windowInsets = WindowInsets.navigationBars,
-                ) {
-                    tabOptions.forEach { tabItem ->
-                        val onTabClick =
-                            remember(tabItem.tab, onSelectTabAction) {
-                                { onSelectTabAction(tabItem.tab) }
-                            }
-                        NavigationBarItem(
-                            selected = state.selectedTab == tabItem.tab,
-                            onClick = onTabClick,
-                            icon = { Icon(tabItem.icon, contentDescription = tabItem.label) },
-                            label = { Text(tabItem.label) },
-                        )
+            NavigationBar(
+                windowInsets = WindowInsets.navigationBars,
+            ) {
+                tabOptions.forEach { tabItem ->
+                    val onTabClick = remember(tabItem.tab, onSelectTab) {
+                        { onSelectTab(tabItem.tab) }
                     }
+                    NavigationBarItem(
+                        selected = selectedTab == tabItem.tab,
+                        onClick = onTabClick,
+                        icon = { Icon(tabItem.icon, contentDescription = tabItem.label) },
+                        label = { Text(tabItem.label) },
+                    )
                 }
             }
         },
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            val bodyModifier =
-                Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .then(
-                        if (showBottomBar) {
-                            Modifier
-                        } else {
-                            Modifier
-                                .windowInsetsPadding(WindowInsets.navigationBars)
-                        },
-                    )
-            val backGestureEnabled =
-                destination is HomeDestination.ConversationDetail ||
-                    destination == HomeDestination.Contacts
-            val backGestureAction =
-                when (destination) {
-                    is HomeDestination.ConversationDetail -> onBackFromConversationAction
-                    HomeDestination.Contacts -> onCloseContactsAction
-                    else -> {
-                        {}
+        val contentModifier = remember(padding) {
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+        }
+        
+        // Animate between tab destinations
+        AnimatedContent(
+            modifier = contentModifier,
+            targetState = tabDestination,
+            transitionSpec = {
+                if (reduceMotion) {
+                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                } else {
+                    val direction = when {
+                        targetState.animationOrder > initialState.animationOrder -> 1
+                        targetState.animationOrder < initialState.animationOrder -> -1
+                        else -> 0
                     }
-                }
-            PlatformBackGestureHandler(
-                enabled = backGestureEnabled,
-                onBack = backGestureAction,
-            )
-
-            AnimatedContent(
-                modifier = bodyModifier,
-                targetState = destination,
-                transitionSpec = {
-                    if (reduceMotion) {
-                        fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
+                    if (direction == 0) {
+                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
                     } else {
-                        val direction =
-                            when {
-                                targetState.animationOrder() > initialState.animationOrder() -> 1
-                                targetState.animationOrder() < initialState.animationOrder() -> -1
-                                else -> 0
-                            }
-                        if (direction == 0) {
-                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                        } else {
+                        (
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                        ) togetherWith
                             (
-                                slideInHorizontally(
+                                slideOutHorizontally(
                                     animationSpec = tween(300),
-                                ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                            ) togetherWith
-                                (
-                                    slideOutHorizontally(
-                                        animationSpec = tween(300),
-                                    ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                                )
-                        }
+                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                            )
                     }
-                },
-                label = strings.general.homeDestinationTransitionLabel,
-            ) { target ->
-                when (target) {
-                    is HomeDestination.ConversationDetail ->
-                        ConversationDetailRoute(
-                            modifier = Modifier.fillMaxSize(),
-                            conversationId = target.conversationId,
-                            contactName = target.contactName,
-                            onBack = onBackFromConversationAction,
-                        )
-
-                    HomeDestination.ConversationList ->
-                        ConversationListRoute(
-                            modifier = Modifier.fillMaxSize(),
-                            onConversationSelected = onOpenConversationAction,
-                            onCompose = onOpenContactsAction,
-                            onEmptyStateAction = onOpenContactsAction,
-                        )
-
-                    HomeDestination.Contacts ->
-                        ContactsRoute(
-                            modifier = Modifier.fillMaxSize(),
-                            phoneContactsProvider = phoneContactsProviderAction,
-                            onContactSelected = onStartConversationWithContactAction,
-                            onShareInvite = onShareInviteAction,
-                            onBack = onCloseContactsAction,
-                        )
-
-                    HomeDestination.Calls ->
-                        CallsRoute(
-                            modifier = Modifier.fillMaxSize(),
-                        )
-
-                    HomeDestination.Settings ->
-                        SettingsRoute(
-                            modifier = Modifier.fillMaxSize(),
-                            onSectionSelected = onOpenSettingsSectionAction,
-                            onChromeVisibilityChanged = onChromeVisibilityChanged,
-                        )
                 }
+            },
+            label = strings.general.homeDestinationTransitionLabel,
+        ) { target ->
+            when (target) {
+                HomeDestination.TabDestination.ConversationList ->
+                    ConversationListRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        onConversationSelected = onOpenConversation,
+                        onCompose = onOpenContacts,
+                        onEmptyStateAction = onOpenContacts,
+                    )
+                
+                HomeDestination.TabDestination.Calls ->
+                    CallsRoute(
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                
+                HomeDestination.TabDestination.Settings ->
+                    SettingsRoute(
+                        modifier = Modifier.fillMaxSize(),
+                        onSectionSelected = onOpenSettingsSection,
+                    )
             }
-            
-            // In-app notification banner overlay
-            currentNotification?.let { notification ->
-                InAppNotificationBanner(
-                    notification = notification,
-                    visible = showNotification,
-                    onDismiss = {
-                        dismissJob?.cancel()
-                        showNotification = false
-                        currentNotification = null
-                    },
-                    onClick = {
-                        dismissJob?.cancel()
-                        showNotification = false
-                        currentNotification = null
-                        // Navigate to the conversation
-                        notification.conversationId?.let { conversationId ->
-                            onOpenConversationAction(conversationId, null)
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = padding.calculateTopPadding())
-                        .zIndex(10f)
+        }
+    }
+}
+
+/**
+ * Layout for full-screen detail destinations
+ */
+@Composable
+private fun HomeDetailLayout(
+    detailDestination: HomeDestination.DetailDestination,
+    onBackFromConversation: () -> Unit,
+    onCloseContacts: () -> Unit,
+    onStartConversationWithContact: (Contact, String) -> Unit,
+    onShareInvite: (InviteShareRequest) -> Unit,
+    phoneContactsProvider: () -> List<Contact>,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+    ) {
+        when (detailDestination) {
+            is HomeDestination.DetailDestination.ConversationDetail ->
+                ConversationDetailRoute(
+                    modifier = Modifier.fillMaxSize(),
+                    conversationId = detailDestination.conversationId,
+                    contactName = detailDestination.contactName,
+                    onBack = onBackFromConversation,
                 )
-            }
+            
+            HomeDestination.DetailDestination.Contacts ->
+                ContactsRoute(
+                    modifier = Modifier.fillMaxSize(),
+                    phoneContactsProvider = phoneContactsProvider,
+                    onContactSelected = onStartConversationWithContact,
+                    onShareInvite = onShareInvite,
+                    onBack = onCloseContacts,
+                )
         }
     }
 }
@@ -319,12 +419,3 @@ private fun rememberStableAction(action: () -> Unit): () -> Unit {
     val actionState = rememberUpdatedState(action)
     return remember { { actionState.value() } }
 }
-
-private fun HomeDestination.animationOrder(): Int =
-    when (this) {
-        is HomeDestination.ConversationDetail -> 4
-        HomeDestination.ConversationList -> 0
-        HomeDestination.Calls -> 1
-        HomeDestination.Settings -> 2
-        HomeDestination.Contacts -> 3
-    }
