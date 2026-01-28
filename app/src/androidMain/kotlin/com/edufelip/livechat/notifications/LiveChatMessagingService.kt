@@ -66,7 +66,8 @@ class LiveChatMessagingService : FirebaseMessagingService() {
 
         val showPreview = settings.showMessagePreview
         val isSilent = NotificationSound.normalizeId(settings.sound) == NotificationSound.Silent.id
-        val title = if (showPreview) payload.title.ifBlank { defaults.title } else defaults.title
+        val titleSource = payload.senderName?.takeIf { it.isNotBlank() } ?: payload.title
+        val title = if (showPreview) titleSource.ifBlank { defaults.title } else defaults.title
         val body = if (showPreview) payload.body else defaults.hiddenBody
 
         val isForeground = AppForegroundTracker.isForeground.value

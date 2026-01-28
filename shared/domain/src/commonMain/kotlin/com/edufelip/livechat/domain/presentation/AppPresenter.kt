@@ -76,6 +76,9 @@ class AppPresenter(
                     val phone = contact.phoneNo.takeIf { it.isNotBlank() } ?: return@forEach
                     val name = contact.name.takeIf { it.isNotBlank() } ?: contact.phoneNo
                     contactsCache[phone] = name
+                    contact.firebaseUid?.takeIf { it.isNotBlank() }?.let { uid ->
+                        contactsCache[uid] = name
+                    }
                 }
             } catch (e: Exception) {
                 // Silently fail - notifications will use phone numbers as fallback
