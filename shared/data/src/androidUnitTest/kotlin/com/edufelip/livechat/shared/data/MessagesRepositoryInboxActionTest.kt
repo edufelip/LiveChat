@@ -19,6 +19,7 @@ import com.edufelip.livechat.domain.repositories.IConversationParticipantsReposi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -305,6 +306,38 @@ class MessagesRepositoryInboxActionTest {
             assertEquals(MessageStatus.ERROR, localData.messages["local-fail"]?.status)
         }
 
+    @Test
+    fun observeAllIncomingMessagesSubscribesOncePerUserId() =
+        runTest(dispatcher) {
+            val localData = FakeLocalMessagesData()
+            val remoteData = CountingMessagesRemoteData()
+            val sessionProvider = MutableSessionProvider()
+            val repository =
+                MessagesRepository(
+                    remoteData = remoteData,
+                    localData = localData,
+                    sessionProvider = sessionProvider,
+                    participantsRepository = FakeParticipantsRepository(),
+                    dispatcher = dispatcher,
+                )
+
+            val job = launch { repository.observeAllIncomingMessages().collect { } }
+
+            sessionProvider.setSession(UserSession(userId = "user-1", idToken = "token-1"))
+            advanceUntilIdle()
+            assertEquals(1, remoteData.observeCount)
+
+            sessionProvider.setSession(UserSession(userId = "user-1", idToken = "token-2"))
+            advanceUntilIdle()
+            assertEquals(1, remoteData.observeCount)
+
+            sessionProvider.setSession(UserSession(userId = "user-2", idToken = "token-3"))
+            advanceUntilIdle()
+            assertEquals(2, remoteData.observeCount)
+
+            job.cancel()
+        }
+
     private class FakeMessagesRemoteData : IMessagesRemoteData {
         private val inboxFlow = MutableSharedFlow<List<InboxItem>>(replay = 1, extraBufferCapacity = 4)
         val sentActions = mutableListOf<InboxAction>()
@@ -363,6 +396,46 @@ class MessagesRepositoryInboxActionTest {
         override suspend fun purgeInboxMessagesFromSender(senderId: String) {
             purgedSenders += senderId
         }
+    }
+
+    private class CountingMessagesRemoteData : IMessagesRemoteData {
+        private val inboxFlow = MutableSharedFlow<List<InboxItem>>(replay = 1, extraBufferCapacity = 1)
+        var observeCount = 0
+
+        override fun observeConversation(
+            conversationId: String,
+            sinceEpochMillis: Long?,
+        ): Flow<List<InboxItem>> {
+            observeCount += 1
+            return inboxFlow
+        }
+
+        override suspend fun sendMessage(draft: MessageDraft): Message {
+            error("Not used in this test")
+        }
+
+        override suspend fun pullHistorical(
+            conversationId: String,
+            sinceEpochMillis: Long?,
+        ): List<Message> = emptyList()
+
+        override suspend fun downloadMediaToLocal(
+            remoteUrl: String,
+            contentType: MessageContentType,
+        ): String = "/tmp/ignored"
+
+        override suspend fun deleteMedia(remoteUrl: String) = Unit
+
+        override suspend fun sendAction(action: InboxAction) = Unit
+
+        override suspend fun ensureConversation(
+            conversationId: String,
+            userId: String,
+            userPhone: String?,
+            peer: ConversationPeer?,
+        ) = Unit
+
+        override suspend fun purgeInboxMessagesFromSender(senderId: String) = Unit
     }
 
     private class FakeLocalMessagesData : IMessagesLocalData {
@@ -511,6 +584,22 @@ class MessagesRepositoryInboxActionTest {
             conversationId: String,
             archived: Boolean,
         ) {
+        }
+    }
+
+    private class MutableSessionProvider : UserSessionProvider {
+        private val state = MutableStateFlow<UserSession?>(null)
+
+        override val session: Flow<UserSession?> = state
+
+        override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = state.value
+
+        override fun currentUserId(): String? = state.value?.userId
+
+        override fun currentUserPhone(): String? = state.value?.phoneNumber
+
+        fun setSession(session: UserSession?) {
+            state.value = session
         }
     }
 

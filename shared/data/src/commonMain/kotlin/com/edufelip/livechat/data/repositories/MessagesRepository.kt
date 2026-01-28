@@ -19,10 +19,12 @@ import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -96,54 +98,64 @@ class MessagesRepository(
             }
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeAllIncomingMessages(): Flow<List<Message>> =
-        channelFlow {
-            val currentUser = sessionProvider.currentUserId()
-            if (currentUser == null) {
-                close()
-                return@channelFlow
-            }
-            println("$logTag: repo observeAllIncomingMessages for user=$currentUser")
-            val remoteJob =
-                launch {
-                    remoteData.observeConversation("", null)
-                        .catch { throwable ->
-                            val isPermissionError = throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true
-                            if (isPermissionError) {
-                                println("$logTag: Permission denied - attempting to create inbox")
-                                runCatching {
-                                    ensureConversation(currentUser, null)
-                                }.onFailure { ensureError ->
-                                    println("$logTag: Failed to ensure inbox: ${ensureError.message}")
-                                }
+        sessionProvider.session
+            .map { it?.userId?.takeIf { userId -> userId.isNotBlank() } }
+            .distinctUntilChanged()
+            .flatMapLatest { currentUser ->
+                if (currentUser.isNullOrBlank()) {
+                    println("$logTag: INBOX_LISTENER session missing, skipping inbox subscription")
+                    flowOf(emptyList())
+                } else {
+                    channelFlow {
+                        println("$logTag: INBOX_LISTENER session ready user=$currentUser")
+                        println("$logTag: repo observeAllIncomingMessages for user=$currentUser")
+                        val remoteJob =
+                            launch {
+                                println("$logTag: INBOX_LISTENER starting remote observe user=$currentUser")
+                                // Empty conversationId disables sender filtering; we want every inbox item.
+                                remoteData.observeConversation("", null)
+                                    .catch { throwable ->
+                                        val isPermissionError = throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true
+                                        if (isPermissionError) {
+                                            println("$logTag: Permission denied - attempting to create inbox")
+                                            runCatching {
+                                                ensureConversation(currentUser, null)
+                                            }.onFailure { ensureError ->
+                                                println("$logTag: Failed to ensure inbox: ${ensureError.message}")
+                                            }
+                                        }
+                                        println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
+                                    }
+                                    .collect { remoteItems ->
+                                        println("$logTag: INBOX_LISTENER remote items received count=${remoteItems.size}")
+                                        val (messages, actions) = splitInboxItems(remoteItems)
+                                        val blockedUserIds = blockedUserIdsProvider()
+                                        val filteredMessages =
+                                            if (blockedUserIds.isEmpty()) {
+                                                messages
+                                            } else {
+                                                messages.filterNot { blockedUserIds.contains(it.senderId) }
+                                            }
+                                        if (filteredMessages.isNotEmpty()) {
+                                            println("$logTag: repo observeAllIncomingMessages upserting=${filteredMessages.size}")
+                                            localData.upsertMessages(filteredMessages)
+                                            send(filteredMessages)
+                                            filteredMessages.map { it.conversationId }.distinct().forEach { conversationId ->
+                                                launch { maybeRunMediaCleanup(conversationId) }
+                                            }
+                                        }
+                                        if (actions.isNotEmpty()) {
+                                            println("$logTag: repo observeAllIncomingMessages actions=${actions.size}")
+                                            applyActions(actions)
+                                        }
+                                    }
                             }
-                            println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
-                        }
-                        .collect { remoteItems ->
-                            val (messages, actions) = splitInboxItems(remoteItems)
-                            val blockedUserIds = blockedUserIdsProvider()
-                            val filteredMessages =
-                                if (blockedUserIds.isEmpty()) {
-                                    messages
-                                } else {
-                                    messages.filterNot { blockedUserIds.contains(it.senderId) }
-                                }
-                            if (filteredMessages.isNotEmpty()) {
-                                println("$logTag: repo observeAllIncomingMessages upserting=${filteredMessages.size}")
-                                localData.upsertMessages(filteredMessages)
-                                send(filteredMessages)
-                                filteredMessages.map { it.conversationId }.distinct().forEach { conversationId ->
-                                    launch { maybeRunMediaCleanup(conversationId) }
-                                }
-                            }
-                            if (actions.isNotEmpty()) {
-                                println("$logTag: repo observeAllIncomingMessages actions=${actions.size}")
-                                applyActions(actions)
-                            }
-                        }
+                        awaitClose { remoteJob.cancel() }
+                    }
                 }
-            awaitClose { remoteJob.cancel() }
-        }
+            }
 
     override suspend fun sendMessage(draft: MessageDraft): Message {
         return withContext(dispatcher) {
