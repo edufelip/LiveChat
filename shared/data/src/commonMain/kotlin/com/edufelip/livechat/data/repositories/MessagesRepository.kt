@@ -106,7 +106,7 @@ class MessagesRepository(
             println("$logTag: repo observeAllIncomingMessages for user=$currentUser")
             val remoteJob =
                 launch {
-                    remoteData.observeConversation(currentUser, null)
+                    remoteData.observeConversation("", null)
                         .catch { throwable ->
                             val isPermissionError = throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true
                             if (isPermissionError) {
