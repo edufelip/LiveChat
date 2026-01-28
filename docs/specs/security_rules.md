@@ -17,8 +17,10 @@ The Firestore database is organized to protect user privacy and prevent unauthor
     - **Immutability**: Items are append-only. Updates are disallowed; the owner deletes after processing.
 
 ### Inbox Action Payloads
-- **message**: `sender_id`, `receiver_id`, `message_id`, `content_type`, `content`, `created_at`.
-- **delivered/read**: `sender_id`, `receiver_id`, `action_message_id`, `created_at`.
+- **message**: `sender_id`, `message_id`, `content_type`, `content`, `created_at`.
+- **delivered/read**: `sender_id`, `action_message_id`, `created_at`.
+
+Note: The recipient is implied by the inbox path (`/inboxes/{ownerId}/items/{itemId}`), so `receiver_id` is no longer part of the payload.
 
 ## Storage Rules
 
