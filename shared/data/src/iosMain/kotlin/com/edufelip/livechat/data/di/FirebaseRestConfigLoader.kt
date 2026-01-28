@@ -8,8 +8,8 @@ import platform.Foundation.NSProcessInfo
 import platform.Foundation.dictionaryWithContentsOfFile
 
 private const val DEFAULT_USERS_COLLECTION = "users"
-private const val DEFAULT_MESSAGES_COLLECTION = "messages"
-private const val DEFAULT_CONVERSATIONS_COLLECTION = "conversations"
+private const val DEFAULT_MESSAGES_COLLECTION = "items"
+private const val DEFAULT_CONVERSATIONS_COLLECTION = "inboxes"
 private const val DEFAULT_INVITES_COLLECTION = "invites"
 private const val DEFAULT_WEBSOCKET_ENDPOINT = ""
 private const val DEFAULT_POLLING_INTERVAL_MS = 5_000L
