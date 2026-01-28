@@ -146,7 +146,6 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
     private func mapDocument(_ doc: QueryDocumentSnapshot) -> TransportMessagePayload {
         let data = doc.data()
         let senderId = data["sender_id"] as? String
-        let receiverId = data["receiver_id"] as? String
         let content = data["content"] as? String
         let actionType = data["action_type"] as? String
         let messageId = data["message_id"] as? String
@@ -163,7 +162,6 @@ final class FirebaseMessagesBridge: NSObject, MessagesRemoteBridge {
         return TransportMessagePayload(
             id: doc.documentID,
             senderId: senderId,
-            receiverId: receiverId,
             createdAtMillis: kotlinCreatedAt,
             createdAtServerMillis: kotlinServerCreatedAt,
             content: content,
@@ -209,7 +207,6 @@ private extension TransportMessagePayload {
     func toFirestorePayload() -> [String: Any] {
         var payload: [String: Any] = [
             "sender_id": senderId ?? "",
-            "receiver_id": receiverId ?? "",
             "created_at": FieldValue.serverTimestamp(),
         ]
         let normalizedAction = (actionType ?? "message").lowercased()

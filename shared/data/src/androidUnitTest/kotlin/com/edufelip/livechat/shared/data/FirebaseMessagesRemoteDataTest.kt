@@ -167,7 +167,6 @@ class FirebaseMessagesRemoteDataTest {
                 TransportMessagePayload(
                     id = "action-1",
                     senderId = "user-b",
-                    receiverId = "user-a",
                     createdAtMillis = 10L,
                     actionType = "delivered",
                     actionMessageId = null,
@@ -204,7 +203,6 @@ class FirebaseMessagesRemoteDataTest {
                 TransportMessagePayload(
                     id = "msg-1",
                     senderId = "user-b",
-                    receiverId = "user-a",
                     createdAtMillis = 100L,
                     actionType = "message",
                     messageId = "msg-1",

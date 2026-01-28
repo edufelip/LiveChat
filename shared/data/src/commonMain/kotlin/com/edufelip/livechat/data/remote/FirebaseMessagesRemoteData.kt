@@ -45,7 +45,7 @@ class FirebaseMessagesRemoteData(
     ): Flow<List<InboxItem>> {
         if (!config.isConfigured) return flowOf(emptyList())
         val currentUserId = sessionProvider.currentUserId() ?: return flowOf(emptyList())
-        log("observeConversation start inbox=$conversationId authUser=$currentUserId")
+        log("INBOX_LISTENER observeConversation start inbox=$conversationId authUser=$currentUserId")
 
         return callbackFlow {
             val listener =
@@ -55,7 +55,7 @@ class FirebaseMessagesRemoteData(
                     }
 
                     override fun onError(message: String) {
-                        log("observeConversation error: $message")
+                        log("INBOX_LISTENER observeConversation error: $message")
                         trySend(emptyList())
                     }
                 }
@@ -65,7 +65,6 @@ class FirebaseMessagesRemoteData(
             val blockedUserIds = blockedUserIdsProvider()
             val mapped = mutableListOf<InboxItem>()
             messages.forEach { payload ->
-                if (!payload.isAddressedTo(currentUserId)) return@forEach
                 if (blockedUserIds.contains(payload.senderId.orEmpty())) {
                     deleteRemoteMessage(
                         recipientId = currentUserId,
@@ -112,7 +111,7 @@ class FirebaseMessagesRemoteData(
                     }
                 val extraMetadata =
                     buildMap {
-                        put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                        put(META_RECEIVER_ID, currentUserId)
                         if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
                         if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
                     }
@@ -124,6 +123,7 @@ class FirebaseMessagesRemoteData(
                         bodyOverride = mediaPath,
                         extraMetadata = extraMetadata,
                         statusOverride = MessageStatus.SENT,
+                        receiverIdOverride = currentUserId,
                     )
                 mapped += InboxItem.MessageItem(message)
                 sendDeliveryActionIfNeeded(currentUserId, payload)
@@ -201,7 +201,6 @@ class FirebaseMessagesRemoteData(
                 TransportMessagePayload(
                     id = action.id,
                     senderId = action.senderId,
-                    receiverId = action.receiverId,
                     createdAtMillis = action.actionAtMillis,
                     actionType = action.actionType.toPayload(),
                     actionMessageId = action.messageId,
@@ -233,7 +232,6 @@ class FirebaseMessagesRemoteData(
                 runCatching { messagesBridge.fetchMessages(currentUserId) }
                     .getOrDefault(emptyList())
             payloads.forEach { payload ->
-                if (!payload.isAddressedTo(currentUserId)) return@forEach
                 if (payload.senderId.orEmpty() != senderId) return@forEach
                 deleteRemoteMessage(
                     recipientId = currentUserId,
@@ -262,7 +260,6 @@ class FirebaseMessagesRemoteData(
                         }
                     }.getOrDefault(emptyList())
                     .mapNotNull { payload ->
-                        if (!payload.isAddressedTo(currentUserId)) return@mapNotNull null
                         if (blockedUserIds.contains(payload.senderId.orEmpty())) {
                             deleteRemoteMessage(
                                 recipientId = currentUserId,
@@ -305,7 +302,7 @@ class FirebaseMessagesRemoteData(
                             }
                         val extraMetadata =
                             buildMap {
-                                put(META_RECEIVER_ID, payload.receiverId.orEmpty())
+                                put(META_RECEIVER_ID, currentUserId)
                                 if (contentType.isMedia()) put(META_REMOTE_URL, remoteContent)
                                 if (contentType.isMedia()) put(META_LOCAL_PATH, mediaPath)
                             }
@@ -317,6 +314,7 @@ class FirebaseMessagesRemoteData(
                                 bodyOverride = mediaPath,
                                 extraMetadata = extraMetadata,
                                 statusOverride = MessageStatus.SENT,
+                                receiverIdOverride = currentUserId,
                             )
                         sendDeliveryActionIfNeeded(currentUserId, payload)
                         deleteRemoteMessage(
@@ -344,8 +342,6 @@ class FirebaseMessagesRemoteData(
         }
     }
 
-    private fun TransportMessagePayload.isAddressedTo(userId: String): Boolean = receiverId?.isNotBlank() == true && receiverId == userId
-
     private fun TransportMessagePayload.timestampMillis(): Long? = createdAtServerMillis ?: createdAtMillis
 
     private fun TransportMessagePayload.toDomainMessage(
@@ -355,6 +351,7 @@ class FirebaseMessagesRemoteData(
         bodyOverride: String? = null,
         extraMetadata: Map<String, String> = emptyMap(),
         statusOverride: MessageStatus? = null,
+        receiverIdOverride: String? = null,
     ): Message {
         val createdAt = timestampMillis() ?: currentEpochMillis()
         val contentType = contentTypeOverride ?: contentType.toMessageContentType()
@@ -371,7 +368,7 @@ class FirebaseMessagesRemoteData(
                 contentType = contentType,
                 metadata =
                     buildMap {
-                        put(META_RECEIVER_ID, receiverId.orEmpty())
+                        receiverIdOverride?.takeIf { it.isNotBlank() }?.let { put(META_RECEIVER_ID, it) }
                         putAll(extraMetadata)
                     },
             )
@@ -388,7 +385,6 @@ class FirebaseMessagesRemoteData(
         return TransportMessagePayload(
             id = documentId,
             senderId = senderId,
-            receiverId = conversationId,
             createdAtMillis = timestamp,
             content = content,
             actionType = "message",
@@ -492,7 +488,7 @@ class FirebaseMessagesRemoteData(
         val type = actionType?.toActionType() ?: return null
         val messageId = actionMessageId ?: return null
         val sender = senderId ?: return null
-        val receiver = receiverId ?: currentUserId
+        val receiver = currentUserId
         val actionAt = timestampMillis() ?: currentEpochMillis()
         return InboxAction(
             id = id,

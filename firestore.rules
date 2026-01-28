@@ -27,7 +27,6 @@ service cloud.firestore {
 
     function isValidInboxItemBase(data, ownerId) {
       return data.sender_id is string
-        && data.receiver_id == ownerId
         && data.action_type in ['message', 'delivered', 'read']
         && data.created_at is timestamp
         && (!('created_at_ms' in data) || data.created_at_ms is int);

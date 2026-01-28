@@ -84,7 +84,6 @@ class FirebaseMessagesBridge(
             TransportMessagePayload(
                 id = id,
                 senderId = getString(FIELD_SENDER_ID),
-                receiverId = getString(FIELD_RECEIVER_ID),
                 createdAtMillis =
                     serverMillis
                         ?: getLong(FIELD_CREATED_AT_MS),
@@ -100,7 +99,6 @@ class FirebaseMessagesBridge(
     private fun TransportMessagePayload.toFirestorePayload(): Map<String, Any?> =
         buildMap {
             put(FIELD_SENDER_ID, senderId)
-            put(FIELD_RECEIVER_ID, receiverId)
             put(FIELD_CREATED_AT, FieldValue.serverTimestamp())
             put(FIELD_CREATED_AT_MS, createdAtMillis)
             val normalizedAction = actionType?.lowercase() ?: "message"
@@ -116,7 +114,6 @@ class FirebaseMessagesBridge(
 
     private companion object {
         const val FIELD_SENDER_ID = "sender_id"
-        const val FIELD_RECEIVER_ID = "receiver_id"
         const val FIELD_CREATED_AT = "created_at"
         const val FIELD_CREATED_AT_MS = "created_at_ms"
         const val FIELD_CONTENT = "content"

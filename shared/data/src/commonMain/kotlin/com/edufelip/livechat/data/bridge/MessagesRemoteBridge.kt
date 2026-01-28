@@ -33,7 +33,6 @@ interface MessagesRemoteListener {
 data class TransportMessagePayload(
     val id: String,
     val senderId: String? = null,
-    val receiverId: String? = null,
     val createdAtMillis: Long? = null,
     val createdAtServerMillis: Long? = null,
     val content: String? = null,
