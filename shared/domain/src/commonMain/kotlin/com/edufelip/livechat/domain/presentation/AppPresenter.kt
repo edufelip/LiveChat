@@ -103,7 +103,9 @@ class AppPresenter(
         scope.launch {
             // Inbox is now created during authentication (VerifyOtpUseCase)
             // This listener will start receiving messages once inbox exists
+            println("INBOX_LISTENER: AppPresenter subscribe observeAll")
             observeConversationUseCase.observeAll().collectLatest { messages ->
+                println("INBOX_LISTENER: AppPresenter received messages count=${messages.size}")
                 // Messages are persisted by repository; trigger notifications for new messages
                 val currentUserId = runCatching { 
                     sessionProvider.currentUserId() 
