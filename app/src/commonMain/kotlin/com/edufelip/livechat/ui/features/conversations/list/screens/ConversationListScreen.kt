@@ -4,9 +4,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -36,6 +40,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -56,9 +62,10 @@ import com.edufelip.livechat.ui.components.molecules.LoadingState
 import com.edufelip.livechat.ui.features.conversations.list.components.ConversationListRow
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun ConversationListScreen(
     state: ConversationListUiState,
     onSearch: (String) -> Unit,
@@ -81,6 +88,11 @@ fun ConversationListScreen(
     val onFilterSelectedAction = rememberStableAction(onFilterSelected)
     val onComposeAction = rememberStableAction(onCompose)
     val onEmptyStateActionState = rememberStableAction(onEmptyStateAction)
+    val filterOrder = remember { ConversationFilter.entries.toList() }
+    val filterIndex =
+        remember(filterOrder) {
+            filterOrder.withIndex().associate { entry -> entry.value to entry.index }
+        }
     val filterOptions =
         remember(conversationStrings) {
             ConversationFilter.entries.map { filter ->
@@ -95,6 +107,11 @@ fun ConversationListScreen(
             }
         }
     val conversations = remember(state.conversations) { state.conversations.distinctBy { it.conversationId } }
+    val listStates = remember { mutableMapOf<ConversationFilter, LazyListState>() }
+    val cachedLists = remember { mutableStateMapOf<ConversationFilter, List<ConversationSummary>>() }
+    LaunchedEffect(state.selectedFilter, conversations) {
+        cachedLists[state.selectedFilter] = conversations
+    }
 
     Column(
         modifier =
@@ -147,54 +164,79 @@ fun ConversationListScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
 
-                conversations.isEmpty() ->
-                    ConversationEmptyState(
-                        title = conversationStrings.emptyList,
-                        subtitle = conversationStrings.emptyListSubtitle,
-                        ctaLabel = conversationStrings.emptyListCta,
-                        onCtaClick = onEmptyStateActionState,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-
                 else ->
                     AnimatedContent(
-                        targetState = state.selectedFilter to conversations,
+                        targetState = state.selectedFilter,
                         transitionSpec = {
-                            if (targetState.first != initialState.first) {
-                                fadeIn(animationSpec = tween(300)) togetherWith
-                                    fadeOut(animationSpec = tween(200))
-                            } else {
+                            val initialIndex = filterIndex[initialState] ?: 0
+                            val targetIndex = filterIndex[targetState] ?: 0
+                            if (targetIndex == initialIndex) {
                                 fadeIn(animationSpec = tween(0)) togetherWith
                                     fadeOut(animationSpec = tween(0))
+                            } else {
+                                val direction = if (targetIndex > initialIndex) 1 else -1
+                                val slideIn =
+                                    slideInHorizontally(animationSpec = tween(320)) { fullWidth ->
+                                        direction * (fullWidth / 4)
+                                    }
+                                val slideOut =
+                                    slideOutHorizontally(animationSpec = tween(260)) { fullWidth ->
+                                        -direction * (fullWidth / 4)
+                                    }
+                                (slideIn + fadeIn(animationSpec = tween(200))) togetherWith
+                                    (slideOut + fadeOut(animationSpec = tween(200)))
                             }
                         },
+                        contentKey = { it },
                         modifier = Modifier.fillMaxSize(),
                         label = "conversation_filter_transition",
-                    ) { (_, conversationList) ->
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                            contentPadding =
-                                PaddingValues(
-                                    start = MaterialTheme.spacing.gutter,
-                                    end = MaterialTheme.spacing.gutter,
-                                    bottom = MaterialTheme.spacing.xxxl,
-                                ),
-                        ) {
-                            itemsIndexed(
-                                items = conversationList,
-                                key = { _, item -> item.conversationId },
-                            ) { index, summary ->
-                                ConversationListRow(
-                                    summary = summary,
-                                    currentUserId = state.currentUserId,
-                                    onTogglePin = onTogglePinAction,
-                                    onToggleMute = onToggleMuteAction,
-                                    onToggleArchive = onToggleArchiveAction,
-                                    onClick = onConversationSelectedAction,
-                                    showDivider = index != conversationList.lastIndex,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
+                    ) { filter ->
+                        val listState =
+                            remember(filter) {
+                                listStates[filter] ?: LazyListState().also { listStates[filter] = it }
+                            }
+                        val list =
+                            cachedLists[filter]
+                                ?: if (filter == state.selectedFilter) conversations else emptyList()
+                        if (list.isEmpty()) {
+                            ConversationEmptyState(
+                                title = conversationStrings.emptyList,
+                                subtitle = conversationStrings.emptyListSubtitle,
+                                ctaLabel = conversationStrings.emptyListCta,
+                                onCtaClick = onEmptyStateActionState,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        } else {
+                            val lastIndex = list.lastIndex
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                                contentPadding =
+                                    PaddingValues(
+                                        start = MaterialTheme.spacing.gutter,
+                                        end = MaterialTheme.spacing.gutter,
+                                        bottom = MaterialTheme.spacing.xxxl,
+                                    ),
+                            ) {
+                                itemsIndexed(
+                                    items = list,
+                                    key = { _, item -> item.conversationId },
+                                ) { index, summary ->
+                                    ConversationListRow(
+                                        summary = summary,
+                                        currentUserId = state.currentUserId,
+                                        onTogglePin = onTogglePinAction,
+                                        onToggleMute = onToggleMuteAction,
+                                        onToggleArchive = onToggleArchiveAction,
+                                        onClick = onConversationSelectedAction,
+                                        showDivider = index != lastIndex,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .animateItem(),
+                                    )
+                                }
                             }
                         }
                     }
