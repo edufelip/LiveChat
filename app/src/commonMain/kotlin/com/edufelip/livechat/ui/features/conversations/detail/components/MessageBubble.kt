@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.edufelip.livechat.domain.models.MessageStatus
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
+import com.edufelip.livechat.ui.common.audio.rememberAudioDurationMillis
 import com.edufelip.livechat.ui.features.conversations.detail.loadLocalImageBitmap
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
@@ -247,8 +249,9 @@ private fun AudioBubbleContent(
     idleLabel: String,
     modifier: Modifier = Modifier,
 ) {
-    val safeDuration = durationMillis.coerceAtLeast(0L)
-    val maxPosition = if (safeDuration > 0) safeDuration else Long.MAX_VALUE
+    val cachedDuration by rememberAudioDurationMillis(message.body)
+    val totalDuration = (if (durationMillis > 0L) durationMillis else cachedDuration).coerceAtLeast(0L)
+    val maxPosition = if (totalDuration > 0L) totalDuration else Long.MAX_VALUE
     val safePosition = positionMillis.coerceIn(0L, maxPosition)
     val displayProgress = progress.coerceIn(0f, 1f)
     Row(
@@ -291,7 +294,7 @@ private fun AudioBubbleContent(
                     style = MaterialTheme.typography.labelSmall,
                 )
                 Text(
-                    text = formatDurationMillis(safeDuration),
+                    text = formatDurationMillis(totalDuration),
                     color = textColor,
                     style = MaterialTheme.typography.labelSmall,
                 )
