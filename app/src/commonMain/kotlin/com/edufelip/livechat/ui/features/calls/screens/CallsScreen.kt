@@ -51,8 +51,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -429,7 +433,7 @@ private fun CallsEmptyIllustration(modifier: Modifier = Modifier) {
             val phoneWidth = size.width * 0.4f
             val phoneHeight = size.height * 0.62f
             val phoneTopLeft =
-                androidx.compose.ui.geometry.Offset(
+                Offset(
                     x = (size.width - phoneWidth) / 2f,
                     y = size.height * 0.2f,
                 )
@@ -437,66 +441,66 @@ private fun CallsEmptyIllustration(modifier: Modifier = Modifier) {
             drawRoundRect(
                 color = surface,
                 topLeft = phoneTopLeft,
-                size = androidx.compose.ui.geometry.Size(phoneWidth, phoneHeight),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(phoneCorner, phoneCorner),
+                size = Size(phoneWidth, phoneHeight),
+                cornerRadius = CornerRadius(phoneCorner, phoneCorner),
             )
             val screenInset = 10.dp.toPx()
             val screenCorner = (phoneCorner - 8.dp.toPx()).coerceAtLeast(0f)
             drawRoundRect(
                 color = primary.copy(alpha = 0.08f),
-                topLeft = phoneTopLeft + androidx.compose.ui.geometry.Offset(screenInset, screenInset),
+                topLeft = phoneTopLeft + Offset(screenInset, screenInset),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         phoneWidth - screenInset * 2,
                         phoneHeight - screenInset * 2,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(screenCorner, screenCorner),
+                cornerRadius = CornerRadius(screenCorner, screenCorner),
             )
 
             val cardCorner = 16.dp.toPx()
             drawRoundRect(
                 color = secondary.copy(alpha = 0.16f),
                 topLeft =
-                    androidx.compose.ui.geometry.Offset(
+                    Offset(
                         x = size.width * 0.12f,
                         y = size.height * 0.3f,
                     ),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         size.width * 0.28f,
                         size.height * 0.14f,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(cardCorner, cardCorner),
+                cornerRadius = CornerRadius(cardCorner, cardCorner),
             )
             drawRoundRect(
                 color = tertiary.copy(alpha = 0.18f),
                 topLeft =
-                    androidx.compose.ui.geometry.Offset(
+                    Offset(
                         x = size.width * 0.6f,
                         y = size.height * 0.56f,
                     ),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         size.width * 0.26f,
                         size.height * 0.12f,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(cardCorner, cardCorner),
+                cornerRadius = CornerRadius(cardCorner, cardCorner),
             )
 
             drawCircle(
                 color = onSurface.copy(alpha = 0.06f),
                 radius = 5.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.62f),
+                center = Offset(size.width * 0.18f, size.height * 0.62f),
             )
             drawCircle(
                 color = onSurface.copy(alpha = 0.06f),
                 radius = 4.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.82f, size.height * 0.28f),
+                center = Offset(size.width * 0.82f, size.height * 0.28f),
             )
             drawCircle(
                 color = primary.copy(alpha = 0.2f),
                 radius = 56.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.2f, size.height * 0.62f),
+                center = Offset(size.width * 0.2f, size.height * 0.62f),
                 style = Stroke(width = 2.dp.toPx()),
             )
         }
@@ -547,7 +551,7 @@ private data class CallAvatar(
 )
 
 private enum class CallType(
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val icon: ImageVector,
 ) {
     Outgoing(Icons.Rounded.CallMade),
     Incoming(Icons.Rounded.CallReceived),

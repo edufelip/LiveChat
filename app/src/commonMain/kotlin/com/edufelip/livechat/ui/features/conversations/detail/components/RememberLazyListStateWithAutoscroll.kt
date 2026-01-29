@@ -37,7 +37,7 @@ private fun RememberLazyListStatePreview() {
         val listState = rememberLazyListStateWithAutoscroll(messages)
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             items(messages, key = Message::id) { message ->
-                androidx.compose.material3.Text(text = message.body)
+                Text(text = message.body)
             }
         }
     }

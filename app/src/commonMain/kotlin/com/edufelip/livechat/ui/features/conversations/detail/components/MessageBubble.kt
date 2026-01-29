@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -42,6 +43,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
@@ -277,7 +279,7 @@ private fun MessageBubbleImagePreview() {
 @Composable
 private fun AudioBubbleContent(
     message: Message,
-    textColor: androidx.compose.ui.graphics.Color,
+    textColor: Color,
     isPlaying: Boolean,
     onAudioToggle: (String) -> Unit,
     progress: Float,
@@ -349,7 +351,7 @@ private fun ImageBubbleContent(
     description: String,
     label: String,
     fallbackTemplate: @Composable (String) -> String,
-    maxSize: androidx.compose.ui.unit.Dp,
+    maxSize: Dp,
     shape: RoundedCornerShape,
 ) {
     val bitmap = remember(message.body) { loadLocalImageBitmap(message.body) }

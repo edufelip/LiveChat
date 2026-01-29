@@ -2,6 +2,7 @@ package com.edufelip.livechat.ui.features.conversations
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -26,7 +27,7 @@ class ConversationDetailScreenTest {
                 val strings = liveChatStrings()
                 val state = PreviewFixtures.conversationUiState(strings)
                 val snackbarHostState = remember { SnackbarHostState() }
-                androidx.compose.runtime.SideEffect {
+                SideEffect {
                     firstMessage = state.messages.firstOrNull()?.body.orEmpty()
                     lastMessage = state.messages.lastOrNull()?.body.orEmpty()
                 }

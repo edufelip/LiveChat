@@ -1,5 +1,6 @@
 package com.edufelip.livechat.ui.features.onboarding
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -225,13 +229,13 @@ private fun WelcomeHeroIllustration(
                     .blur(42.dp)
                     .background(primary.copy(alpha = 0.12f), CircleShape),
         )
-        androidx.compose.foundation.Canvas(
+        Canvas(
             modifier = Modifier.fillMaxSize(),
         ) {
             val phoneWidth = size.width * 0.38f
             val phoneHeight = size.height * 0.62f
             val phoneTopLeft =
-                androidx.compose.ui.geometry.Offset(
+                Offset(
                     x = (size.width - phoneWidth) / 2f,
                     y = size.height * 0.18f,
                 )
@@ -239,35 +243,35 @@ private fun WelcomeHeroIllustration(
             drawRoundRect(
                 color = surface,
                 topLeft = phoneTopLeft,
-                size = androidx.compose.ui.geometry.Size(phoneWidth, phoneHeight),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(phoneCorner, phoneCorner),
+                size = Size(phoneWidth, phoneHeight),
+                cornerRadius = CornerRadius(phoneCorner, phoneCorner),
             )
             val screenInset = 10.dp.toPx()
             val screenCorner = (phoneCorner - 8.dp.toPx()).coerceAtLeast(0f)
             drawRoundRect(
                 color = primary.copy(alpha = 0.08f),
-                topLeft = phoneTopLeft + androidx.compose.ui.geometry.Offset(screenInset, screenInset),
+                topLeft = phoneTopLeft + Offset(screenInset, screenInset),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         phoneWidth - screenInset * 2,
                         phoneHeight - screenInset * 2,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(screenCorner, screenCorner),
+                cornerRadius = CornerRadius(screenCorner, screenCorner),
             )
             drawRoundRect(
                 color = onSurface.copy(alpha = 0.12f),
                 topLeft =
-                    androidx.compose.ui.geometry.Offset(
+                    Offset(
                         x = phoneTopLeft.x + phoneWidth * 0.28f,
                         y = phoneTopLeft.y + 12.dp.toPx(),
                     ),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         phoneWidth * 0.44f,
                         6.dp.toPx(),
                     ),
                 cornerRadius =
-                    androidx.compose.ui.geometry.CornerRadius(
+                    CornerRadius(
                         6.dp.toPx(),
                         6.dp.toPx(),
                     ),
@@ -277,58 +281,58 @@ private fun WelcomeHeroIllustration(
             drawRoundRect(
                 color = primary.copy(alpha = 0.18f),
                 topLeft =
-                    androidx.compose.ui.geometry.Offset(
+                    Offset(
                         x = size.width * 0.12f,
                         y = size.height * 0.24f,
                     ),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         size.width * 0.34f,
                         size.height * 0.18f,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(bubbleCorner, bubbleCorner),
+                cornerRadius = CornerRadius(bubbleCorner, bubbleCorner),
             )
             drawRoundRect(
                 color = secondary.copy(alpha = 0.2f),
                 topLeft =
-                    androidx.compose.ui.geometry.Offset(
+                    Offset(
                         x = size.width * 0.56f,
                         y = size.height * 0.56f,
                     ),
                 size =
-                    androidx.compose.ui.geometry.Size(
+                    Size(
                         size.width * 0.3f,
                         size.height * 0.16f,
                     ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(bubbleCorner, bubbleCorner),
+                cornerRadius = CornerRadius(bubbleCorner, bubbleCorner),
             )
 
             drawCircle(
                 color = tertiary.copy(alpha = 0.25f),
                 radius = 16.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.28f, size.height * 0.68f),
+                center = Offset(size.width * 0.28f, size.height * 0.68f),
             )
             drawCircle(
                 color = secondary.copy(alpha = 0.25f),
                 radius = 14.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.72f, size.height * 0.34f),
+                center = Offset(size.width * 0.72f, size.height * 0.34f),
             )
 
             drawCircle(
                 color = onSurface.copy(alpha = 0.08f),
                 radius = 4.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.72f),
+                center = Offset(size.width * 0.12f, size.height * 0.72f),
             )
             drawCircle(
                 color = onSurface.copy(alpha = 0.08f),
                 radius = 3.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.88f, size.height * 0.28f),
+                center = Offset(size.width * 0.88f, size.height * 0.28f),
             )
 
             drawCircle(
                 color = primary.copy(alpha = 0.18f),
                 radius = 60.dp.toPx(),
-                center = androidx.compose.ui.geometry.Offset(size.width * 0.18f, size.height * 0.58f),
+                center = Offset(size.width * 0.18f, size.height * 0.58f),
                 style = Stroke(width = 2.dp.toPx()),
             )
         }

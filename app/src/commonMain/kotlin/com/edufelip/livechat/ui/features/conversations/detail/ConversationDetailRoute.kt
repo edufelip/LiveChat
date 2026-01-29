@@ -84,13 +84,13 @@ fun ConversationDetailRoute(
     val permissionUiState by permissionViewModel.uiState.collectAsState()
     val clipboardManager = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
-    var isRecording by androidx.compose.runtime.remember { mutableStateOf(false) }
-    var recordingDurationMillis by androidx.compose.runtime.remember { mutableStateOf(0L) }
-    var retryCandidate by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
-    var selectedMessage by androidx.compose.runtime.remember { mutableStateOf<Message?>(null) }
-    var selectedMessageBounds by androidx.compose.runtime.remember { mutableStateOf<Rect?>(null) }
-    var awaitingRetryCompletion by androidx.compose.runtime.remember { mutableStateOf(false) }
-    var scrollToBottomSignal by androidx.compose.runtime.remember { mutableStateOf(0) }
+    var isRecording by remember { mutableStateOf(false) }
+    var recordingDurationMillis by remember { mutableStateOf(0L) }
+    var retryCandidate by remember { mutableStateOf<Message?>(null) }
+    var selectedMessage by remember { mutableStateOf<Message?>(null) }
+    var selectedMessageBounds by remember { mutableStateOf<Rect?>(null) }
+    var awaitingRetryCompletion by remember { mutableStateOf(false) }
+    var scrollToBottomSignal by remember { mutableStateOf(0) }
 
     val clearSelection: () -> Unit = {
         selectedMessage = null

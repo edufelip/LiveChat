@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -171,9 +173,9 @@ internal fun SuccessStep(
 
 @Composable
 private fun SuccessChecklistRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconContainerColor: androidx.compose.ui.graphics.Color,
-    iconTint: androidx.compose.ui.graphics.Color,
+    icon: ImageVector,
+    iconContainerColor: Color,
+    iconTint: Color,
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,

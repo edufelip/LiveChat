@@ -54,16 +54,19 @@ internal fun AccountSettingsHeader(
                 Icon(
                     imageVector = Icons.Rounded.ChevronLeft,
                     contentDescription = backContentDescription,
+                    tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
         Text(
             text = subtitle,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

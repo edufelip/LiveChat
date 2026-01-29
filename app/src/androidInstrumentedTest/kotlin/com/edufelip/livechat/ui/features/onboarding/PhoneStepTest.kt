@@ -1,6 +1,7 @@
 package com.edufelip.livechat.ui.features.onboarding
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -91,7 +92,7 @@ class PhoneStepTest {
         composeRule.setContent {
             LiveChatTheme {
                 val strings = liveChatStrings()
-                androidx.compose.runtime.SideEffect { errorMessage = strings.onboarding.invalidPhoneError }
+                SideEffect { errorMessage = strings.onboarding.invalidPhoneError }
                 PhoneStep(
                     selectedCountry =
                         CountryOption.default(

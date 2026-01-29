@@ -44,11 +44,13 @@ internal fun NotificationSettingsHeader(
             Icon(
                 imageVector = Icons.Rounded.ChevronLeft,
                 contentDescription = backContentDescription,
+                tint = MaterialTheme.colorScheme.onBackground,
             )
         }
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground,
         )
     }
 }
