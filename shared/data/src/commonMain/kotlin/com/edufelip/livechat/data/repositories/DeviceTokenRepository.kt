@@ -16,7 +16,10 @@ class DeviceTokenRepository(
 ) : IDeviceTokenRepository {
     override suspend fun registerDeviceToken(registration: DeviceTokenRegistration) {
         withContext(dispatcher) {
-            println("[FCM] DeviceTokenRepository.registerDeviceToken: starting registration for deviceId=${registration.deviceId}, platform=${registration.platform}")
+            println(
+                "[FCM] DeviceTokenRepository.registerDeviceToken: starting registration for " +
+                    "deviceId=${registration.deviceId}, platform=${registration.platform}",
+            )
             val session = requireSession()
             println("[FCM] DeviceTokenRepository.registerDeviceToken: got session for userId=${session.userId}")
             remoteData.registerToken(
@@ -24,7 +27,10 @@ class DeviceTokenRepository(
                 idToken = session.idToken,
                 registration = registration,
             )
-            println("[FCM] DeviceTokenRepository.registerDeviceToken: successfully registered token for deviceId=${registration.deviceId}")
+            println(
+                "[FCM] DeviceTokenRepository.registerDeviceToken: successfully registered token for " +
+                    "deviceId=${registration.deviceId}",
+            )
         }
     }
 
@@ -37,7 +43,9 @@ class DeviceTokenRepository(
                 idToken = session.idToken,
                 deviceId = deviceId,
             )
-            println("[FCM] DeviceTokenRepository.unregisterDeviceToken: successfully unregistered deviceId=$deviceId")
+            println(
+                "[FCM] DeviceTokenRepository.unregisterDeviceToken: successfully unregistered deviceId=$deviceId",
+            )
         }
     }
 
@@ -45,10 +53,11 @@ class DeviceTokenRepository(
         return withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.getDeviceTokens: fetching device tokens")
             val session = requireSession()
-            val tokens = remoteData.getTokens(
-                userId = session.userId,
-                idToken = session.idToken,
-            )
+            val tokens =
+                remoteData.getTokens(
+                    userId = session.userId,
+                    idToken = session.idToken,
+                )
             println("[FCM] DeviceTokenRepository.getDeviceTokens: fetched ${tokens.size} tokens")
             tokens
         }
@@ -57,10 +66,11 @@ class DeviceTokenRepository(
     override suspend fun cleanupInactiveTokens() {
         withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.cleanupInactiveTokens: starting cleanup")
-            val session = sessionProvider.refreshSession(forceRefresh = false) ?: run {
-                println("[FCM] DeviceTokenRepository.cleanupInactiveTokens: no session, skipping cleanup")
-                return@withContext
-            }
+            val session =
+                sessionProvider.refreshSession(forceRefresh = false) ?: run {
+                    println("[FCM] DeviceTokenRepository.cleanupInactiveTokens: no session, skipping cleanup")
+                    return@withContext
+                }
             remoteData.cleanupInactiveTokens(
                 userId = session.userId,
                 idToken = session.idToken,

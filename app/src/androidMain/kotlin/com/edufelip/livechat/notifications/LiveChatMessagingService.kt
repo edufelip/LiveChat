@@ -18,7 +18,6 @@ import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.notifications.InAppNotification
 import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
-import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -35,23 +34,33 @@ class LiveChatMessagingService : FirebaseMessagingService() {
     private val quietModeUseCase = IsQuietModeActiveUseCase()
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Log.i(TAG, "onMessageReceived: received FCM message from=${message.from}, messageId=${message.messageId}")
-        Log.d(TAG, "onMessageReceived: notification=${message.notification != null}, data=${message.data}")
-        
+        Log.i(
+            TAG,
+            "onMessageReceived: received FCM message from=${message.from}, messageId=${message.messageId}",
+        )
+        Log.d(
+            TAG,
+            "onMessageReceived: notification=${message.notification != null}, data=${message.data}",
+        )
+
         val defaults =
             NotificationDefaults(
                 title = getString(R.string.notification_message_title),
                 hiddenBody = getString(R.string.notification_message_hidden_body),
             )
         val payload = NotificationPayload.from(message, defaults)
-        Log.d(TAG, "onMessageReceived: parsed payload - conversationId=${payload.conversationId}, senderName=${payload.senderName}, messageId=${payload.messageId}")
-        
+        Log.d(
+            TAG,
+            "onMessageReceived: parsed payload - conversationId=${payload.conversationId}, " +
+                "senderName=${payload.senderName}, messageId=${payload.messageId}",
+        )
+
         val settings =
             runBlocking {
                 runCatching { notificationSettingsRepository.observeSettings().first() }
-                    .getOrElse { 
+                    .getOrElse {
                         Log.w(TAG, "onMessageReceived: failed to load notification settings, using defaults")
-                        NotificationSettings() 
+                        NotificationSettings()
                     }
             }
 
@@ -71,7 +80,10 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         val body = if (showPreview) payload.body else defaults.hiddenBody
 
         val isForeground = AppForegroundTracker.isForeground.value
-        Log.d(TAG, "onMessageReceived: app isForeground=$isForeground, showPreview=$showPreview, isSilent=$isSilent")
+        Log.d(
+            TAG,
+            "onMessageReceived: app isForeground=$isForeground, showPreview=$showPreview, isSilent=$isSilent",
+        )
 
         if (isForeground) {
             Log.i(TAG, "onMessageReceived: app is foreground, emitting in-app notification")
@@ -101,7 +113,10 @@ class LiveChatMessagingService : FirebaseMessagingService() {
             runCatching {
                 val deviceId = getStoredDeviceId()
                 val appVersion = getAppVersion()
-                Log.d(TAG, "onNewToken: registering token with backend (deviceId=$deviceId, appVersion=$appVersion)")
+                Log.d(
+                    TAG,
+                    "onNewToken: registering token with backend (deviceId=$deviceId, appVersion=$appVersion)",
+                )
                 registerDeviceTokenUseCase(
                     DeviceTokenRegistration(
                         deviceId = deviceId,
@@ -151,16 +166,16 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "showNotification: creating system notification (title=$title, isSilent=$isSilent)")
         val channelId = LiveChatNotificationChannels.ensureChannel(this, settings)
         Log.d(TAG, "showNotification: using channelId=$channelId")
-        
+
         val intent =
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                payload.conversationId?.let { 
+                payload.conversationId?.let {
                     putExtra(NotificationIntentKeys.EXTRA_CONVERSATION_ID, it)
                     Log.d(TAG, "showNotification: added conversationId=$it to intent")
                 }
-                payload.senderName?.let { 
-                    putExtra(NotificationIntentKeys.EXTRA_SENDER_NAME, it) 
+                payload.senderName?.let {
+                    putExtra(NotificationIntentKeys.EXTRA_SENDER_NAME, it)
                     Log.d(TAG, "showNotification: added senderName=$it to intent")
                 }
             }

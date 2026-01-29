@@ -22,10 +22,11 @@ actual object PlatformTokenRegistrar {
     }
 
     actual fun registerCurrentToken() {
-        val context = applicationContext ?: run {
-            Log.w(TAG, "registerCurrentToken: applicationContext is null, skipping registration")
-            return
-        }
+        val context =
+            applicationContext ?: run {
+                Log.w(TAG, "registerCurrentToken: applicationContext is null, skipping registration")
+                return
+            }
         Log.i(TAG, "registerCurrentToken: starting FCM token registration")
         scope.launch {
             try {

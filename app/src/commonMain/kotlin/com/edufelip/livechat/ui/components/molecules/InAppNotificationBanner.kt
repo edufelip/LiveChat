@@ -36,34 +36,36 @@ fun InAppNotificationBanner(
     visible: Boolean,
     onDismiss: () -> Unit,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
         visible = visible,
         enter = slideInVertically { -it } + fadeIn(),
         exit = slideOutVertically { -it } + fadeOut(),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             color = MaterialTheme.colorScheme.primaryContainer,
             shape = RoundedCornerShape(12.dp),
             tonalElevation = 4.dp,
-            shadowElevation = 2.dp
+            shadowElevation = 2.dp,
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
                         text = notification.title,
@@ -71,21 +73,21 @@ fun InAppNotificationBanner(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = notification.body,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
                         contentDescription = "Dismiss notification",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             }
@@ -99,15 +101,16 @@ fun InAppNotificationBanner(
 private fun InAppNotificationBannerPreview() {
     LiveChatPreviewContainer {
         InAppNotificationBanner(
-            notification = InAppNotification(
-                title = "John Doe",
-                body = "Hey! How are you doing today?",
-                conversationId = "1234567890",
-                messageId = "msg123"
-            ),
+            notification =
+                InAppNotification(
+                    title = "John Doe",
+                    body = "Hey! How are you doing today?",
+                    conversationId = "1234567890",
+                    messageId = "msg123",
+                ),
             visible = true,
             onDismiss = {},
-            onClick = {}
+            onClick = {},
         )
     }
 }

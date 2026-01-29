@@ -18,7 +18,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class FirebaseRestDeviceTokenRemoteData(
@@ -33,11 +32,14 @@ class FirebaseRestDeviceTokenRemoteData(
     ) {
         withContext(dispatcher) {
             println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: starting registration")
-            println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: userId=$userId, deviceId=${registration.deviceId}, platform=${registration.platform}")
+            println(
+                "[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: userId=$userId, " +
+                    "deviceId=${registration.deviceId}, platform=${registration.platform}",
+            )
             ensureConfigured(idToken)
             val url = deviceTokenDocumentUrl(userId, registration.deviceId)
             println("[FCM] FirebaseRestDeviceTokenRemoteData.registerToken: Firestore URL=$url")
-            
+
             val fields =
                 mapOf(
                     FIELD_FCM_TOKEN to Value(stringValue = registration.fcmToken),
@@ -76,7 +78,9 @@ class FirebaseRestDeviceTokenRemoteData(
         deviceId: String,
     ) {
         withContext(dispatcher) {
-            println("[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: userId=$userId, deviceId=$deviceId")
+            println(
+                "[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: userId=$userId, deviceId=$deviceId",
+            )
             ensureConfigured(idToken)
             val url = deviceTokenDocumentUrl(userId, deviceId)
             println("[FCM] FirebaseRestDeviceTokenRemoteData.unregisterToken: DELETE URL=$url")
@@ -118,23 +122,34 @@ class FirebaseRestDeviceTokenRemoteData(
         idToken: String,
     ) {
         withContext(dispatcher) {
-            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: starting cleanup for userId=$userId")
+            println(
+                "[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: starting cleanup for userId=$userId",
+            )
             // Get all tokens
             val tokens = getTokens(userId, idToken)
             val now = currentEpochMillis()
             val thirtyDaysAgo = now - (30L * 24 * 60 * 60 * 1000)
-            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: checking ${tokens.size} tokens against cutoff=$thirtyDaysAgo")
+            println(
+                "[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: checking " +
+                    "${tokens.size} tokens against cutoff=$thirtyDaysAgo",
+            )
 
             // Delete tokens older than 30 days
             val oldTokens = tokens.filter { it.lastUpdatedAt < thirtyDaysAgo }
-            println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: found ${oldTokens.size} tokens to delete")
-            
+            println(
+                "[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: found " +
+                    "${oldTokens.size} tokens to delete",
+            )
+
             oldTokens.forEach { token ->
                 runCatching {
                     println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: deleting deviceId=${token.deviceId}")
                     unregisterToken(userId, idToken, token.deviceId)
                 }.onFailure { e ->
-                    println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: failed to delete deviceId=${token.deviceId}, error=$e")
+                    println(
+                        "[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: failed to delete " +
+                            "deviceId=${token.deviceId}, error=$e",
+                    )
                 }
             }
             println("[FCM] FirebaseRestDeviceTokenRemoteData.cleanupInactiveTokens: cleanup completed")
@@ -161,7 +176,7 @@ class FirebaseRestDeviceTokenRemoteData(
         val platform =
             when (platformStr.lowercase()) {
                 "android" -> DevicePlatform.Android
-                "ios" -> DevicePlatform.iOS
+                "ios" -> DevicePlatform.Ios
                 else -> return null
             }
         val lastUpdatedAt = fields[FIELD_LAST_UPDATED_AT]?.integerValue?.toLongOrNull() ?: 0L
