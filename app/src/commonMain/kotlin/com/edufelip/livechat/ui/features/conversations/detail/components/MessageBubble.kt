@@ -234,6 +234,46 @@ private fun MessageBubblePreview() {
     }
 }
 
+@DevicePreviews
+@Preview
+@Composable
+private fun MessageBubbleAudioPreview() {
+    LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val baseMessage = PreviewFixtures.conversationUiState(strings).messages.first()
+        val audioMessage = baseMessage.copy(contentType = MessageContentType.Audio, body = "preview-audio.m4a")
+        MessageBubble(
+            message = audioMessage,
+            isOwn = audioMessage.senderId == PreviewFixtures.previewUserId(),
+            isPlaying = false,
+            onAudioToggle = {},
+            progress = 0f,
+            durationMillis = 92_000,
+            positionMillis = 0,
+        )
+    }
+}
+
+@DevicePreviews
+@Preview
+@Composable
+private fun MessageBubbleImagePreview() {
+    LiveChatPreviewContainer {
+        val strings = liveChatStrings()
+        val baseMessage = PreviewFixtures.conversationUiState(strings).messages.last()
+        val imageMessage = baseMessage.copy(contentType = MessageContentType.Image, body = "preview-image.jpg")
+        MessageBubble(
+            message = imageMessage,
+            isOwn = imageMessage.senderId == PreviewFixtures.previewUserId(),
+            isPlaying = false,
+            onAudioToggle = {},
+            progress = 0f,
+            durationMillis = 0,
+            positionMillis = 0,
+        )
+    }
+}
+
 @Composable
 private fun AudioBubbleContent(
     message: Message,
