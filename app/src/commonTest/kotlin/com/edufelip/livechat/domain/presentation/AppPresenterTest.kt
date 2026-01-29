@@ -7,6 +7,8 @@ import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageDraft
 import com.edufelip.livechat.domain.models.PresenceState
+import com.edufelip.livechat.domain.providers.UserSessionProvider
+import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
@@ -14,6 +16,7 @@ import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
+import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
@@ -24,6 +27,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -188,6 +192,7 @@ class AppPresenterTest {
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
         observeWelcomeSeen = ObserveWelcomeSeenUseCase(repository),
         observeConversationUseCase = ObserveConversationUseCase(FakeMessagesRepository()),
+        observeConversationSummaries = ObserveConversationSummariesUseCase(FakeMessagesRepository()),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
         setWelcomeSeen = SetWelcomeSeenUseCase(repository),
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
@@ -245,7 +250,7 @@ class AppPresenterTest {
             sinceEpochMillis: Long?,
         ): List<Message> = emptyList()
 
-        override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = emptyFlow()
+        override fun observeConversationSummaries(): Flow<List<ConversationSummary>> = flowOf(emptyList())
 
         override suspend fun markConversationAsRead(
             conversationId: String,
@@ -298,10 +303,10 @@ class AppPresenterTest {
     }
 
     private class FakeUserSessionProvider : UserSessionProvider {
-        override val session: Flow<com.edufelip.livechat.domain.providers.model.UserSession?>
+        override val session: Flow<UserSession?>
             get() = emptyFlow()
 
-        override suspend fun refreshSession(forceRefresh: Boolean): com.edufelip.livechat.domain.providers.model.UserSession? = null
+        override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = null
 
         override fun currentUserId(): String? = "test-user-id"
 

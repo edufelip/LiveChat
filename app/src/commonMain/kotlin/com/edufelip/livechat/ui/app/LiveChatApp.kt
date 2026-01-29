@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -20,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -33,13 +33,11 @@ import com.edufelip.livechat.notifications.NotificationNavigation
 import com.edufelip.livechat.notifications.PlatformTokenRegistrar
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
-import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.components.molecules.InAppNotificationHost
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
 import com.edufelip.livechat.ui.features.home.view.HomeScreen
 import com.edufelip.livechat.ui.features.onboarding.OnboardingFlowScreen
 import com.edufelip.livechat.ui.features.onboarding.WelcomeScreen
-import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.edufelip.livechat.ui.platform.AppLifecycleObserver
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -60,7 +58,6 @@ fun LiveChatApp(
     modifier: Modifier = Modifier,
     phoneContactsProvider: () -> List<Contact> = { emptyList() },
     onShareInvite: (InviteShareRequest) -> Unit = {},
-    onOpenSettingsSection: (SettingsNavigationRequest) -> Unit = {},
 ) {
     val isInspection = LocalInspectionMode.current
     val appearanceSettings =
@@ -87,19 +84,16 @@ fun LiveChatApp(
                 Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+            val fullScreenModifier =
+                contentModifier.windowInsetsPadding(WindowInsets.navigationBars)
             if (isInspection) {
                 HomeScreen(
                     modifier = contentModifier,
                     state = HomeUiState(),
                     onSelectTab = {},
                     onOpenConversation = { _, _ -> },
-                    onStartConversationWithContact = { _, _ -> },
                     onOpenContacts = {},
-                    onCloseContacts = {},
-                    onShareInvite = onShareInvite,
-                    onBackFromConversation = {},
-                    phoneContactsProvider = phoneContactsProvider,
-                    onOpenSettingsSection = onOpenSettingsSection,
+                    onOpenSettingsSection = {},
                 )
                 return@LiveChatTheme
             }
@@ -185,6 +179,11 @@ fun LiveChatApp(
                 label = strings.general.homeDestinationTransitionLabel,
             ) { destination ->
                 when (destination) {
+                    AppDestination.Splash ->
+                        SplashScreen(
+                            modifier = contentModifier,
+                            message = strings.conversation.loadingList,
+                        )
                     AppDestination.Welcome ->
                         WelcomeScreen(
                             modifier = contentModifier,
@@ -196,19 +195,21 @@ fun LiveChatApp(
                             onFinished = { presenter.onOnboardingFinished() },
                         )
 
-                    is AppDestination.Home ->
-                        HomeScreen(
+                    AppDestination.Home ->
+                        HomeLayerHost(
+                            homeState = state.home,
                             modifier = contentModifier,
-                            state = state.home,
+                            fullScreenModifier = fullScreenModifier,
+                            strings = strings,
+                            reduceMotion = reduceMotion,
                             onSelectTab = presenter::selectTab,
                             onOpenConversation = presenter::openConversation,
-                            onStartConversationWithContact = presenter::startConversationWith,
                             onOpenContacts = presenter::openContacts,
                             onCloseContacts = presenter::closeContacts,
+                            onStartConversationWithContact = presenter::startConversationWith,
                             onShareInvite = onShareInvite,
-                            onBackFromConversation = presenter::closeConversation,
                             phoneContactsProvider = phoneContactsProvider,
-                            onOpenSettingsSection = onOpenSettingsSection,
+                            onCloseConversation = presenter::closeConversation,
                         )
                 }
             }
@@ -228,18 +229,11 @@ fun LiveChatApp(
 @Composable
 private fun LiveChatAppPreview() {
     LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
-            onStartConversationWithContact = { _, _ -> },
             onOpenContacts = {},
-            onCloseContacts = {},
-            onShareInvite = {},
-            onBackFromConversation = {},
-            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }
@@ -250,18 +244,11 @@ private fun LiveChatAppPreview() {
 @Composable
 private fun HomeScreenConversationsPreview() {
     LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
         HomeScreen(
             state = HomeUiState(),
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
-            onStartConversationWithContact = { _, _ -> },
             onOpenContacts = {},
-            onCloseContacts = {},
-            onShareInvite = {},
-            onBackFromConversation = {},
-            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }
@@ -272,19 +259,11 @@ private fun HomeScreenConversationsPreview() {
 @Composable
 private fun HomeScreenDetailPreview() {
     LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        val previewContacts = remember(strings) { PreviewFixtures.contacts(strings) }
-        val previewConversation = remember(strings) { PreviewFixtures.conversationUiState(strings) }
         HomeScreen(
-            state = HomeUiState(activeConversationId = previewConversation.conversationId),
+            state = HomeUiState(),
             onSelectTab = {},
             onOpenConversation = { _, _ -> },
-            onStartConversationWithContact = { _, _ -> },
             onOpenContacts = {},
-            onCloseContacts = {},
-            onShareInvite = {},
-            onBackFromConversation = {},
-            phoneContactsProvider = { previewContacts },
             onOpenSettingsSection = {},
         )
     }
@@ -292,14 +271,16 @@ private fun HomeScreenDetailPreview() {
 
 private fun AppDestination.animationOrder(): Int =
     when (this) {
-        AppDestination.Welcome -> 0
-        AppDestination.Onboarding -> 1
-        is AppDestination.Home -> 2
+        AppDestination.Splash -> 0
+        AppDestination.Welcome -> 1
+        AppDestination.Onboarding -> 2
+        AppDestination.Home -> 3
     }
 
 private fun AppDestination.navigationKey(): String =
     when (this) {
+        AppDestination.Splash -> "splash"
         AppDestination.Welcome -> "welcome"
         AppDestination.Onboarding -> "onboarding"
-        is AppDestination.Home -> "home"
+        AppDestination.Home -> "home"
     }

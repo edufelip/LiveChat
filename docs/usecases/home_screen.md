@@ -2,7 +2,7 @@
 
 ## UC-008: Tab Navigation
 **As a** user,
-**I want to** switch between Chats, Calls, Contacts, and Settings using a bottom bar,
+**I want to** switch between Chats, Calls, and Settings using a bottom bar,
 **So that** I can quickly access different areas of the app.
 
 ## UC-009: Unread Notifications

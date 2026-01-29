@@ -46,8 +46,9 @@ fun startKoinForAndroid(
     val platformModule = androidPlatformModule(context, firebaseApp, httpClient)
     val koinApp =
         initSharedKoin(
-            platformModules = listOf(platformModule) + extraModules,
+            platformModules = listOf(platformModule),
             backendModules = backendModules,
+            extraModules = extraModules,
         )
 
     koinApp.koin.get<AndroidSessionBridge>()

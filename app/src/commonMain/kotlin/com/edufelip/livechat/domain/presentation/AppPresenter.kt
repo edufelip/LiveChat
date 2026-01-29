@@ -3,11 +3,15 @@ package com.edufelip.livechat.domain.presentation
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
+import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.models.MessageContentType
+import com.edufelip.livechat.domain.notifications.InAppNotification
+import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
+import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
@@ -17,9 +21,8 @@ import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.ContactsSyncSession
 import com.edufelip.livechat.domain.utils.ContactsUiStateCache
+import com.edufelip.livechat.domain.utils.ConversationListSnapshotCache
 import com.edufelip.livechat.domain.utils.asCStateFlow
-import com.edufelip.livechat.domain.notifications.InAppNotification
-import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,15 +31,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
     observeWelcomeSeen: ObserveWelcomeSeenUseCase,
     observeConversationUseCase: ObserveConversationUseCase,
+    private val observeConversationSummaries: ObserveConversationSummariesUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
     private val setWelcomeSeen: SetWelcomeSeenUseCase,
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
@@ -46,11 +52,14 @@ class AppPresenter(
     private val sessionProvider: UserSessionProvider,
     private val scope: CoroutineScope,
 ) {
+    private val initialOnboardingComplete = getOnboardingStatusSnapshot()
+    private val initialWelcomeSeen = getWelcomeSeenSnapshot()
     private val mutableState =
         MutableStateFlow(
             AppUiState(
-                isOnboardingComplete = getOnboardingStatusSnapshot(),
-                hasSeenWelcome = getWelcomeSeenSnapshot(),
+                isOnboardingComplete = initialOnboardingComplete,
+                hasSeenWelcome = initialWelcomeSeen,
+                isAppReady = !initialOnboardingComplete,
             ),
         )
     val state = mutableState.asStateFlow()
@@ -59,9 +68,13 @@ class AppPresenter(
     private var currentOpenConversationId: String? = null
     private val notifiedMessageIds = mutableSetOf<String>()
     private val contactsCache = mutableMapOf<String, String>()
+    private var homePreloadStarted = false
 
     init {
         ContactsSyncSession.markAppOpen()
+        if (initialOnboardingComplete) {
+            startHomePreloadIfNeeded()
+        }
         scope.launch {
             runCatching {
                 val snapshot = withContext(Dispatchers.Default) { getLocalContactsSnapshot() }
@@ -90,6 +103,9 @@ class AppPresenter(
                     mutableState.update { current ->
                         current.copy(isOnboardingComplete = isComplete)
                     }
+                    if (isComplete) {
+                        startHomePreloadIfNeeded()
+                    }
                 }
         }
         scope.launch {
@@ -107,39 +123,43 @@ class AppPresenter(
             observeConversationUseCase.observeAll().collectLatest { messages ->
                 println("INBOX_LISTENER: AppPresenter received messages count=${messages.size}")
                 // Messages are persisted by repository; trigger notifications for new messages
-                val currentUserId = runCatching { 
-                    sessionProvider.currentUserId() 
-                }.getOrNull()
-                
+                val currentUserId =
+                    runCatching {
+                        sessionProvider.currentUserId()
+                    }.getOrNull()
+
                 messages.forEach { message ->
                     // Get unique message identifier
-                    val messageKey = message.id.takeIf { it.isNotBlank() } 
-                        ?: message.localTempId 
-                        ?: return@forEach
-                    
+                    val messageKey =
+                        message.id.takeIf { it.isNotBlank() }
+                            ?: message.localTempId
+                            ?: return@forEach
+
                     // Skip if already notified
                     if (notifiedMessageIds.contains(messageKey)) {
                         return@forEach
                     }
-                    
+
                     // Skip if sender is blank
                     if (message.senderId.isBlank()) {
                         return@forEach
                     }
-                    
+
                     // Don't notify for own messages or if conversation is currently open
-                    if (message.senderId != currentUserId && 
-                        message.senderId != currentOpenConversationId) {
+                    if (message.senderId != currentUserId &&
+                        message.senderId != currentOpenConversationId
+                    ) {
                         triggerInAppNotification(message)
                         notifiedMessageIds.add(messageKey)
                     }
                 }
-                
+
                 // Clean up old message IDs to prevent memory leak (keep max 1000)
                 if (notifiedMessageIds.size > 1000) {
-                    val currentMessageIds = messages.mapNotNull { 
-                        it.id.takeIf { it.isNotBlank() } ?: it.localTempId 
-                    }.toSet()
+                    val currentMessageIds =
+                        messages.mapNotNull {
+                            it.id.takeIf { it.isNotBlank() } ?: it.localTempId
+                        }.toSet()
                     notifiedMessageIds.retainAll(currentMessageIds)
                 }
             }
@@ -147,6 +167,13 @@ class AppPresenter(
     }
 
     fun onOnboardingFinished() {
+        mutableState.update { current ->
+            current.copy(
+                isOnboardingComplete = true,
+                hasSeenWelcome = true,
+            )
+        }
+        startHomePreloadIfNeeded()
         scope.launch {
             setOnboardingComplete(true)
             setWelcomeSeen(true)
@@ -161,10 +188,13 @@ class AppPresenter(
     }
 
     fun resetOnboarding() {
+        homePreloadStarted = false
+        ConversationListSnapshotCache.clear()
         mutableState.update { current ->
             current.copy(
                 isOnboardingComplete = false,
                 hasSeenWelcome = false,
+                isAppReady = true,
             )
         }
         scope.launch {
@@ -274,28 +304,73 @@ class AppPresenter(
         scope.cancel()
     }
 
-    private fun triggerInAppNotification(message: com.edufelip.livechat.domain.models.Message) {
+    private fun triggerInAppNotification(message: Message) {
         // Get display name from contacts cache, fallback to sender ID (phone number)
         val senderName = contactsCache[message.senderId] ?: message.senderId
-        
-        val body = when (message.contentType) {
-            MessageContentType.Text -> message.body.take(100)
-            MessageContentType.Image -> "Image"
-            MessageContentType.Audio -> "Audio message"
-            else -> "New message"
-        }
-        
+
+        val body =
+            when (message.contentType) {
+                MessageContentType.Text -> message.body.take(100)
+                MessageContentType.Image -> "Image"
+                MessageContentType.Audio -> "Audio message"
+                else -> "New message"
+            }
+
         InAppNotificationCenter.emit(
             InAppNotification(
                 title = senderName,
                 body = body,
                 conversationId = message.senderId,
-                messageId = message.id.takeIf { it.isNotBlank() } ?: message.localTempId
-            )
+                messageId = message.id.takeIf { it.isNotBlank() } ?: message.localTempId,
+            ),
         )
     }
 
     private companion object {
         const val PRESENCE_HEARTBEAT_MS = 60_000L
+        const val HOME_PRELOAD_TIMEOUT_MS = 1_500L
+    }
+
+    private fun startHomePreloadIfNeeded() {
+        if (homePreloadStarted) return
+        if (!mutableState.value.isOnboardingComplete) return
+        if (sessionProvider.currentUserId().isNullOrBlank()) {
+            markAppReady()
+            return
+        }
+        homePreloadStarted = true
+        mutableState.update { current ->
+            if (!current.isAppReady) current else current.copy(isAppReady = false)
+        }
+        scope.launch {
+            preloadConversationSummaries()
+            markAppReady()
+        }
+    }
+
+    private suspend fun preloadConversationSummaries() {
+        val userId = sessionProvider.currentUserId()
+        if (userId.isNullOrBlank()) return
+        val flow = observeConversationSummaries()
+        val firstSnapshot = flow.firstOrNull()
+        if (firstSnapshot?.isNotEmpty() == true) {
+            ConversationListSnapshotCache.update(firstSnapshot)
+            return
+        }
+        val nonEmpty =
+            withTimeoutOrNull(HOME_PRELOAD_TIMEOUT_MS) {
+                flow.firstOrNull { it.isNotEmpty() }
+            }
+        if (nonEmpty != null) {
+            ConversationListSnapshotCache.update(nonEmpty)
+        } else if (firstSnapshot != null) {
+            ConversationListSnapshotCache.seed(firstSnapshot)
+        }
+    }
+
+    private fun markAppReady() {
+        mutableState.update { current ->
+            if (current.isAppReady) current else current.copy(isAppReady = true)
+        }
     }
 }

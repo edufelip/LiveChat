@@ -1,26 +1,21 @@
 package com.edufelip.livechat.domain.models
 
 sealed class AppDestination {
+    data object Splash : AppDestination()
+
     data object Welcome : AppDestination()
 
     data object Onboarding : AppDestination()
 
-    data class Home(val destination: HomeDestination) : AppDestination()
+    data object Home : AppDestination()
 }
 
 sealed class HomeDestination {
     data object ConversationList : HomeDestination()
 
-    data object Contacts : HomeDestination()
-
     data object Calls : HomeDestination()
 
     data object Settings : HomeDestination()
-
-    data class ConversationDetail(
-        val conversationId: String,
-        val contactName: String? = null,
-    ) : HomeDestination()
 }
 
 enum class HomeTab {

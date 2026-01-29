@@ -2,6 +2,7 @@ package com.edufelip.livechat
 
 import android.app.Application
 import com.edufelip.livechat.data.di.startKoinForAndroid
+import com.edufelip.livechat.di.presentationModule
 import com.google.firebase.FirebaseApp
 
 class App : Application() {
@@ -11,7 +12,7 @@ class App : Application() {
         if (FirebaseApp.getApps(this).isEmpty()) {
             FirebaseApp.initializeApp(this)
         }
-        startKoinForAndroid(applicationContext)
+        startKoinForAndroid(applicationContext, extraModules = listOf(presentationModule))
     }
 
     companion object {

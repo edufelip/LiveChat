@@ -52,6 +52,9 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.SettingsTestTags
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.features.settings.model.SettingsSection
+import com.edufelip.livechat.ui.features.settings.model.description
+import com.edufelip.livechat.ui.features.settings.model.title
 import com.edufelip.livechat.ui.platform.appVersionInfo
 import com.edufelip.livechat.ui.platform.isAndroid
 import com.edufelip.livechat.ui.platform.openWebViewUrl
@@ -61,29 +64,6 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import com.edufelip.livechat.ui.util.FuzzyMatcher
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-enum class SettingsSection {
-    Account,
-    Notifications,
-    Appearance,
-    Privacy,
-}
-
-fun SettingsSection.title(strings: SettingsStrings): String =
-    when (this) {
-        SettingsSection.Account -> strings.accountTitle
-        SettingsSection.Notifications -> strings.notificationsTitle
-        SettingsSection.Appearance -> strings.appearanceTitle
-        SettingsSection.Privacy -> strings.privacyTitle
-    }
-
-fun SettingsSection.description(strings: SettingsStrings): String =
-    when (this) {
-        SettingsSection.Account -> strings.accountDescription
-        SettingsSection.Notifications -> strings.notificationsDescription
-        SettingsSection.Appearance -> strings.appearanceDescription
-        SettingsSection.Privacy -> strings.privacyDescription
-    }
 
 @Composable
 fun SettingsScreen(

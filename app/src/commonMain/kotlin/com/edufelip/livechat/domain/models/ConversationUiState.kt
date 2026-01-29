@@ -1,5 +1,8 @@
 package com.edufelip.livechat.domain.models
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class ConversationUiState(
     val conversationId: String = "",
     val contactName: String = "",

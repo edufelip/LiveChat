@@ -10,6 +10,9 @@ Presenters:
 - `PrivacySettingsPresenter.kt`
 - `AppearanceSettingsPresenter.kt`
 
+## Navigation
+The top-level settings list is hosted inside the Home tabs, while settings subpages (Account, Notifications, Appearance, Privacy) are presented as full-screen destinations outside the bottom tab bar.
+
 ## Privacy Persistence
 Stored in Firestore and locally cached in `PrivacySettingsStore.kt`.
 

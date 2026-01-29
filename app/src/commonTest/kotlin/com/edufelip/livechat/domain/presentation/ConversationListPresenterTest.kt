@@ -19,6 +19,7 @@ import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
+import com.edufelip.livechat.domain.utils.ConversationListSnapshotCache
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -146,6 +147,7 @@ class ConversationListPresenterTest {
         initialSummaries: List<ConversationSummary>,
         testScheduler: TestCoroutineScheduler,
     ) {
+        ConversationListSnapshotCache.clear()
         repository = FakeMessagesRepository(initialSummaries)
         participantsRepository = FakeParticipantsRepository()
         val presenceRepository = FakePresenceRepository()

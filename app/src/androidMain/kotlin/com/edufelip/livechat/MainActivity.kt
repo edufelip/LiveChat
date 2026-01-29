@@ -15,15 +15,14 @@ import com.edufelip.livechat.notifications.NotificationNavigationTarget
 import com.edufelip.livechat.notifications.PlatformTokenRegistrar
 import com.edufelip.livechat.ui.app.LiveChatApp
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
-import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Initialize platform token registrar
         PlatformTokenRegistrar.initialize(applicationContext)
-        
+
         enableEdgeToEdge()
         // Ensure system bars are transparent so content can draw behind them.
         window.statusBarColor = Color.TRANSPARENT
@@ -40,9 +39,6 @@ class MainActivity : ComponentActivity() {
                 },
                 onShareInvite = { request ->
                     shareInvite(request)
-                },
-                onOpenSettingsSection = { request ->
-                    showSettingsSection(request)
                 },
             )
         }
@@ -68,10 +64,6 @@ class MainActivity : ComponentActivity() {
         }.onFailure {
             Toast.makeText(this, request.unavailableMessage, Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun showSettingsSection(request: SettingsNavigationRequest) {
-        Toast.makeText(this, request.placeholderMessage, Toast.LENGTH_SHORT).show()
     }
 
     private fun handleNotificationIntent(intent: Intent?) {

@@ -1,5 +1,8 @@
 package com.edufelip.livechat.domain.models
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class AccountUiState(
     val isLoading: Boolean = true,
     val profile: AccountProfile? = null,

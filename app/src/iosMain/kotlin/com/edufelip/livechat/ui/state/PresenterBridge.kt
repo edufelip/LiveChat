@@ -1,7 +1,7 @@
 package com.edufelip.livechat.ui.state
 
-import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
+import com.edufelip.livechat.di.IosPresentationBridge
 import com.edufelip.livechat.domain.presentation.AccountPresenter
 import com.edufelip.livechat.domain.presentation.AppPresenter
 import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
@@ -13,24 +13,25 @@ import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
 import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
 import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
 
-internal actual fun provideConversationListPresenter(): ConversationListPresenter = IosKoinBridge.conversationListPresenter()
+internal actual fun provideConversationListPresenter(): ConversationListPresenter = IosPresentationBridge.conversationListPresenter()
 
-internal actual fun provideConversationPresenter(): ConversationPresenter = IosKoinBridge.conversationPresenter()
+internal actual fun provideConversationPresenter(): ConversationPresenter = IosPresentationBridge.conversationPresenter()
 
-internal actual fun provideContactsPresenter(): ContactsPresenter = IosKoinBridge.contactsPresenter()
+internal actual fun provideContactsPresenter(): ContactsPresenter = IosPresentationBridge.contactsPresenter()
 
-internal actual fun provideAccountPresenter(): AccountPresenter = IosKoinBridge.accountPresenter()
+internal actual fun provideAccountPresenter(): AccountPresenter = IosPresentationBridge.accountPresenter()
 
-internal actual fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter = IosKoinBridge.notificationSettingsPresenter()
+internal actual fun provideNotificationSettingsPresenter(): NotificationSettingsPresenter =
+    IosPresentationBridge.notificationSettingsPresenter()
 
-internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter = IosKoinBridge.appearanceSettingsPresenter()
+internal actual fun provideAppearanceSettingsPresenter(): AppearanceSettingsPresenter = IosPresentationBridge.appearanceSettingsPresenter()
 
-internal actual fun providePrivacySettingsPresenter(): PrivacySettingsPresenter = IosKoinBridge.privacySettingsPresenter()
+internal actual fun providePrivacySettingsPresenter(): PrivacySettingsPresenter = IosPresentationBridge.privacySettingsPresenter()
 
-internal actual fun provideBlockedContactsPresenter(): BlockedContactsPresenter = IosKoinBridge.blockedContactsPresenter()
+internal actual fun provideBlockedContactsPresenter(): BlockedContactsPresenter = IosPresentationBridge.blockedContactsPresenter()
 
-internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = IosKoinBridge.sessionProvider()
+internal actual fun provideSessionProvider(): InMemoryUserSessionProvider = IosPresentationBridge.sessionProvider()
 
-internal actual fun provideAppPresenter(): AppPresenter = IosKoinBridge.appPresenter()
+internal actual fun provideAppPresenter(): AppPresenter = IosPresentationBridge.appPresenter()
 
-internal actual fun providePhoneAuthPresenter(): PhoneAuthPresenter = IosKoinBridge.phoneAuthPresenter()
+internal actual fun providePhoneAuthPresenter(): PhoneAuthPresenter = IosPresentationBridge.phoneAuthPresenter()

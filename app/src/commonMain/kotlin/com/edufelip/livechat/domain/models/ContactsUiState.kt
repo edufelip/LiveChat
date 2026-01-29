@@ -1,5 +1,8 @@
 package com.edufelip.livechat.domain.models
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class ContactsUiState(
     val localContacts: List<Contact> = emptyList(),
     val validatedContacts: List<Contact> = emptyList(),

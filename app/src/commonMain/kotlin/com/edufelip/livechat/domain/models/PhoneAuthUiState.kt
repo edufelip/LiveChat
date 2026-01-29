@@ -1,8 +1,10 @@
 package com.edufelip.livechat.domain.models
 
+import androidx.compose.runtime.Immutable
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.PhoneVerificationSession
 
+@Immutable
 data class PhoneAuthUiState(
     val isRequesting: Boolean = false,
     val isVerifying: Boolean = false,

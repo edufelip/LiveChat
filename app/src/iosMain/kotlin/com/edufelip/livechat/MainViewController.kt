@@ -5,16 +5,12 @@ import com.edufelip.livechat.data.bridge.IosBridgeBundle
 import com.edufelip.livechat.data.di.IosKoinBridge
 import com.edufelip.livechat.data.di.startKoinForiOS
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
+import com.edufelip.livechat.di.presentationModule
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.ui.app.LiveChatApp
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
-import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import platform.UIKit.UIActivityViewController
-import platform.UIKit.UIAlertAction
-import platform.UIKit.UIAlertActionStyleDefault
-import platform.UIKit.UIAlertController
-import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UIApplication
 import platform.UIKit.UINavigationController
 import platform.UIKit.UIRectEdgeAll
@@ -37,9 +33,6 @@ fun MainViewController(
             phoneContactsProvider = phoneContactsProvider,
             onShareInvite = { request ->
                 handleInviteShare(request)
-            },
-            onOpenSettingsSection = { request ->
-                presentSettingsSection(request)
             },
         )
     }.apply {
@@ -64,7 +57,7 @@ private object LiveChatIosInitializer {
         bridgeBundle: IosBridgeBundle,
     ) {
         if (!started) {
-            startKoinForiOS(config, bridgeBundle)
+            startKoinForiOS(config, bridgeBundle, extraModules = listOf(presentationModule))
             started = true
         }
     }
@@ -123,24 +116,6 @@ private fun presentShareSheet(message: String) {
     val controller = topViewController() ?: return
     val activityController = UIActivityViewController(activityItems = listOf(message), applicationActivities = null)
     controller.presentViewController(activityController, animated = true, completion = null)
-}
-
-private fun presentSettingsSection(request: SettingsNavigationRequest) {
-    val controller = topViewController() ?: return
-    val alert =
-        UIAlertController.alertControllerWithTitle(
-            title = request.title,
-            message = request.description,
-            preferredStyle = UIAlertControllerStyleAlert,
-        )
-    alert.addAction(
-        UIAlertAction.actionWithTitle(
-            title = "Close",
-            style = UIAlertActionStyleDefault,
-            handler = null,
-        ),
-    )
-    controller.presentViewController(alert, animated = true, completion = null)
 }
 
 private fun handleInviteShare(request: InviteShareRequest) {

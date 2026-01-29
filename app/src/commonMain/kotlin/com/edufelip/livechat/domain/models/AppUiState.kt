@@ -1,23 +1,30 @@
 package com.edufelip.livechat.domain.models
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class AppUiState(
     val isOnboardingComplete: Boolean = false,
     val hasSeenWelcome: Boolean = false,
+    val isAppReady: Boolean = true,
     val home: HomeUiState = HomeUiState(),
 ) {
     val destination: AppDestination
         get() =
-            if (!isOnboardingComplete) {
+            if (!isAppReady) {
+                AppDestination.Splash
+            } else if (!isOnboardingComplete) {
                 if (hasSeenWelcome) {
                     AppDestination.Onboarding
                 } else {
                     AppDestination.Welcome
                 }
             } else {
-                AppDestination.Home(home.destination)
+                AppDestination.Home
             }
 }
 
+@Immutable
 data class HomeUiState(
     val selectedTab: HomeTab = HomeTab.Conversations,
     val activeConversationId: String? = null,
@@ -27,8 +34,6 @@ data class HomeUiState(
     val destination: HomeDestination
         get() =
             when {
-                activeConversationId != null -> HomeDestination.ConversationDetail(activeConversationId, activeConversationName)
-                isContactsVisible -> HomeDestination.Contacts
                 selectedTab == HomeTab.Calls -> HomeDestination.Calls
                 selectedTab == HomeTab.Settings -> HomeDestination.Settings
                 else -> HomeDestination.ConversationList

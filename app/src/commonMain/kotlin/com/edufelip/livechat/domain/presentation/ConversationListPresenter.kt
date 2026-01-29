@@ -12,6 +12,7 @@ import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationMutedUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationPinnedUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
+import com.edufelip.livechat.domain.utils.ConversationListSnapshotCache
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
@@ -37,11 +38,24 @@ class ConversationListPresenter(
     private val sessionProvider: UserSessionProvider,
     private val scope: CoroutineScope = MainScope(),
 ) {
-    private val _uiState = MutableStateFlow(ConversationListUiState(isLoading = true))
+    private val initialSummaries = ConversationListSnapshotCache.snapshot()
+    private val _uiState =
+        MutableStateFlow(
+            if (initialSummaries == null) {
+                ConversationListUiState(isLoading = true)
+            } else {
+                ConversationListUiState(
+                    conversations = filterSummaries("", ConversationFilter.All, initialSummaries),
+                    isLoading = false,
+                    currentUserId = sessionProvider.currentUserId(),
+                )
+            },
+        )
     val uiState = _uiState.asStateFlow()
     val cState: CStateFlow<ConversationListUiState> = uiState.asCStateFlow()
 
-    private var cachedSummaries: List<ConversationSummary> = emptyList()
+    private var cachedSummaries: List<ConversationSummary> = initialSummaries ?: emptyList()
+    private var ignoreInitialEmptyEmission = initialSummaries?.isNotEmpty() == true
     private var cachedPresence: Map<String, PresenceState> = emptyMap()
     private val presenceTargets = MutableStateFlow<List<String>>(emptyList())
 
@@ -52,7 +66,13 @@ class ConversationListPresenter(
                     _uiState.update { it.copy(isLoading = false, errorMessage = throwable.message) }
                 }
                 .collectLatest { summaries ->
+                    if (ignoreInitialEmptyEmission && summaries.isEmpty()) {
+                        ignoreInitialEmptyEmission = false
+                        return@collectLatest
+                    }
+                    ignoreInitialEmptyEmission = false
                     cachedSummaries = summaries
+                    ConversationListSnapshotCache.update(summaries)
                     presenceTargets.value = summaries.mapNotNull { presenceKey(it) }
                     _uiState.update { state ->
                         state.copy(

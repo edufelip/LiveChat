@@ -1,22 +1,11 @@
 package com.edufelip.livechat.domain.di
 
-import com.edufelip.livechat.domain.presentation.AccountPresenter
-import com.edufelip.livechat.domain.presentation.AppPresenter
-import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
-import com.edufelip.livechat.domain.presentation.BlockedContactsPresenter
-import com.edufelip.livechat.domain.presentation.ContactsPresenter
-import com.edufelip.livechat.domain.presentation.ConversationListPresenter
-import com.edufelip.livechat.domain.presentation.ConversationPresenter
-import com.edufelip.livechat.domain.presentation.NotificationSettingsPresenter
-import com.edufelip.livechat.domain.presentation.PhoneAuthPresenter
-import com.edufelip.livechat.domain.presentation.PrivacySettingsPresenter
-import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
-import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IDeviceTokenRepository
+import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
@@ -34,8 +23,6 @@ import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.MarkConversationReadUseCase
-import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
-import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAccountProfileUseCase
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveBlockedContactsUseCase
@@ -48,6 +35,7 @@ import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
@@ -61,6 +49,7 @@ import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.SyncConversationUseCase
 import com.edufelip.livechat.domain.useCases.UnblockContactUseCase
+import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
@@ -87,7 +76,6 @@ import com.edufelip.livechat.domain.useCases.phone.VerifyOtpUseCase
 import com.edufelip.livechat.domain.utils.DefaultPhoneNumberFormatter
 import com.edufelip.livechat.domain.utils.PhoneNumberFormatter
 import com.edufelip.livechat.domain.validation.PhoneNumberValidator
-import kotlinx.coroutines.MainScope
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -159,87 +147,4 @@ val sharedDomainModule: Module =
         factory { ResendPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
         factory { VerifyOtpUseCase(get<IPhoneAuthRepository>(), get<EnsureUserInboxUseCase>()) }
         factory { ClearPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }
-        factory { ConversationPresenter(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-        factory { ConversationListPresenter(get(), get(), get(), get(), get(), get(), get()) }
-        single {
-            ContactsPresenter(
-                getLocalContactsUseCase = get(),
-                checkRegisteredContactsUseCase = get(),
-                resolveConversationIdForContactUseCase = get(),
-                ensureConversationUseCase = get(),
-                phoneNumberFormatter = get(),
-                scope = MainScope(),
-            )
-        }
-        factory { PhoneAuthPresenter(get(), get(), get(), get()) }
-        factory {
-            AccountPresenter(
-                observeAccountProfile = get(),
-                updateDisplayName = get(),
-                updateStatusMessage = get(),
-                updateEmail = get(),
-                sendEmailVerification = get(),
-                checkEmailUpdated = get(),
-                deleteAccount = get(),
-                scope = MainScope(),
-            )
-        }
-        factory {
-            NotificationSettingsPresenter(
-                observeSettings = get(),
-                updatePushEnabled = get(),
-                updateSound = get(),
-                updateQuietHoursEnabled = get(),
-                updateQuietHoursWindow = get(),
-                updateInAppVibration = get(),
-                updateShowMessagePreview = get(),
-                resetSettings = get(),
-                scope = MainScope(),
-            )
-        }
-        factory {
-            AppearanceSettingsPresenter(
-                observeSettings = get(),
-                updateThemeMode = get(),
-                updateTextScale = get(),
-                updateReduceMotion = get(),
-                updateHighContrast = get(),
-                resetSettings = get(),
-                scope = MainScope(),
-            )
-        }
-        factory {
-            PrivacySettingsPresenter(
-                observeSettings = get(),
-                updateInvitePreference = get(),
-                updateLastSeenAudience = get(),
-                updateReadReceipts = get(),
-                updateShareUsageData = get(),
-                resetSettings = get(),
-                scope = MainScope(),
-            )
-        }
-        factory {
-            BlockedContactsPresenter(
-                observeBlockedContacts = get(),
-                blockContact = get(),
-                unblockContact = get(),
-                scope = MainScope(),
-            )
-        }
-        factory {
-            AppPresenter(
-                observeOnboardingStatus = get<ObserveOnboardingStatusUseCase>(),
-                observeWelcomeSeen = get<ObserveWelcomeSeenUseCase>(),
-                observeConversationUseCase = get<ObserveConversationUseCase>(),
-                setOnboardingComplete = get<SetOnboardingCompleteUseCase>(),
-                setWelcomeSeen = get<SetWelcomeSeenUseCase>(),
-                getOnboardingStatusSnapshot = get<GetOnboardingStatusSnapshotUseCase>(),
-                getWelcomeSeenSnapshot = get<GetWelcomeSeenSnapshotUseCase>(),
-                getLocalContactsSnapshot = get<GetLocalContactsSnapshotUseCase>(),
-                updateSelfPresence = get<UpdateSelfPresenceUseCase>(),
-                sessionProvider = get<UserSessionProvider>(),
-                scope = MainScope(),
-            )
-        }
     }
