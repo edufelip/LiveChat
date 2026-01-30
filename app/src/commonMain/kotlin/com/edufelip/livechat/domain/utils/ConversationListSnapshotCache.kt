@@ -1,6 +1,7 @@
 package com.edufelip.livechat.domain.utils
 
 import com.edufelip.livechat.domain.models.ConversationSummary
+import kotlin.concurrent.Volatile
 
 object ConversationListSnapshotCache {
     @Volatile
