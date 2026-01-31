@@ -6,9 +6,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -18,6 +20,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.domain.models.AccountUiState
+import com.edufelip.livechat.domain.models.EmailVerificationSession
+import com.edufelip.livechat.domain.models.EmailVerificationStep
 import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.utils.phoneNumberFromE164
 import com.edufelip.livechat.preview.DevicePreviews
@@ -26,8 +30,14 @@ import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.features.settings.account.components.AccountDeleteBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEmailBottomSheet
+import com.edufelip.livechat.ui.features.settings.account.components.AccountPhotoBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.DeleteBottomSheetStep
 import com.edufelip.livechat.ui.features.settings.account.components.EmailBottomSheetStep
+import com.edufelip.livechat.ui.features.conversations.detail.MediaResult
+import com.edufelip.livechat.ui.features.conversations.detail.PermissionEvent
+import com.edufelip.livechat.ui.features.conversations.detail.rememberConversationMediaController
+import com.edufelip.livechat.ui.features.conversations.detail.rememberPermissionViewModel
+import com.edufelip.livechat.ui.platform.openAppSettings
 import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.LiveChatStrings
 import com.edufelip.livechat.ui.resources.OnboardingStrings
@@ -37,6 +47,8 @@ import com.edufelip.livechat.ui.state.rememberAccountPresenter
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -53,6 +65,7 @@ fun AccountSettingsRoute(
             state = previewState(),
             onBack = onBack,
             onEditDisplayName = {},
+            onEditPhoto = {},
             onEditStatus = {},
             onEditEmail = {},
             onDeleteAccount = {},
@@ -62,59 +75,116 @@ fun AccountSettingsRoute(
 
     val presenter = rememberAccountPresenter()
     val state by presenter.collectState()
+    val scope = rememberCoroutineScope()
     val sessionProvider = rememberSessionProvider()
     val phoneAuthPresenter = rememberPhoneAuthPresenter()
     val phoneAuthState by phoneAuthPresenter.collectState()
+    val mediaController = rememberConversationMediaController()
+    val permissionViewModel = rememberPermissionViewModel()
+    val permissionUiState by permissionViewModel.uiState.collectAsState()
     val platformContext = rememberPlatformContext()
     val onboardingStrings = strings.onboarding
+    val conversationStrings = strings.conversation
+
+    fun handlePhotoResult(
+        result: MediaResult<String>,
+        hint: String,
+        dialog: String,
+        errorFallback: String,
+    ) {
+        when (result) {
+            is MediaResult.Success -> {
+                presenter.updatePhoto(result.value)
+                permissionViewModel.clearAll()
+            }
+            is MediaResult.Permission -> {
+                permissionViewModel.handlePermission(
+                    status = result.status,
+                    hint = hint,
+                    dialog = dialog,
+                )
+            }
+            MediaResult.Cancelled -> permissionViewModel.clearAll()
+            is MediaResult.Error -> permissionViewModel.onError(result.message ?: errorFallback)
+        }
+    }
+    val emailVerificationSession = state.emailVerificationSession
 
     var activeEdit by remember { mutableStateOf(EditField.None) }
     var editValue by remember { mutableStateOf("") }
     var emailValue by remember { mutableStateOf("") }
-    var emailStep by remember { mutableStateOf(EmailBottomSheetStep.Entry) }
+    var photoSheetRequested by remember { mutableStateOf(false) }
+    var emailStepOverride by remember { mutableStateOf<EmailBottomSheetStep?>(null) }
+    var emailSheetRequested by remember { mutableStateOf(false) }
+    var emailSheetUserInitiated by remember { mutableStateOf(false) }
     var deleteStep by remember { mutableStateOf<DeleteBottomSheetStep?>(null) }
     var deleteCountdown by remember { mutableStateOf(DELETE_COUNTDOWN_SECONDS) }
     var otpCode by remember { mutableStateOf("") }
     var reauthError by remember { mutableStateOf<String?>(null) }
     var showErrorDialog by remember { mutableStateOf(false) }
+    var pendingEditSave by remember { mutableStateOf(false) }
+    var pendingEditField by remember { mutableStateOf<EditField?>(null) }
+    var pendingEditValue by remember { mutableStateOf("") }
     var emailResendCountdown by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(state.errorMessage) {
         showErrorDialog = state.errorMessage != null
     }
 
-    LaunchedEffect(emailResendCountdown) {
-        if (emailResendCountdown > 0) {
-            delay(1_000)
-            emailResendCountdown -= 1
+    LaunchedEffect(permissionViewModel) {
+        permissionViewModel.events.collect { event ->
+            when (event) {
+                PermissionEvent.OpenSettings -> openAppSettings()
+            }
         }
     }
 
-    LaunchedEffect(activeEdit, state.profile) {
-        when (activeEdit) {
-            EditField.DisplayName -> editValue = state.profile?.displayName.orEmpty()
-            EditField.StatusMessage -> editValue = state.profile?.statusMessage.orEmpty()
-            EditField.Email -> emailValue = state.profile?.email.orEmpty()
-            EditField.None -> Unit
+    LaunchedEffect(emailVerificationSession) {
+        if (emailVerificationSession == null) {
+            emailResendCountdown = 0
+            return@LaunchedEffect
+        }
+        while (true) {
+            val remaining = remainingResendSeconds(emailVerificationSession)
+            emailResendCountdown = remaining
+            if (remaining <= 0) return@LaunchedEffect
+            delay(1_000)
         }
     }
 
     LaunchedEffect(activeEdit) {
-        if (activeEdit == EditField.Email) {
-            emailStep = EmailBottomSheetStep.Entry
+        if (activeEdit == EditField.Email || activeEdit == EditField.None) {
             presenter.clearEmailUpdateState()
-        } else if (activeEdit == EditField.None) {
-            presenter.clearEmailUpdateState()
+        }
+    }
+
+    LaunchedEffect(activeEdit, emailSheetRequested) {
+        if (activeEdit == EditField.Email && !emailSheetRequested) {
+            activeEdit = EditField.None
+        }
+    }
+
+    LaunchedEffect(emailSheetRequested, emailSheetUserInitiated) {
+        if (emailSheetRequested && !emailSheetUserInitiated) {
+            emailSheetRequested = false
+            activeEdit = EditField.None
+        }
+    }
+
+    LaunchedEffect(emailVerificationSession) {
+        if (emailVerificationSession != null) {
+            emailValue = emailVerificationSession.email
+            emailStepOverride = null
+        } else {
+            emailStepOverride = null
         }
     }
 
     LaunchedEffect(state.emailUpdateState) {
         when (val emailState = state.emailUpdateState) {
-            is EmailUpdateState.Sent -> {
-                emailStep = EmailBottomSheetStep.AwaitVerification
-                emailValue = emailState.email
-            }
             is EmailUpdateState.Verified -> {
+                emailSheetRequested = false
+                emailSheetUserInitiated = false
                 activeEdit = EditField.None
                 presenter.clearEmailUpdateState()
             }
@@ -185,6 +255,39 @@ fun AccountSettingsRoute(
         }
     }
 
+    val permissionDialogMessage = permissionUiState.dialogMessage
+    if (permissionDialogMessage != null) {
+        AlertDialog(
+            onDismissRequest = { permissionViewModel.clearDialog() },
+            confirmButton = {
+                TextButton(onClick = {
+                    permissionViewModel.clearDialog()
+                    permissionViewModel.requestOpenSettings()
+                }) {
+                    Text(strings.general.openSettings)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { permissionViewModel.clearDialog() }) {
+                    Text(strings.general.cancel)
+                }
+            },
+            title = { Text(conversationStrings.permissionTitle) },
+            text = { Text(permissionDialogMessage) },
+        )
+    } else if (permissionUiState.hintMessage != null) {
+        AlertDialog(
+            onDismissRequest = { permissionViewModel.clearAll() },
+            confirmButton = {
+                TextButton(onClick = { permissionViewModel.clearAll() }) {
+                    Text(strings.general.ok)
+                }
+            },
+            title = { Text(conversationStrings.permissionTitle) },
+            text = { Text(permissionUiState.hintMessage.orEmpty()) },
+        )
+    }
+
     val errorMessage = state.errorMessage
     if (showErrorDialog && errorMessage != null) {
         AlertDialog(
@@ -205,13 +308,36 @@ fun AccountSettingsRoute(
         )
     }
 
-    LaunchedEffect(state.isUpdating, state.errorMessage, activeEdit) {
+    LaunchedEffect(
+        pendingEditSave,
+        pendingEditField,
+        pendingEditValue,
+        state.profile?.displayName,
+        state.profile?.statusMessage,
+        state.isUpdating,
+        state.errorMessage,
+        activeEdit,
+    ) {
+        val currentValue =
+            when (pendingEditField) {
+                EditField.DisplayName -> state.profile?.displayName
+                EditField.StatusMessage -> state.profile?.statusMessage
+                else -> null
+            }
         val shouldCloseEdit =
-            !state.isUpdating &&
+            pendingEditSave &&
+                pendingEditField == activeEdit &&
+                !state.isUpdating &&
                 state.errorMessage == null &&
-                (activeEdit == EditField.DisplayName || activeEdit == EditField.StatusMessage)
+                currentValue != null &&
+                currentValue.trim() == pendingEditValue
         if (shouldCloseEdit) {
             activeEdit = EditField.None
+        }
+        if (pendingEditSave && !state.isUpdating) {
+            pendingEditSave = false
+            pendingEditField = null
+            pendingEditValue = ""
         }
     }
 
@@ -223,11 +349,20 @@ fun AccountSettingsRoute(
             placeholder = activeEdit.placeholder(strings),
             value = editValue,
             onValueChange = { editValue = it },
-            onDismiss = { activeEdit = EditField.None },
+            onDismiss = {
+                pendingEditSave = false
+                pendingEditField = null
+                pendingEditValue = ""
+                activeEdit = EditField.None
+            },
             onConfirm = {
+                val trimmedValue = editValue.trim()
+                pendingEditSave = true
+                pendingEditField = activeEdit
+                pendingEditValue = trimmedValue
                 when (activeEdit) {
-                    EditField.DisplayName -> presenter.updateDisplayName(editValue)
-                    EditField.StatusMessage -> presenter.updateStatusMessage(editValue)
+                    EditField.DisplayName -> presenter.updateDisplayName(trimmedValue)
+                    EditField.StatusMessage -> presenter.updateStatusMessage(trimmedValue)
                     EditField.Email,
                     EditField.None,
                     -> Unit
@@ -240,7 +375,47 @@ fun AccountSettingsRoute(
         )
     }
 
-    if (activeEdit == EditField.Email) {
+    if (photoSheetRequested) {
+        AccountPhotoBottomSheet(
+            title = strings.account.photoSheetTitle,
+            description = strings.account.photoSheetDescription,
+            pickLabel = conversationStrings.pickImage,
+            takeLabel = conversationStrings.takePhoto,
+            onPick = {
+                photoSheetRequested = false
+                scope.launch {
+                    val result = mediaController.pickImage()
+                    handlePhotoResult(
+                        result = result,
+                        hint = conversationStrings.photoPermissionHint,
+                        dialog = conversationStrings.photoPermissionDialog,
+                        errorFallback = conversationStrings.imageAttachError,
+                    )
+                }
+            },
+            onTake = {
+                photoSheetRequested = false
+                scope.launch {
+                    val result = mediaController.capturePhoto()
+                    handlePhotoResult(
+                        result = result,
+                        hint = conversationStrings.cameraPermissionHint,
+                        dialog = conversationStrings.cameraPermissionDialog,
+                        errorFallback = conversationStrings.photoCaptureError,
+                    )
+                }
+            },
+            onDismiss = { photoSheetRequested = false },
+            isProcessing = state.isUpdating,
+        )
+    }
+
+    val emailStep =
+        emailStepOverride
+            ?: emailVerificationSession?.toBottomSheetStep()
+            ?: EmailBottomSheetStep.Entry
+
+    if (activeEdit == EditField.Email && emailSheetRequested) {
         val verifyDescription =
             formatTemplate(strings.account.editEmailVerifyDescription, emailValue)
         AccountEmailBottomSheet(
@@ -259,20 +434,20 @@ fun AccountSettingsRoute(
             onEmailChange = { emailValue = it },
             onSendVerification = {
                 presenter.sendEmailVerification(emailValue)
-                emailResendCountdown = EMAIL_RESEND_DELAY_SECONDS
             },
             onConfirmVerified = { presenter.confirmEmailUpdate(emailValue) },
             onChangeEmail = {
-                emailStep = EmailBottomSheetStep.Entry
-                presenter.clearEmailUpdateState()
+                emailStepOverride = EmailBottomSheetStep.Entry
+                presenter.clearEmailVerificationSession()
             },
             onResend = {
                 if (emailResendCountdown <= 0) {
                     presenter.sendEmailVerification(emailValue)
-                    emailResendCountdown = EMAIL_RESEND_DELAY_SECONDS
                 }
             },
             onDismiss = {
+                emailSheetRequested = false
+                emailSheetUserInitiated = false
                 activeEdit = EditField.None
                 presenter.clearEmailUpdateState()
             },
@@ -359,9 +534,44 @@ fun AccountSettingsRoute(
         phoneNumberOverride = sessionPhone,
         targetItemId = targetItemId,
         onBack = onBack,
-        onEditDisplayName = { if (allowEdits) activeEdit = EditField.DisplayName },
-        onEditStatus = { if (allowEdits) activeEdit = EditField.StatusMessage },
-        onEditEmail = { if (allowEdits) activeEdit = EditField.Email },
+        onEditDisplayName = {
+            if (allowEdits) {
+                pendingEditSave = false
+                pendingEditField = null
+                pendingEditValue = ""
+                editValue = state.profile?.displayName.orEmpty()
+                activeEdit = EditField.DisplayName
+            }
+        },
+        onEditPhoto = {
+            if (allowEdits) {
+                photoSheetRequested = true
+            }
+        },
+        onEditStatus = {
+            if (allowEdits) {
+                pendingEditSave = false
+                pendingEditField = null
+                pendingEditValue = ""
+                editValue = state.profile?.statusMessage.orEmpty()
+                activeEdit = EditField.StatusMessage
+            }
+        },
+        onEditEmail = {
+            if (allowEdits) {
+                val session = state.emailVerificationSession
+                if (session != null) {
+                    emailValue = session.email
+                    emailStepOverride = null
+                } else {
+                    emailValue = state.profile?.email.orEmpty()
+                    emailStepOverride = EmailBottomSheetStep.Entry
+                }
+                emailSheetUserInitiated = true
+                emailSheetRequested = true
+                activeEdit = EditField.Email
+            }
+        },
         onDeleteAccount = {
             if (!state.isDeleting) {
                 deleteStep = DeleteBottomSheetStep.Confirm
@@ -445,6 +655,20 @@ private fun formatCountdown(
     return template.replace("%1\$d", value).replace("%d", value)
 }
 
+private fun EmailVerificationSession.toBottomSheetStep(): EmailBottomSheetStep =
+    when (step) {
+        EmailVerificationStep.Entry -> EmailBottomSheetStep.Entry
+        EmailVerificationStep.AwaitVerification -> EmailBottomSheetStep.AwaitVerification
+    }
+
+@OptIn(ExperimentalTime::class)
+private fun remainingResendSeconds(session: EmailVerificationSession): Int {
+    val remainingMillis =
+        session.resendAvailableAtEpochMillis - Clock.System.now().toEpochMilliseconds()
+    if (remainingMillis <= 0) return 0
+    return (remainingMillis / 1_000L).toInt().coerceAtLeast(0)
+}
+
 private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =
     when (this) {
         PhoneAuthError.InvalidPhoneNumber -> strings.invalidPhoneError
@@ -465,7 +689,6 @@ private fun previewState(): AccountUiState =
     )
 
 private const val DELETE_COUNTDOWN_SECONDS = 15
-private const val EMAIL_RESEND_DELAY_SECONDS = 300 // 5 minutes
 
 @DevicePreviews
 @Preview

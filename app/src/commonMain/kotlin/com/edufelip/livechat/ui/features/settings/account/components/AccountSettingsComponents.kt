@@ -1,5 +1,6 @@
 package com.edufelip.livechat.ui.features.settings.account.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,15 +26,27 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
+import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
+import com.edufelip.livechat.ui.util.AvatarImageCache
+import com.edufelip.livechat.ui.util.loadAvatarImageBitmap
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -76,9 +89,22 @@ internal fun AccountProfileCard(
     displayName: String,
     onlineLabel: String,
     initials: String,
+    photoUrl: String? = null,
+    onClick: (() -> Unit)? = null,
 ) {
+    val isEnabled = onClick != null
+    val avatarBitmap = rememberAccountAvatarBitmap(photoUrl)
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .then(
+                    if (isEnabled) {
+                        Modifier.clickable(onClick = onClick)
+                    } else {
+                        Modifier
+                    },
+                ),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Row(
@@ -108,6 +134,17 @@ internal fun AccountProfileCard(
                             text = initials,
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                    if (avatarBitmap != null) {
+                        Image(
+                            bitmap = avatarBitmap,
+                            contentDescription = null,
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                            contentScale = ContentScale.Crop,
                         )
                     }
                     Box(
@@ -140,6 +177,46 @@ internal fun AccountProfileCard(
             }
         }
     }
+}
+
+@Composable
+private fun rememberAccountAvatarBitmap(photoUrl: String?): ImageBitmap? {
+    val context = rememberPlatformContext()
+    val cacheKey = photoUrl?.takeIf { it.isNotBlank() }
+    val cachedEntry = cacheKey?.let { AvatarImageCache.getEntry(it) }
+    var bitmap by remember(cacheKey) { mutableStateOf(cachedEntry?.bitmap) }
+
+    LaunchedEffect(cacheKey, photoUrl, context) {
+        if (photoUrl.isNullOrBlank() || cacheKey == null) return@LaunchedEffect
+
+        if (bitmap == null) {
+            val loaded = loadAvatarImageBitmap(photoUrl, context)
+            if (loaded != null) {
+                AvatarImageCache.put(cacheKey, loaded)
+                bitmap = loaded
+            }
+        }
+
+        while (isActive) {
+            val entry = AvatarImageCache.getEntry(cacheKey)
+            val shouldRefresh = entry?.let { AvatarImageCache.isStale(it) } ?: false
+
+            if (shouldRefresh) {
+                val loaded = loadAvatarImageBitmap(photoUrl, context)
+                if (loaded != null) {
+                    AvatarImageCache.put(cacheKey, loaded)
+                    bitmap = loaded
+                }
+            }
+
+            val refreshedEntry = AvatarImageCache.getEntry(cacheKey)
+            val delayMs =
+                refreshedEntry?.let { AvatarImageCache.timeUntilStale(it) }
+                    ?: AvatarImageCache.MIN_REFRESH_INTERVAL_MS
+            delay(delayMs.coerceAtLeast(AvatarImageCache.MIN_REFRESH_INTERVAL_MS))
+        }
+    }
+    return bitmap
 }
 
 @Composable

@@ -31,7 +31,7 @@
     <string name="settings_privacy_title">Privacy</string>
     <string name="settings_privacy_description">Blocked contacts, invite preferences</string>
     <string name="settings_privacy_policy_title">Privacy Policy</string>
-    <string name="settings_privacy_policy_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="settings_privacy_policy_url">https://www.portfolio.eduwaldo.com/projects/live-chat/privacy_policy</string>
     <string name="settings_footer_app_name_ios">LiveChat for iOS</string>
     <string name="settings_footer_app_name_android">LiveChat for Android</string>
     <string name="settings_version_format">Version %1$s (%2$s)</string>
@@ -43,6 +43,11 @@
     <string name="account_edit_cta">Edit</string>
     <string name="account_display_name_label">Display Name</string>
     <string name="account_display_name_missing">Add your name</string>
+    <string name="account_photo_label">Profile Photo</string>
+    <string name="account_photo_missing">Add a photo</string>
+    <string name="account_photo_change">Change photo</string>
+    <string name="account_photo_sheet_title">Update profile photo</string>
+    <string name="account_photo_sheet_description">Choose a new profile photo.</string>
     <string name="account_status_label">Status Message</string>
     <string name="account_phone_label">Linked Phone Number</string>
     <string name="account_email_label">Email Address</string>
@@ -238,7 +243,7 @@
     <string name="welcome_help_url">https://www.portfolio.eduwaldo.com</string>
     <string name="welcome_terms_message">By continuing, you agree to our Terms of Service and Privacy Policy.</string>
     <string name="welcome_terms_url">https://www.portfolio.eduwaldo.com/livechat_terms_of_service.pdf</string>
-    <string name="welcome_privacy_url">https://www.portfolio.eduwaldo.com/livechat_privacy_policy.pdf</string>
+    <string name="welcome_privacy_url">https://www.portfolio.eduwaldo.com/projects/live-chat/privacy_policy</string>
     <string name="welcome_brand_name">LiveChat</string>
     <string name="onboarding_phone_title">Enter your phone number</string>
     <string name="onboarding_phone_subtitle">We&apos;ll send a verification code to confirm it&apos;s you.</string>

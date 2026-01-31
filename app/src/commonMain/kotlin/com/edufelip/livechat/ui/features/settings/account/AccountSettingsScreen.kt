@@ -34,6 +34,7 @@ fun AccountSettingsScreen(
     targetItemId: String? = null,
     onBack: () -> Unit = {},
     onEditDisplayName: () -> Unit = {},
+    onEditPhoto: () -> Unit = {},
     onEditStatus: () -> Unit = {},
     onEditEmail: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
@@ -57,16 +58,26 @@ fun AccountSettingsScreen(
                     ?: accountStrings.phoneMissing
             val email = profile?.email?.takeIf { it.isNotBlank() } ?: accountStrings.emailMissing
             val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+            val photoUrl = profile?.photoUrl?.takeIf { it.isNotBlank() }
+            val photoValue =
+                if (photoUrl.isNullOrBlank()) {
+                    accountStrings.photoMissing
+                } else {
+                    accountStrings.photoChange
+                }
             AccountDisplayData(
                 displayName = displayName,
                 statusMessage = statusMessage,
                 phoneNumber = phoneNumber,
                 email = email,
                 initials = initials,
+                photoUrl = photoUrl,
+                photoValue = photoValue,
             )
         }
     val onBackAction = rememberStableAction(onBack)
     val onEditDisplayNameAction = rememberStableAction(onEditDisplayName)
+    val onEditPhotoAction = rememberStableAction(onEditPhoto)
     val onEditStatusAction = rememberStableAction(onEditStatus)
     val onEditEmailAction = rememberStableAction(onEditEmail)
     val onDeleteAccountAction = rememberStableAction(onDeleteAccount)
@@ -96,7 +107,17 @@ fun AccountSettingsScreen(
             displayName = displayData.displayName,
             onlineLabel = accountStrings.onlineLabel,
             initials = displayData.initials,
+            photoUrl = displayData.photoUrl,
+            onClick = onEditDisplayNameAction,
         )
+
+        Box(modifier = Modifier.settingsItemHighlight("account_photo", targetItemId)) {
+            AccountFieldCard(
+                title = accountStrings.photoLabel,
+                value = displayData.photoValue,
+                onClick = onEditPhotoAction,
+            )
+        }
 
         Box(modifier = Modifier.settingsItemHighlight("account_display_name", targetItemId)) {
             AccountFieldCard(
@@ -146,6 +167,8 @@ private data class AccountDisplayData(
     val phoneNumber: String,
     val email: String,
     val initials: String,
+    val photoUrl: String?,
+    val photoValue: String,
 )
 
 @Composable
