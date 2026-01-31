@@ -12,4 +12,5 @@ data class AccountUiState(
     val isDeleted: Boolean = false,
     val requiresReauth: Boolean = false,
     val emailUpdateState: EmailUpdateState = EmailUpdateState.Idle,
+    val emailVerificationSession: EmailVerificationSession? = null,
 )

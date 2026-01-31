@@ -199,11 +199,13 @@ internal fun AccountEmailBottomSheet(
                 ) {
                     Text(finalResendLabel)
                 }
-                TextButton(
-                    onClick = onChangeEmail,
-                    enabled = !isLoading,
-                ) {
-                    Text(changeLabel)
+                if (resendCountdown <= 0) {
+                    TextButton(
+                        onClick = onChangeEmail,
+                        enabled = !isLoading,
+                    ) {
+                        Text(changeLabel)
+                    }
                 }
             }
         }
