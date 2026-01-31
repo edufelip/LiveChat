@@ -37,8 +37,8 @@ import com.edufelip.livechat.domain.useCases.ObserveNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
-import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObservePrivacyPolicyUrlUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase

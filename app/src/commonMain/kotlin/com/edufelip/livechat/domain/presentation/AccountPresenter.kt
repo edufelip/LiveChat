@@ -2,9 +2,9 @@ package com.edufelip.livechat.domain.presentation
 
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.models.AccountUiState
+import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.models.EmailVerificationSession
 import com.edufelip.livechat.domain.models.EmailVerificationStep
-import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.useCases.CheckEmailUpdatedUseCase
 import com.edufelip.livechat.domain.useCases.ClearEmailVerificationSessionUseCase

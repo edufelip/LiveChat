@@ -1,12 +1,12 @@
 package com.edufelip.livechat.shared.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.IPresenceRemoteData
 import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
-import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.Contact

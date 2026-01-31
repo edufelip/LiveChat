@@ -20,23 +20,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.domain.models.AccountUiState
+import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.models.EmailVerificationSession
 import com.edufelip.livechat.domain.models.EmailVerificationStep
-import com.edufelip.livechat.domain.models.EmailUpdateState
 import com.edufelip.livechat.domain.utils.phoneNumberFromE164
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
+import com.edufelip.livechat.ui.features.conversations.detail.MediaResult
+import com.edufelip.livechat.ui.features.conversations.detail.PermissionEvent
+import com.edufelip.livechat.ui.features.conversations.detail.rememberConversationMediaController
+import com.edufelip.livechat.ui.features.conversations.detail.rememberPermissionViewModel
 import com.edufelip.livechat.ui.features.settings.account.components.AccountDeleteBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEmailBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountPhotoBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.DeleteBottomSheetStep
 import com.edufelip.livechat.ui.features.settings.account.components.EmailBottomSheetStep
-import com.edufelip.livechat.ui.features.conversations.detail.MediaResult
-import com.edufelip.livechat.ui.features.conversations.detail.PermissionEvent
-import com.edufelip.livechat.ui.features.conversations.detail.rememberConversationMediaController
-import com.edufelip.livechat.ui.features.conversations.detail.rememberPermissionViewModel
 import com.edufelip.livechat.ui.platform.openAppSettings
 import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.LiveChatStrings
@@ -47,9 +47,9 @@ import com.edufelip.livechat.ui.state.rememberAccountPresenter
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AccountSettingsRoute(
