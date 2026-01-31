@@ -5,6 +5,8 @@ import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.contracts.IContactsRemoteData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.contracts.IPresenceRemoteData
+import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
+import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.domain.models.Contact
@@ -47,6 +49,8 @@ class KoinInitializationTest {
                 module {
                     single { database }
                     single<UserSessionProvider> { StubUserSessionProvider }
+                    single<IRemoteConfigRemoteData> { StubRemoteConfigRemoteData }
+                    single<MediaStorageBridge> { StubMediaStorageBridge }
                 }
 
             val backendModule =
@@ -100,6 +104,12 @@ class KoinInitializationTest {
             email: String,
         ) = Unit
 
+        override suspend fun updatePhotoUrl(
+            userId: String,
+            idToken: String,
+            photoUrl: String,
+        ) = Unit
+
         override suspend fun ensureUserDocument(
             userId: String,
             idToken: String,
@@ -110,6 +120,20 @@ class KoinInitializationTest {
             userId: String,
             idToken: String,
         ) = Unit
+    }
+
+    private object StubMediaStorageBridge : MediaStorageBridge {
+        override suspend fun uploadBytes(
+            objectPath: String,
+            bytes: ByteArray,
+        ): String = "https://example.com/media.jpg"
+
+        override suspend fun downloadBytes(
+            remoteUrl: String,
+            maxBytes: Long,
+        ): ByteArray = byteArrayOf()
+
+        override suspend fun deleteRemote(remoteUrl: String) = Unit
     }
 
     private object StubMessagesRemoteData : IMessagesRemoteData {
@@ -164,6 +188,12 @@ class KoinInitializationTest {
             isOnline: Boolean,
             lastActiveAt: Long,
         ) = Unit
+    }
+
+    private object StubRemoteConfigRemoteData : IRemoteConfigRemoteData {
+        override suspend fun fetchAndActivate(): Boolean = true
+
+        override fun getString(key: String): String = ""
     }
 
     private object StubUserSessionProvider : UserSessionProvider {
