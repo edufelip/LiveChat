@@ -21,11 +21,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.analytics.rememberAnalyticsController
 import com.edufelip.livechat.domain.models.AppDestination
+import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
@@ -41,6 +44,7 @@ import com.edufelip.livechat.ui.features.onboarding.WelcomeScreen
 import com.edufelip.livechat.ui.platform.AppForegroundTracker
 import com.edufelip.livechat.ui.platform.AppLifecycleObserver
 import com.edufelip.livechat.ui.resources.liveChatStrings
+import com.edufelip.livechat.ui.resources.rememberLiveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
@@ -60,6 +64,17 @@ fun LiveChatApp(
     onShareInvite: (InviteShareRequest) -> Unit = {},
 ) {
     val isInspection = LocalInspectionMode.current
+    val baseStrings = rememberLiveChatStrings()
+    val appPresenter = if (isInspection) null else rememberAppPresenter()
+    val appState by (appPresenter?.collectState() ?: remember { mutableStateOf(AppUiState()) })
+    val privacyPolicyUrl = appState.privacyPolicyUrl.ifBlank { baseStrings.settings.privacyPolicyUrl }
+    val resolvedStrings =
+        remember(baseStrings, privacyPolicyUrl) {
+            baseStrings.copy(
+                settings = baseStrings.settings.copy(privacyPolicyUrl = privacyPolicyUrl),
+                onboarding = baseStrings.onboarding.copy(welcomePrivacyUrl = privacyPolicyUrl),
+            )
+        }
     val appearanceSettings =
         if (isInspection) {
             AppearanceSettings()
@@ -73,6 +88,7 @@ fun LiveChatApp(
         textScale = appearanceSettings.textScale,
         reduceMotion = appearanceSettings.reduceMotion,
         highContrast = appearanceSettings.highContrast,
+        strings = resolvedStrings,
     ) {
         Box(
             modifier =
@@ -98,8 +114,8 @@ fun LiveChatApp(
                 return@LiveChatTheme
             }
 
-            val presenter = rememberAppPresenter()
-            val state by presenter.collectState()
+            val presenter = checkNotNull(appPresenter)
+            val state = appState
             val uiTestOverrides = uiTestOverrides()
             val isUiTest = isUiTestMode()
             val isE2e = isE2eMode()

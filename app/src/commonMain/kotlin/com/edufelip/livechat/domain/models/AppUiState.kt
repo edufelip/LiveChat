@@ -1,12 +1,14 @@
 package com.edufelip.livechat.domain.models
 
 import androidx.compose.runtime.Immutable
+import com.edufelip.livechat.domain.config.RemoteConfigDefaults
 
 @Immutable
 data class AppUiState(
     val isOnboardingComplete: Boolean = false,
     val hasSeenWelcome: Boolean = false,
     val isAppReady: Boolean = true,
+    val privacyPolicyUrl: String = RemoteConfigDefaults.PRIVACY_POLICY_URL,
     val home: HomeUiState = HomeUiState(),
 ) {
     val destination: AppDestination

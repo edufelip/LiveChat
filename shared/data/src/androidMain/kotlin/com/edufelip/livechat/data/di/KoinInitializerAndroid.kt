@@ -5,7 +5,9 @@ import android.telephony.TelephonyManager
 import com.edufelip.livechat.data.auth.email.FirebaseEmailAuthRepository
 import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
+import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
 import com.edufelip.livechat.data.files.MediaFileStore
+import com.edufelip.livechat.data.remote.FirebaseRemoteConfigRemoteData
 import com.edufelip.livechat.data.remote.loadFirebaseEmulatorConfig
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.FirebaseUserSessionProvider
@@ -20,6 +22,7 @@ import com.edufelip.livechat.shared.data.database.createAndroidDatabaseBuilder
 import com.edufelip.livechat.shared.data.initSharedKoin
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -72,6 +75,8 @@ fun androidPlatformModule(
                 emulatorConfig?.let { useEmulator(it.host, it.authPort) }
             }
         }
+        single { FirebaseRemoteConfig.getInstance(firebaseApp) }
+        single<IRemoteConfigRemoteData> { FirebaseRemoteConfigRemoteData(get()) }
         single { InMemoryUserSessionProvider() }
         single { FirebaseUserSessionProvider(get()) }
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }

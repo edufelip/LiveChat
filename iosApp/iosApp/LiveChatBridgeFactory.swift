@@ -23,12 +23,14 @@ enum LiveChatBridgeFactory {
         let storage = FirebaseStorageBridge()
         let phoneAuth = FirebasePhoneAuthBridge()
         let auth = FirebaseAuthBridge()
+        let remoteConfig = FirebaseRemoteConfigBridge()
         return IosBridgeBundle(
             messagesBridge: messages,
             contactsBridge: contacts,
             storageBridge: storage,
             phoneAuthBridge: phoneAuth,
-            authBridge: auth
+            authBridge: auth,
+            remoteConfigBridge: remoteConfig
         )
     }
 
@@ -40,7 +42,8 @@ enum LiveChatBridgeFactory {
             contactsBridge: defaults.contactsBridge,
             storageBridge: defaults.storageBridge,
             phoneAuthBridge: phoneAuth,
-            authBridge: defaults.authBridge
+            authBridge: defaults.authBridge,
+            remoteConfigBridge: defaults.remoteConfigBridge
         )
     }
 

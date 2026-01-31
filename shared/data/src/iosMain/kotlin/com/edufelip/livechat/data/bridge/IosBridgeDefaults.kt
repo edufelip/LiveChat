@@ -11,6 +11,7 @@ object IosBridgeDefaults {
             storageBridge = NoopStorageBridge,
             phoneAuthBridge = NoopPhoneAuthBridge,
             authBridge = NoopAuthBridge,
+            remoteConfigBridge = NoopRemoteConfigBridge,
         )
 }
 
@@ -87,4 +88,14 @@ private object NoopAuthBridge : AuthBridge {
 
     override suspend fun reloadCurrentUser(): AuthBridgeUserState =
         AuthBridgeUserState(error = AuthBridgeError(message = "Auth bridge not configured for iOS"))
+}
+
+private object NoopRemoteConfigBridge : RemoteConfigBridge {
+    override suspend fun fetchAndActivate(): RemoteConfigBridgeResult =
+        RemoteConfigBridgeResult(
+            activated = false,
+            error = RemoteConfigBridgeError(message = "Remote config not configured for iOS"),
+        )
+
+    override fun getString(key: String): String = ""
 }

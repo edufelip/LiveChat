@@ -3,8 +3,10 @@ package com.edufelip.livechat.data.di
 import com.edufelip.livechat.data.auth.email.IosEmailAuthRepository
 import com.edufelip.livechat.data.auth.phone.IosPhoneAuthRepository
 import com.edufelip.livechat.data.bridge.IosBridgeBundle
+import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
 import com.edufelip.livechat.data.files.MediaFileStore
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
+import com.edufelip.livechat.data.remote.IosRemoteConfigRemoteData
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
@@ -44,6 +46,8 @@ fun iosPlatformModule(
         single { bridgeBundle.storageBridge }
         single { bridgeBundle.phoneAuthBridge }
         single { bridgeBundle.authBridge }
+        single { bridgeBundle.remoteConfigBridge }
+        single<IRemoteConfigRemoteData> { IosRemoteConfigRemoteData(get()) }
         single<LiveChatDatabase> { buildLiveChatDatabase(createIosDatabaseBuilder()) }
         single { InMemoryUserSessionProvider() }
         single<UserSessionProvider> { get<InMemoryUserSessionProvider>() }

@@ -21,6 +21,7 @@
 		A1B2C3D4E5F60718293A4B64 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B60 /* FirebaseStorage */; };
 		A1B2C3D4E5F60718293A4B65 /* iosApp/GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B66 /* iosApp/GoogleService-Info.plist */; };
 		A1B2C3D4E5F60718293A4B68 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B67 /* FirebaseAuth */; };
+		A1B2C3D4E5F60718293A4B6A /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D4E5F60718293A4B6B /* FirebaseRemoteConfig */; };
 		A1B2C3D4E5F60718293A4B70 /* iosApp/FirebaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B71 /* iosApp/FirebaseConfig.swift */; };
 		A1B2C3D4E5F60718293A4B72 /* iosApp/IosContactsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B73 /* iosApp/IosContactsProvider.swift */; };
 		A1B2C3D4E5F60718293A4B99 /* iosApp/FirebaseEmulatorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B9A /* iosApp/FirebaseEmulatorSettings.swift */; };
@@ -29,6 +30,7 @@
 		C2E7A1B2C3D4E5F607182930 /* iosApp/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */; };
 		D51F087574D14572ACCCDD85 /* iosApp/FirebasePhoneAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */; };
 		D6DD0116FFAE40E3887EF1BE /* iosApp/FirebaseMessagesBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F87F176FA2E94BC48B2AA10B /* iosApp/FirebaseMessagesBridge.swift */; };
+		E8F9A0B1C2D3E4F5A6B7C8D9 /* iosApp/FirebaseRemoteConfigBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7E8F9A0B1C2D3E4F5A6B7C8 /* iosApp/FirebaseRemoteConfigBridge.swift */; };
 		EFD5952226034B8496F1D667 /* iosApp/FirebaseContactsBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */; };
 		F1A2B3C4D5E60718293A4C01 /* iosApp/FirebaseAuthBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */; };
 /* End PBXBuildFile section */
@@ -74,6 +76,7 @@
 		A1B2C3D4E5F60718293A4B9A /* iosApp/FirebaseEmulatorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseEmulatorSettings.swift; sourceTree = SOURCE_ROOT; };
 		BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseContactsBridge.swift; sourceTree = SOURCE_ROOT; };
 		C2E7A1B2C3D4E5F607182931 /* iosApp/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = iosApp/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		D7E8F9A0B1C2D3E4F5A6B7C8 /* iosApp/FirebaseRemoteConfigBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseRemoteConfigBridge.swift; sourceTree = SOURCE_ROOT; };
 		E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebasePhoneAuthBridge.swift; sourceTree = SOURCE_ROOT; };
 		E2FD02392F6E4348869E5651 /* iosApp/LiveChatBridgeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/LiveChatBridgeFactory.swift; sourceTree = SOURCE_ROOT; };
 		F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosApp/FirebaseAuthBridge.swift; sourceTree = SOURCE_ROOT; };
@@ -101,6 +104,7 @@
 				A1B2C3D4E5F60718293A4B62 /* FirebaseFirestore in Frameworks */,
 				A1B2C3D4E5F60718293A4B63 /* FirebaseFunctions in Frameworks */,
 				A1B2C3D4E5F60718293A4B64 /* FirebaseStorage in Frameworks */,
+				A1B2C3D4E5F60718293A4B6A /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +124,7 @@
 				F87F176FA2E94BC48B2AA10B /* iosApp/FirebaseMessagesBridge.swift */,
 				BECF9DB746BA40A6B39CBC83 /* iosApp/FirebaseContactsBridge.swift */,
 				F8EBB78A95A94D18B72B942B /* iosApp/FirebaseStorageBridge.swift */,
+				D7E8F9A0B1C2D3E4F5A6B7C8 /* iosApp/FirebaseRemoteConfigBridge.swift */,
 				E2AC4F07903D4E07B4A75461 /* iosApp/FirebasePhoneAuthBridge.swift */,
 				F1A2B3C4D5E60718293A4C02 /* iosApp/FirebaseAuthBridge.swift */,
 				A1B2C3D4E5F60718293A4B71 /* iosApp/FirebaseConfig.swift */,
@@ -202,6 +207,7 @@
 				A1B2C3D4E5F60718293A4B5E /* FirebaseFirestore */,
 				A1B2C3D4E5F60718293A4B5F /* FirebaseFunctions */,
 				A1B2C3D4E5F60718293A4B60 /* FirebaseStorage */,
+				A1B2C3D4E5F60718293A4B6B /* FirebaseRemoteConfig */,
 			);
 			productName = iosApp;
 			productReference = 4F0F1C2C2C61B7F8008F12AF /* iosApp.app */;
@@ -309,6 +315,7 @@
 				7F0AD4C02D45E50C00C6A1E1 /* iosApp/SceneDelegate.swift in Sources */,
 				7F0AD4C22D45E5B500C6A1E1 /* iosApp/LiveChatRootViewController.swift in Sources */,
 				D6DD0116FFAE40E3887EF1BE /* iosApp/FirebaseMessagesBridge.swift in Sources */,
+				E8F9A0B1C2D3E4F5A6B7C8D9 /* iosApp/FirebaseRemoteConfigBridge.swift in Sources */,
 				EFD5952226034B8496F1D667 /* iosApp/FirebaseContactsBridge.swift in Sources */,
 				96E4D7A5B05C4E7CB0FE3611 /* iosApp/FirebaseStorageBridge.swift in Sources */,
 				D51F087574D14572ACCCDD85 /* iosApp/FirebasePhoneAuthBridge.swift in Sources */,
@@ -416,7 +423,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
+				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.dev;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -504,7 +511,7 @@
 				DEVELOPMENT_TEAM = L4N9Z3Z82V;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveChat;
+				INFOPLIST_KEY_CFBundleDisplayName = "LiveChat Dev";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -516,7 +523,7 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat;
+				PRODUCT_BUNDLE_IDENTIFIER = com.edufelip.livechat.dev;
 				PRODUCT_NAME = iosApp;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
@@ -642,6 +649,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		A1B2C3D4E5F60718293A4B6B /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

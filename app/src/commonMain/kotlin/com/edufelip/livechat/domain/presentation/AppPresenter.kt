@@ -14,7 +14,9 @@ import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacyPolicyUrlUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
@@ -41,6 +43,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 class AppPresenter(
     observeOnboardingStatus: ObserveOnboardingStatusUseCase,
     observeWelcomeSeen: ObserveWelcomeSeenUseCase,
+    private val observePrivacyPolicyUrl: ObservePrivacyPolicyUrlUseCase,
     observeConversationUseCase: ObserveConversationUseCase,
     private val observeConversationSummaries: ObserveConversationSummariesUseCase,
     private val setOnboardingComplete: SetOnboardingCompleteUseCase,
@@ -48,6 +51,7 @@ class AppPresenter(
     getOnboardingStatusSnapshot: GetOnboardingStatusSnapshotUseCase,
     getWelcomeSeenSnapshot: GetWelcomeSeenSnapshotUseCase,
     getLocalContactsSnapshot: GetLocalContactsSnapshotUseCase,
+    private val refreshRemoteConfig: RefreshRemoteConfigUseCase,
     private val updateSelfPresence: UpdateSelfPresenceUseCase,
     private val sessionProvider: UserSessionProvider,
     private val scope: CoroutineScope,
@@ -96,6 +100,17 @@ class AppPresenter(
             } catch (e: Exception) {
                 // Silently fail - notifications will use phone numbers as fallback
             }
+        }
+        scope.launch {
+            refreshRemoteConfig()
+        }
+        scope.launch {
+            observePrivacyPolicyUrl()
+                .collectLatest { url ->
+                    mutableState.update { current ->
+                        current.copy(privacyPolicyUrl = url)
+                    }
+                }
         }
         scope.launch {
             observeOnboardingStatus()
