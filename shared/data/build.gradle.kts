@@ -50,6 +50,7 @@ kotlin {
                 implementation(libs.firebase.firestore)
                 implementation(libs.firebase.functions)
                 implementation(libs.firebase.storage)
+                implementation(libs.firebase.config)
                 implementation(libs.kotlinx.coroutines.play.services)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.androidx.room.sqlite.wrapper)
