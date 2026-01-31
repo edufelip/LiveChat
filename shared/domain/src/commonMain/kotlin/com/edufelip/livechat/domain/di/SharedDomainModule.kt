@@ -5,19 +5,23 @@ import com.edufelip.livechat.domain.repositories.IAppearanceSettingsRepository
 import com.edufelip.livechat.domain.repositories.IBlockedContactsRepository
 import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IDeviceTokenRepository
+import com.edufelip.livechat.domain.repositories.IEmailVerificationSessionRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
+import com.edufelip.livechat.domain.repositories.IRemoteConfigRepository
 import com.edufelip.livechat.domain.useCases.ApplyContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.BlockContactUseCase
 import com.edufelip.livechat.domain.useCases.BuildContactSyncPlanUseCase
 import com.edufelip.livechat.domain.useCases.CheckEmailUpdatedUseCase
 import com.edufelip.livechat.domain.useCases.CheckRegisteredContactsUseCase
+import com.edufelip.livechat.domain.useCases.ClearEmailVerificationSessionUseCase
 import com.edufelip.livechat.domain.useCases.DeleteAccountUseCase
 import com.edufelip.livechat.domain.useCases.DeleteMessageLocalUseCase
 import com.edufelip.livechat.domain.useCases.EnsureConversationUseCase
 import com.edufelip.livechat.domain.useCases.EnsureUserInboxUseCase
+import com.edufelip.livechat.domain.useCases.GetEmailVerificationSessionUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetLocalContactsUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
@@ -34,12 +38,15 @@ import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
 import com.edufelip.livechat.domain.useCases.ObserveParticipantUseCase
 import com.edufelip.livechat.domain.useCases.ObservePresenceUseCase
 import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacyPolicyUrlUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
+import com.edufelip.livechat.domain.useCases.SaveEmailVerificationSessionUseCase
 import com.edufelip.livechat.domain.useCases.SendEmailVerificationUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
 import com.edufelip.livechat.domain.useCases.SetConversationArchivedUseCase
@@ -52,6 +59,7 @@ import com.edufelip.livechat.domain.useCases.UnblockContactUseCase
 import com.edufelip.livechat.domain.useCases.UnregisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
+import com.edufelip.livechat.domain.useCases.UpdateAccountPhotoUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
 import com.edufelip.livechat.domain.useCases.UpdateHighContrastUseCase
 import com.edufelip.livechat.domain.useCases.UpdateInAppVibrationUseCase
@@ -100,6 +108,8 @@ val sharedDomainModule: Module =
         factory { ObserveBlockedContactsUseCase(get<IBlockedContactsRepository>()) }
         factory { ObserveOnboardingStatusUseCase(get<IOnboardingStatusRepository>()) }
         factory { ObserveWelcomeSeenUseCase(get<IOnboardingStatusRepository>()) }
+        factory { ObservePrivacyPolicyUrlUseCase(get<IRemoteConfigRepository>()) }
+        factory { RefreshRemoteConfigUseCase(get<IRemoteConfigRepository>()) }
         factory { GetOnboardingStatusSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { GetWelcomeSeenSnapshotUseCase(get<IOnboardingStatusRepository>()) }
         factory { ResolveConversationIdForContactUseCase(get(), get()) }
@@ -117,7 +127,11 @@ val sharedDomainModule: Module =
         factory { UpdateAccountDisplayNameUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountStatusMessageUseCase(get<IAccountRepository>()) }
         factory { UpdateAccountEmailUseCase(get<IAccountRepository>()) }
+        factory { UpdateAccountPhotoUseCase(get<IAccountRepository>()) }
         factory { SendEmailVerificationUseCase(get()) }
+        factory { GetEmailVerificationSessionUseCase(get<IEmailVerificationSessionRepository>()) }
+        factory { SaveEmailVerificationSessionUseCase(get<IEmailVerificationSessionRepository>()) }
+        factory { ClearEmailVerificationSessionUseCase(get<IEmailVerificationSessionRepository>()) }
         factory { CheckEmailUpdatedUseCase(get()) }
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
         factory { UpdateThemeModeUseCase(get<IAppearanceSettingsRepository>()) }

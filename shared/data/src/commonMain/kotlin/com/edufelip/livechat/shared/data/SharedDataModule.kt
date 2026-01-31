@@ -21,6 +21,7 @@ import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.repositories.NotificationSettingsRepository
 import com.edufelip.livechat.data.repositories.PresenceRepository
 import com.edufelip.livechat.data.repositories.PrivacySettingsRepository
+import com.edufelip.livechat.data.repositories.RemoteConfigRepository
 import com.edufelip.livechat.data.store.BlockedContactsStore
 import com.edufelip.livechat.data.store.PrivacySettingsStore
 import com.edufelip.livechat.domain.repositories.IAccountRepository
@@ -33,13 +34,14 @@ import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
+import com.edufelip.livechat.domain.repositories.IRemoteConfigRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val sharedDataModule: Module =
     module {
         single(createdAtStart = true) { UserDocumentBootstrapper(get(), get()) }
-        single<IAccountRepository> { AccountRepository(get<IAccountRemoteData>(), get()) }
+        single<IAccountRepository> { AccountRepository(get<IAccountRemoteData>(), get(), get()) }
         single<IAppearanceSettingsRepository> {
             AppearanceSettingsRepository(get<IAppearanceSettingsRemoteData>(), get())
         }
@@ -82,4 +84,5 @@ val sharedDataModule: Module =
         single<IDeviceTokenRepository> {
             DeviceTokenRepository(get<IDeviceTokenRemoteData>(), get())
         }
+        single<IRemoteConfigRepository> { RemoteConfigRepository(get()) }
     }

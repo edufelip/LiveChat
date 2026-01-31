@@ -26,6 +26,12 @@ interface IAccountRemoteData {
         email: String,
     )
 
+    suspend fun updatePhotoUrl(
+        userId: String,
+        idToken: String,
+        photoUrl: String,
+    )
+
     suspend fun ensureUserDocument(
         userId: String,
         idToken: String,

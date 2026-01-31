@@ -35,6 +35,12 @@ class UpdateAccountEmailUseCase(
     }
 }
 
+class UpdateAccountPhotoUseCase(
+    private val repository: IAccountRepository,
+) {
+    suspend operator fun invoke(localPath: String): String = repository.updatePhoto(localPath)
+}
+
 class SendEmailVerificationUseCase(
     private val repository: IEmailAuthRepository,
 ) {

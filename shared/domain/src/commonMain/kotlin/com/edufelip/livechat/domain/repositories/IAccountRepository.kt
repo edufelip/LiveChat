@@ -12,5 +12,7 @@ interface IAccountRepository {
 
     suspend fun updateEmail(email: String)
 
+    suspend fun updatePhoto(localPath: String): String
+
     suspend fun deleteAccount()
 }

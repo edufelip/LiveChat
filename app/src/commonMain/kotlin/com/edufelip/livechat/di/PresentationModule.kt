@@ -17,7 +17,9 @@ import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacyPolicyUrlUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
@@ -46,9 +48,14 @@ val presentationModule: Module =
                 updateDisplayName = get(),
                 updateStatusMessage = get(),
                 updateEmail = get(),
+                updatePhoto = get(),
                 sendEmailVerification = get(),
+                getEmailVerificationSessionUseCase = get(),
+                saveEmailVerificationSessionUseCase = get(),
+                clearEmailVerificationSessionUseCase = get(),
                 checkEmailUpdated = get(),
                 deleteAccount = get(),
+                sessionProvider = get<UserSessionProvider>(),
                 scope = MainScope(),
             )
         }
@@ -99,6 +106,7 @@ val presentationModule: Module =
             AppPresenter(
                 observeOnboardingStatus = get<ObserveOnboardingStatusUseCase>(),
                 observeWelcomeSeen = get<ObserveWelcomeSeenUseCase>(),
+                observePrivacyPolicyUrl = get<ObservePrivacyPolicyUrlUseCase>(),
                 observeConversationUseCase = get<ObserveConversationUseCase>(),
                 observeConversationSummaries = get<ObserveConversationSummariesUseCase>(),
                 setOnboardingComplete = get<SetOnboardingCompleteUseCase>(),
@@ -106,6 +114,7 @@ val presentationModule: Module =
                 getOnboardingStatusSnapshot = get<GetOnboardingStatusSnapshotUseCase>(),
                 getWelcomeSeenSnapshot = get<GetWelcomeSeenSnapshotUseCase>(),
                 getLocalContactsSnapshot = get<GetLocalContactsSnapshotUseCase>(),
+                refreshRemoteConfig = get<RefreshRemoteConfigUseCase>(),
                 updateSelfPresence = get<UpdateSelfPresenceUseCase>(),
                 sessionProvider = get<UserSessionProvider>(),
                 scope = MainScope(),

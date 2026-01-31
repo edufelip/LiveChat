@@ -71,6 +71,14 @@ class FirebaseRestAccountRemoteData(
         updateFields(userId, idToken, mapOf(FIELD_EMAIL to Value(stringValue = email)))
     }
 
+    override suspend fun updatePhotoUrl(
+        userId: String,
+        idToken: String,
+        photoUrl: String,
+    ) {
+        updateFields(userId, idToken, mapOf(FIELD_PHOTO_URL to Value(stringValue = photoUrl)))
+    }
+
     override suspend fun ensureUserDocument(
         userId: String,
         idToken: String,
