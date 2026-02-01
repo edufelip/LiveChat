@@ -40,7 +40,15 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
             return
         }
         if phones.isEmpty {
-            completionHandler(PhoneExistsBatchResult(registeredPhones: [], matches: []), nil)
+            completionHandler(
+                PhoneExistsBatchResult(
+                    registeredPhones: [],
+                    matches: [],
+                    failedPhones: [],
+                    isPartial: false
+                ),
+                nil
+            )
             return
         }
         functions
@@ -53,6 +61,8 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
                 let data = result?.data as? [String: Any] ?? [:]
                 let registered = data["registered"] as? [String] ?? []
                 let matchesPayload = data["matches"] as? [[String: Any]] ?? []
+                let failedPhones = data["failed"] as? [String] ?? []
+                let isPartial = data["partial"] as? Bool ?? false
                 let matches: [PhoneExistsMatch] = matchesPayload.compactMap { payload in
                     guard let phone = payload["phone"] as? String,
                           let uid = payload["uid"] as? String else {
@@ -60,7 +70,15 @@ final class FirebaseContactsBridge: NSObject, ContactsRemoteBridge {
                     }
                     return PhoneExistsMatch(phone: phone, uid: uid)
                 }
-                completionHandler(PhoneExistsBatchResult(registeredPhones: registered, matches: matches), nil)
+                completionHandler(
+                    PhoneExistsBatchResult(
+                        registeredPhones: registered,
+                        matches: matches,
+                        failedPhones: failedPhones,
+                        isPartial: isPartial
+                    ),
+                    nil
+                )
             }
     }
 
