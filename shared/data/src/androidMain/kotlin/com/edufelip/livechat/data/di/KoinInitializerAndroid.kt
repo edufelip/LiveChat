@@ -2,20 +2,16 @@ package com.edufelip.livechat.data.di
 
 import android.content.Context
 import android.telephony.TelephonyManager
-import com.edufelip.livechat.data.auth.email.FirebaseEmailAuthRepository
 import com.edufelip.livechat.data.auth.phone.FirebasePhoneAuthRepository
 import com.edufelip.livechat.data.backend.firebase.firebaseBackendModule
 import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
 import com.edufelip.livechat.data.files.MediaFileStore
 import com.edufelip.livechat.data.remote.FirebaseRemoteConfigRemoteData
 import com.edufelip.livechat.data.remote.loadFirebaseEmulatorConfig
-import com.edufelip.livechat.data.repositories.AndroidEmailVerificationSessionRepository
 import com.edufelip.livechat.data.repositories.RoomOnboardingStatusRepository
 import com.edufelip.livechat.data.session.FirebaseUserSessionProvider
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.providers.UserSessionProvider
-import com.edufelip.livechat.domain.repositories.IEmailAuthRepository
-import com.edufelip.livechat.domain.repositories.IEmailVerificationSessionRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPhoneAuthRepository
 import com.edufelip.livechat.shared.data.database.LiveChatDatabase
@@ -84,8 +80,6 @@ fun androidPlatformModule(
         single<UserSessionProvider> { get<FirebaseUserSessionProvider>() }
         single { AndroidSessionBridge(get(), get(), Dispatchers.Default) }
         single<IPhoneAuthRepository> { FirebasePhoneAuthRepository(get()) }
-        single<IEmailAuthRepository> { FirebaseEmailAuthRepository(get()) }
-        single<IEmailVerificationSessionRepository> { AndroidEmailVerificationSessionRepository(get()) }
         single<LiveChatDatabase> { buildLiveChatDatabase(createAndroidDatabaseBuilder(get())) }
         single<IOnboardingStatusRepository> { RoomOnboardingStatusRepository(get()) }
     }

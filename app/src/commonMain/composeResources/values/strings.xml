@@ -67,13 +67,6 @@
     <string name="account_edit_status_description">Share a short status with your contacts.</string>
     <string name="account_edit_email_title">Edit email address</string>
     <string name="account_edit_email_description">Use an email for account recovery.</string>
-    <string name="account_edit_email_send_cta">Send verification</string>
-    <string name="account_edit_email_verify_title">Check your email</string>
-    <string name="account_edit_email_verify_description">We sent a verification link to %1$s. Open it to confirm.</string>
-    <string name="account_edit_email_verify_cta">I&apos;ve verified</string>
-    <string name="account_edit_email_change_cta">Change email</string>
-    <string name="account_edit_email_resend_cta">Resend email</string>
-    <string name="account_edit_email_resend_countdown_label">Resend available in %1$ds</string>
     <string name="account_save_cta">Save</string>
     <string name="account_delete_farewell_title">We&apos;re sorry to see you go</string>
     <string name="account_delete_farewell_body">Ok, hope we see you back soon.</string>

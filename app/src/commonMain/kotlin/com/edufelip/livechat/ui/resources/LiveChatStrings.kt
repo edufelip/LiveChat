@@ -79,15 +79,6 @@ data class AccountStrings(
     val editStatusDescription: String = "Share a short status with your contacts.",
     val editEmailTitle: String = "Edit email address",
     val editEmailDescription: String = "Use an email for account recovery.",
-    val editEmailSendCta: String = "Send verification",
-    val editEmailVerifyTitle: String = "Check your email",
-    val editEmailVerifyDescription: String = "We sent a verification link to %1\$s. Open it to confirm.",
-    val editEmailVerifyCta: String = "I've verified",
-    val editEmailChangeCta: String = "Change email",
-    val editEmailResendCta: String = "Resend email",
-    val editEmailResendCountdownLabel: @Composable (Int) -> String = { seconds ->
-        "Resend available in ${seconds.coerceAtLeast(0)}s"
-    },
     val saveCta: String = "Save",
     val deleteFarewellTitle: String = "We're sorry to see you go",
     val deleteFarewellBody: String = "Ok, hope we see you back soon.",
@@ -441,18 +432,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             editStatusDescription = stringResource(Res.string.account_edit_status_description),
             editEmailTitle = stringResource(Res.string.account_edit_email_title),
             editEmailDescription = stringResource(Res.string.account_edit_email_description),
-            editEmailSendCta = stringResource(Res.string.account_edit_email_send_cta),
-            editEmailVerifyTitle = stringResource(Res.string.account_edit_email_verify_title),
-            editEmailVerifyDescription = stringResource(Res.string.account_edit_email_verify_description),
-            editEmailVerifyCta = stringResource(Res.string.account_edit_email_verify_cta),
-            editEmailChangeCta = stringResource(Res.string.account_edit_email_change_cta),
-            editEmailResendCta = stringResource(Res.string.account_edit_email_resend_cta),
-            editEmailResendCountdownLabel = { seconds ->
-                stringResource(
-                    Res.string.account_edit_email_resend_countdown_label,
-                    seconds.coerceAtLeast(0),
-                )
-            },
             saveCta = stringResource(Res.string.account_save_cta),
             deleteFarewellTitle = stringResource(Res.string.account_delete_farewell_title),
             deleteFarewellBody = stringResource(Res.string.account_delete_farewell_body),

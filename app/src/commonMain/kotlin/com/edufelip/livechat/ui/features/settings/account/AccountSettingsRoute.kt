@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -20,9 +19,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.domain.models.AccountUiState
-import com.edufelip.livechat.domain.models.EmailUpdateState
-import com.edufelip.livechat.domain.models.EmailVerificationSession
-import com.edufelip.livechat.domain.models.EmailVerificationStep
 import com.edufelip.livechat.domain.utils.phoneNumberFromE164
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -33,10 +29,8 @@ import com.edufelip.livechat.ui.features.conversations.detail.rememberConversati
 import com.edufelip.livechat.ui.features.conversations.detail.rememberPermissionViewModel
 import com.edufelip.livechat.ui.features.settings.account.components.AccountDeleteBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountEditBottomSheet
-import com.edufelip.livechat.ui.features.settings.account.components.AccountEmailBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.AccountPhotoBottomSheet
 import com.edufelip.livechat.ui.features.settings.account.components.DeleteBottomSheetStep
-import com.edufelip.livechat.ui.features.settings.account.components.EmailBottomSheetStep
 import com.edufelip.livechat.ui.platform.openAppSettings
 import com.edufelip.livechat.ui.platform.rememberPlatformContext
 import com.edufelip.livechat.ui.resources.LiveChatStrings
@@ -47,9 +41,8 @@ import com.edufelip.livechat.ui.state.rememberAccountPresenter
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 @Composable
 fun AccountSettingsRoute(
@@ -108,15 +101,9 @@ fun AccountSettingsRoute(
             is MediaResult.Error -> permissionViewModel.onError(result.message ?: errorFallback)
         }
     }
-    val emailVerificationSession = state.emailVerificationSession
-
     var activeEdit by remember { mutableStateOf(EditField.None) }
     var editValue by remember { mutableStateOf("") }
-    var emailValue by remember { mutableStateOf("") }
     var photoSheetRequested by remember { mutableStateOf(false) }
-    var emailStepOverride by remember { mutableStateOf<EmailBottomSheetStep?>(null) }
-    var emailSheetRequested by remember { mutableStateOf(false) }
-    var emailSheetUserInitiated by remember { mutableStateOf(false) }
     var deleteStep by remember { mutableStateOf<DeleteBottomSheetStep?>(null) }
     var deleteCountdown by remember { mutableStateOf(DELETE_COUNTDOWN_SECONDS) }
     var otpCode by remember { mutableStateOf("") }
@@ -125,7 +112,6 @@ fun AccountSettingsRoute(
     var pendingEditSave by remember { mutableStateOf(false) }
     var pendingEditField by remember { mutableStateOf<EditField?>(null) }
     var pendingEditValue by remember { mutableStateOf("") }
-    var emailResendCountdown by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(state.errorMessage) {
         showErrorDialog = state.errorMessage != null
@@ -136,59 +122,6 @@ fun AccountSettingsRoute(
             when (event) {
                 PermissionEvent.OpenSettings -> openAppSettings()
             }
-        }
-    }
-
-    LaunchedEffect(emailVerificationSession) {
-        if (emailVerificationSession == null) {
-            emailResendCountdown = 0
-            return@LaunchedEffect
-        }
-        while (true) {
-            val remaining = remainingResendSeconds(emailVerificationSession)
-            emailResendCountdown = remaining
-            if (remaining <= 0) return@LaunchedEffect
-            delay(1_000)
-        }
-    }
-
-    LaunchedEffect(activeEdit) {
-        if (activeEdit == EditField.Email || activeEdit == EditField.None) {
-            presenter.clearEmailUpdateState()
-        }
-    }
-
-    LaunchedEffect(activeEdit, emailSheetRequested) {
-        if (activeEdit == EditField.Email && !emailSheetRequested) {
-            activeEdit = EditField.None
-        }
-    }
-
-    LaunchedEffect(emailSheetRequested, emailSheetUserInitiated) {
-        if (emailSheetRequested && !emailSheetUserInitiated) {
-            emailSheetRequested = false
-            activeEdit = EditField.None
-        }
-    }
-
-    LaunchedEffect(emailVerificationSession) {
-        if (emailVerificationSession != null) {
-            emailValue = emailVerificationSession.email
-            emailStepOverride = null
-        } else {
-            emailStepOverride = null
-        }
-    }
-
-    LaunchedEffect(state.emailUpdateState) {
-        when (val emailState = state.emailUpdateState) {
-            is EmailUpdateState.Verified -> {
-                emailSheetRequested = false
-                emailSheetUserInitiated = false
-                activeEdit = EditField.None
-                presenter.clearEmailUpdateState()
-            }
-            else -> Unit
         }
     }
 
@@ -341,7 +274,7 @@ fun AccountSettingsRoute(
         }
     }
 
-    if (activeEdit == EditField.DisplayName || activeEdit == EditField.StatusMessage) {
+    if (activeEdit != EditField.None) {
         AccountEditBottomSheet(
             title = activeEdit.title(strings),
             description = activeEdit.description(strings),
@@ -363,9 +296,8 @@ fun AccountSettingsRoute(
                 when (activeEdit) {
                     EditField.DisplayName -> presenter.updateDisplayName(trimmedValue)
                     EditField.StatusMessage -> presenter.updateStatusMessage(trimmedValue)
-                    EditField.Email,
-                    EditField.None,
-                    -> Unit
+                    EditField.Email -> presenter.updateEmail(trimmedValue)
+                    EditField.None -> Unit
                 }
             },
             confirmEnabled = activeEdit.canSave(editValue),
@@ -407,54 +339,6 @@ fun AccountSettingsRoute(
             },
             onDismiss = { photoSheetRequested = false },
             isProcessing = state.isUpdating,
-        )
-    }
-
-    val emailStep =
-        emailStepOverride
-            ?: emailVerificationSession?.toBottomSheetStep()
-            ?: EmailBottomSheetStep.Entry
-
-    if (activeEdit == EditField.Email && emailSheetRequested) {
-        val verifyDescription =
-            formatTemplate(strings.account.editEmailVerifyDescription, emailValue)
-        AccountEmailBottomSheet(
-            step = emailStep,
-            title = strings.account.editEmailTitle,
-            description = strings.account.editEmailDescription,
-            verifyTitle = strings.account.editEmailVerifyTitle,
-            verifyDescription = verifyDescription,
-            email = emailValue,
-            placeholder = strings.account.emailLabel,
-            sendLabel = strings.account.editEmailSendCta,
-            verifyLabel = strings.account.editEmailVerifyCta,
-            changeLabel = strings.account.editEmailChangeCta,
-            resendLabel = strings.account.editEmailResendCta,
-            resendCountdownLabel = strings.account.editEmailResendCountdownLabel,
-            onEmailChange = { emailValue = it },
-            onSendVerification = {
-                presenter.sendEmailVerification(emailValue)
-            },
-            onConfirmVerified = { presenter.confirmEmailUpdate(emailValue) },
-            onChangeEmail = {
-                emailStepOverride = EmailBottomSheetStep.Entry
-                presenter.clearEmailVerificationSession()
-            },
-            onResend = {
-                if (emailResendCountdown <= 0) {
-                    presenter.sendEmailVerification(emailValue)
-                }
-            },
-            onDismiss = {
-                emailSheetRequested = false
-                emailSheetUserInitiated = false
-                activeEdit = EditField.None
-                presenter.clearEmailUpdateState()
-            },
-            isLoading = state.isUpdating,
-            confirmEnabled = emailValue.trim().isNotEmpty(),
-            keyboardOptions = EditField.Email.keyboardOptions(),
-            resendCountdown = emailResendCountdown,
         )
     }
 
@@ -559,16 +443,10 @@ fun AccountSettingsRoute(
         },
         onEditEmail = {
             if (allowEdits) {
-                val session = state.emailVerificationSession
-                if (session != null) {
-                    emailValue = session.email
-                    emailStepOverride = null
-                } else {
-                    emailValue = state.profile?.email.orEmpty()
-                    emailStepOverride = EmailBottomSheetStep.Entry
-                }
-                emailSheetUserInitiated = true
-                emailSheetRequested = true
+                pendingEditSave = false
+                pendingEditField = null
+                pendingEditValue = ""
+                editValue = state.profile?.email.orEmpty()
                 activeEdit = EditField.Email
             }
         },
@@ -653,20 +531,6 @@ private fun formatCountdown(
 ): String {
     val value = seconds.toString()
     return template.replace("%1\$d", value).replace("%d", value)
-}
-
-private fun EmailVerificationSession.toBottomSheetStep(): EmailBottomSheetStep =
-    when (step) {
-        EmailVerificationStep.Entry -> EmailBottomSheetStep.Entry
-        EmailVerificationStep.AwaitVerification -> EmailBottomSheetStep.AwaitVerification
-    }
-
-@OptIn(ExperimentalTime::class)
-private fun remainingResendSeconds(session: EmailVerificationSession): Int {
-    val remainingMillis =
-        session.resendAvailableAtEpochMillis - Clock.System.now().toEpochMilliseconds()
-    if (remainingMillis <= 0) return 0
-    return (remainingMillis / 1_000L).toInt().coerceAtLeast(0)
 }
 
 private fun PhoneAuthError.toMessage(strings: OnboardingStrings): String =

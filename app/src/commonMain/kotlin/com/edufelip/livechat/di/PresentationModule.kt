@@ -48,14 +48,8 @@ val presentationModule: Module =
                 updateDisplayName = get(),
                 updateStatusMessage = get(),
                 updateEmail = get(),
-                updatePhoto = get(),
-                sendEmailVerification = get(),
-                getEmailVerificationSessionUseCase = get(),
-                saveEmailVerificationSessionUseCase = get(),
-                clearEmailVerificationSessionUseCase = get(),
-                checkEmailUpdated = get(),
+                updatePhotoUseCase = get(),
                 deleteAccount = get(),
-                sessionProvider = get<UserSessionProvider>(),
                 scope = MainScope(),
             )
         }
