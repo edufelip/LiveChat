@@ -39,7 +39,7 @@ class SettingsRouteTest {
         val backLabel = "Back"
 
         composeRule.setContent {
-            LiveChatTheme(reduceMotion = true) {
+            LiveChatTheme {
                 val strings = liveChatStrings()
                 val settingsStrings = strings.settings
                 val accountTitleLocal = settingsStrings.accountTitle

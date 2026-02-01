@@ -85,7 +85,7 @@ class FuzzyMatcherTest {
         assertTrue(FuzzyMatcher.matches("appearence", "appearance"))
         assertTrue(FuzzyMatcher.matches("accout", "account"))
         assertTrue(FuzzyMatcher.matches("privicy", "privacy"))
-        assertTrue(FuzzyMatcher.matches("vibration", "vibration"))
+        assertTrue(FuzzyMatcher.matches("contacts", "contacts"))
     }
 
     @Test
