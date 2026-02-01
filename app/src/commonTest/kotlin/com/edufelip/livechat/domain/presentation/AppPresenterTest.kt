@@ -13,13 +13,16 @@ import com.edufelip.livechat.domain.repositories.IContactsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.repositories.IOnboardingStatusRepository
 import com.edufelip.livechat.domain.repositories.IPresenceRepository
+import com.edufelip.livechat.domain.repositories.IRemoteConfigRepository
 import com.edufelip.livechat.domain.useCases.GetLocalContactsSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetOnboardingStatusSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.GetWelcomeSeenSnapshotUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationSummariesUseCase
 import com.edufelip.livechat.domain.useCases.ObserveConversationUseCase
 import com.edufelip.livechat.domain.useCases.ObserveOnboardingStatusUseCase
+import com.edufelip.livechat.domain.useCases.ObservePrivacyPolicyUrlUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
+import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.SetOnboardingCompleteUseCase
 import com.edufelip.livechat.domain.useCases.SetWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
@@ -191,6 +194,7 @@ class AppPresenterTest {
     ) = AppPresenter(
         observeOnboardingStatus = ObserveOnboardingStatusUseCase(repository),
         observeWelcomeSeen = ObserveWelcomeSeenUseCase(repository),
+        observePrivacyPolicyUrl = ObservePrivacyPolicyUrlUseCase(FakeRemoteConfigRepository()),
         observeConversationUseCase = ObserveConversationUseCase(FakeMessagesRepository()),
         observeConversationSummaries = ObserveConversationSummariesUseCase(FakeMessagesRepository()),
         setOnboardingComplete = SetOnboardingCompleteUseCase(repository),
@@ -198,6 +202,7 @@ class AppPresenterTest {
         getOnboardingStatusSnapshot = GetOnboardingStatusSnapshotUseCase(repository),
         getWelcomeSeenSnapshot = GetWelcomeSeenSnapshotUseCase(repository),
         getLocalContactsSnapshot = GetLocalContactsSnapshotUseCase(FakeContactsRepository()),
+        refreshRemoteConfig = RefreshRemoteConfigUseCase(FakeRemoteConfigRepository()),
         updateSelfPresence = UpdateSelfPresenceUseCase(FakePresenceRepository()),
         sessionProvider = FakeUserSessionProvider(),
         scope = scope,
@@ -311,5 +316,14 @@ class AppPresenterTest {
         override fun currentUserId(): String? = "test-user-id"
 
         override fun currentUserPhone(): String? = "+1234567890"
+    }
+
+    private class FakeRemoteConfigRepository : IRemoteConfigRepository {
+        private val privacyPolicyUrl = MutableStateFlow("")
+
+        override fun observePrivacyPolicyUrl(): Flow<String> = privacyPolicyUrl
+
+        override suspend fun refresh() {
+        }
     }
 }

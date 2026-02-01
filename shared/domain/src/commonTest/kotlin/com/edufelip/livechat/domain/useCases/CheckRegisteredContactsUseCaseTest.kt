@@ -111,6 +111,39 @@ class CheckRegisteredContactsUseCaseTest {
             )
         }
 
+    @Test
+    fun doesNotMarkUnregisteredWhenValidationFails() =
+        runTest {
+            val repository = FakeContactsRepository()
+            val formatter = DefaultPhoneNumberFormatter()
+            val useCase =
+                CheckRegisteredContactsUseCase(
+                    buildContactSyncPlan = BuildContactSyncPlanUseCase(formatter),
+                    applyContactSyncPlan = ApplyContactSyncPlanUseCase(repository),
+                    validateContactsUseCase = ValidateContactsUseCase(repository, phoneNumberFormatter = formatter),
+                )
+
+            val alice = contact(id = 0, name = "Alice", phone = "+1")
+            val bob = contact(id = 0, name = "Bob", phone = "+2")
+            val phoneContacts = listOf(alice, bob)
+
+            repository.remoteFlowFactory =
+                {
+                    flow {
+                        emit(alice.copy(isRegistered = true, firebaseUid = "uid-alice"))
+                        throw IllegalStateException("validation failure")
+                    }
+                }
+
+            runCatching {
+                useCase(phoneContacts, emptyList()).toList(mutableListOf())
+            }
+
+            val updated = repository.updatedContacts.flatten()
+            assertTrue(updated.any { it.phoneNo == "+1" && it.isRegistered })
+            assertTrue(updated.none { it.phoneNo == "+2" && !it.isRegistered })
+        }
+
     private class FakeContactsRepository : IContactsRepository {
         val localContactsFlow = MutableStateFlow<List<Contact>>(emptyList())
         val removedContacts = mutableListOf<List<Contact>>()
