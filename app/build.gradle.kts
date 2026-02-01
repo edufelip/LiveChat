@@ -31,18 +31,18 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material3)
-                implementation(compose.material)
-                implementation(compose.animation)
-                implementation(compose.materialIconsExtended)
-                implementation(compose.components.resources)
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.material)
+                implementation(libs.compose.animation)
+                implementation(libs.compose.material.icons.extended)
+                implementation(libs.compose.components.resources)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.koin.core)
                 implementation(libs.kotlinx.datetime)
                 api(project(":shared:data"))
-                implementation(compose.components.uiToolingPreview)
+                implementation(libs.compose.ui.tooling.preview)
             }
         }
         val commonTest by getting {
@@ -57,6 +57,7 @@ kotlin {
                 implementation(libs.androidx.browser)
                 implementation(libs.firebase.analytics)
                 implementation(libs.firebase.messaging)
+                implementation(libs.navigationevent.compose)
             }
         }
         val iosX64Main by getting
@@ -165,7 +166,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.uiautomator)
-    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 

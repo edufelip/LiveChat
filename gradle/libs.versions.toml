@@ -1,37 +1,40 @@
 [versions]
-gradle = "8.13.0"
+gradle = "8.13.2"
 google-services = "4.4.4"
-androidx-activity-compose = "1.11.0"
-androidx-browser = "1.8.0"
+androidx-activity-compose = "1.12.0"
+androidx-browser = "1.9.0"
 coroutines = "1.10.2"
-ktor = "3.3.1"
-kotlin = "2.2.20"
+ktor = "3.4.0"
+kotlin = "2.3.0"
 material = "1.13.0"
 koin = "4.1.1"
-room = "2.8.3"
-sqlite = "2.6.1"
-ksp = "2.2.20-2.0.4"
-firebase= "34.4.0"
-firebase-kotlin = "1.13.0"
+room = "2.8.4"
+sqlite = "2.6.2"
+ksp = "2.3.0"
+firebase= "34.8.0"
+firebase-kotlin = "2.4.0"
 firebase-auth-android = "24.0.1"
 firebase-common-android = "22.0.1"
-firebase-firestore-android = "26.0.2"
-firebase-functions-android = "22.0.1"
+firebase-firestore-android = "26.1.0"
+firebase-functions-android = "22.1.0"
 firebase-storage-android = "22.0.1"
-firebase-analytics-android = "22.5.0"
-firebase-messaging-android = "24.0.1"
+firebase-analytics-android = "23.0.0"
+firebase-messaging-android = "25.0.1"
 firebase-config-android = "23.0.1"
-libphonenumber = "9.0.17"
+libphonenumber = "9.0.22"
 kotlinDateTime = "0.7.1"
 compose-multiplatform = "1.10.0"
 compose-hot-reload = "1.0.0"
-spotless = "6.25.0"
-kotlinx-serialization = "1.7.3"
-androidxTestCore = "1.5.0"
-androidxTestExtJunit = "1.1.5"
-androidxTestUiautomator = "2.2.0"
-robolectric = "4.12.2"
-composeUi = "1.9.3"
+compose-material3 = "1.10.0-alpha05"
+compose-material-icons-extended = "1.7.3"
+navigationevent = "1.0.1"
+spotless = "7.2.1"
+kotlinx-serialization = "1.9.0"
+androidxTestCore = "1.6.1"
+androidxTestExtJunit = "1.3.0"
+androidxTestUiautomator = "2.3.0"
+robolectric = "4.16.1"
+composeUi = "1.10.1"
 
 # @keep
 minSdk = "24"
@@ -46,6 +49,17 @@ androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUi" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUi" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "androidx-browser" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
+compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-multiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
+compose-animation = { module = "org.jetbrains.compose.animation:animation", version.ref = "compose-multiplatform" }
+compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "compose-material-icons-extended" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
+navigationevent-compose = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "navigationevent" }
 libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 google-android-material = { module = "com.google.android.material:material", version.ref = "material" }
 google-services = { module = "com.google.gms:google-services", version.ref = "google-services" }
@@ -90,7 +104,7 @@ firebase-auth-kt = { module = "dev.gitlive:firebase-auth", version.ref = "fireba
 firebase-firestore-kt = { module = "dev.gitlive:firebase-firestore", version.ref = "firebase-kotlin" }
 firebase-functions-kt = { module = "dev.gitlive:firebase-functions", version.ref = "firebase-kotlin" }
 firebase-storage-kt = { module = "dev.gitlive:firebase-storage", version.ref = "firebase-kotlin" }
-firebase-storage-android = { module = "com.google.firebase:firebase-storage-ktx", version = "21.0.1" }
+firebase-storage-android = { module = "com.google.firebase:firebase-storage-ktx", version = "22.0.1" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
