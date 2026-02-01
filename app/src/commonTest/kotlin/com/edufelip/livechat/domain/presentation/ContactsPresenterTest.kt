@@ -104,8 +104,7 @@ class ContactsPresenterTest {
                         .filter { current ->
                             current.validatedContacts.any { it.phoneNo == "+3" && it.isRegistered } &&
                                 current.isSyncing.not()
-                        }
-                        .first()
+                        }.first()
                 assertTrue(
                     state.validatedContacts.any { it.phoneNo == "+3" && it.isRegistered },
                     "Expected validated contact for +3 but found ${state.validatedContacts}",

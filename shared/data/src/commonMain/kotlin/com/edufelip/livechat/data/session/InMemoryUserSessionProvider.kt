@@ -18,9 +18,7 @@ class InMemoryUserSessionProvider(
     override val session: Flow<UserSession?>
         get() = sessionState.asStateFlow()
 
-    override suspend fun refreshSession(forceRefresh: Boolean): UserSession? {
-        return sessionState.value
-    }
+    override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = sessionState.value
 
     override fun currentUserId(): String? = sessionState.value?.userId
 

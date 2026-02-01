@@ -39,8 +39,7 @@ class AccountPresenter(
                     mutableState.update {
                         it.copy(isLoading = false, errorMessage = throwable.message ?: "Failed to load account")
                     }
-                }
-                .collectLatest { profile ->
+                }.collectLatest { profile ->
                     mutableState.update {
                         it.copy(isLoading = false, profile = profile, errorMessage = null)
                     }
@@ -87,8 +86,7 @@ class AccountPresenter(
                             profile = state.profile?.copy(photoUrl = photoUrl),
                         )
                     }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     mutableState.update {
                         it.copy(
                             isUpdating = false,
@@ -105,8 +103,7 @@ class AccountPresenter(
             runCatching { deleteAccount() }
                 .onSuccess {
                     mutableState.update { it.copy(isDeleting = false, isDeleted = true) }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     val requiresReauth = throwable is com.edufelip.livechat.domain.errors.RecentLoginRequiredException
                     mutableState.update {
                         it.copy(
@@ -154,8 +151,7 @@ class AccountPresenter(
                             profile = state.profile?.let(localUpdate),
                         )
                     }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     mutableState.update {
                         it.copy(
                             isUpdating = false,

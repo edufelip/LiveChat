@@ -20,13 +20,13 @@ class ValidateContactsUseCase(
         if (needsValidation.isEmpty()) return emptyFlow()
 
         val validatedNumbers = mutableSetOf<String>()
-        return repository.checkRegisteredContacts(needsValidation)
+        return repository
+            .checkRegisteredContacts(needsValidation)
             .onEach { validated ->
                 val registered = validated.copy(isRegistered = true)
                 validatedNumbers.add(phoneNumberFormatter.normalize(registered.phoneNo))
                 repository.updateContacts(listOf(registered))
-            }
-            .onCompletion { cause ->
+            }.onCompletion { cause ->
                 if (cause != null) return@onCompletion
                 val toMarkUnregistered =
                     needsValidation
@@ -35,7 +35,6 @@ class ValidateContactsUseCase(
                 if (toMarkUnregistered.isNotEmpty()) {
                     repository.updateContacts(toMarkUnregistered)
                 }
-            }
-            .flowOn(dispatcher)
+            }.flowOn(dispatcher)
     }
 }

@@ -61,13 +61,13 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.app.AppIcons
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun CallsScreen(modifier: Modifier = Modifier) {

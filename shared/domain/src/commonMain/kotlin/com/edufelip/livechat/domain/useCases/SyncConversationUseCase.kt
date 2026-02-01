@@ -9,7 +9,5 @@ class SyncConversationUseCase(
     suspend operator fun invoke(
         conversationId: String,
         sinceEpochMillis: Long?,
-    ): List<Message> {
-        return messagesRepository.syncConversation(conversationId, sinceEpochMillis)
-    }
+    ): List<Message> = messagesRepository.syncConversation(conversationId, sinceEpochMillis)
 }

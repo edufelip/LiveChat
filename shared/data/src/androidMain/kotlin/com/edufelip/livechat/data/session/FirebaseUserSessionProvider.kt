@@ -48,9 +48,8 @@ class FirebaseUserSessionProvider(
     override val session: Flow<UserSession?>
         get() = state.asStateFlow()
 
-    override suspend fun refreshSession(forceRefresh: Boolean): UserSession? {
-        return updateFromFirebaseUser(firebaseAuth.currentUser, forceRefresh)
-    }
+    override suspend fun refreshSession(forceRefresh: Boolean): UserSession? =
+        updateFromFirebaseUser(firebaseAuth.currentUser, forceRefresh)
 
     override fun currentUserId(): String? = state.value?.userId
 
@@ -86,8 +85,8 @@ class FirebaseUserSessionProvider(
     private suspend fun fetchIdToken(
         user: FirebaseUser,
         forceRefresh: Boolean,
-    ): GetTokenResult? {
-        return suspendCancellableCoroutine { continuation ->
+    ): GetTokenResult? =
+        suspendCancellableCoroutine { continuation ->
             val task = user.getIdToken(forceRefresh)
             task.addOnSuccessListener { result ->
                 continuation.resume(result)
@@ -103,5 +102,4 @@ class FirebaseUserSessionProvider(
                 }
             }
         }
-    }
 }

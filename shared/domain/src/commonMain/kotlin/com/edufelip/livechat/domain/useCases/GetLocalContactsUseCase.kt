@@ -7,7 +7,5 @@ import kotlinx.coroutines.flow.Flow
 class GetLocalContactsUseCase(
     private val repository: IContactsRepository,
 ) {
-    operator fun invoke(): Flow<List<Contact>> {
-        return repository.getLocalContacts()
-    }
+    operator fun invoke(): Flow<List<Contact>> = repository.getLocalContacts()
 }

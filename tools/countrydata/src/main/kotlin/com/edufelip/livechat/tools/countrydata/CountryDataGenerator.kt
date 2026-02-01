@@ -17,20 +17,21 @@ fun main() {
     val locales = Locale.getISOCountries().toList()
 
     val records =
-        locales.mapNotNull { isoCode ->
-            val uppercaseIso = isoCode.uppercase(Locale.ROOT)
-            val dial = util.getCountryCodeForRegion(uppercaseIso)
-            if (dial == 0) return@mapNotNull null
+        locales
+            .mapNotNull { isoCode ->
+                val uppercaseIso = isoCode.uppercase(Locale.ROOT)
+                val dial = util.getCountryCodeForRegion(uppercaseIso)
+                if (dial == 0) return@mapNotNull null
 
-            val locale = Locale("", uppercaseIso)
-            val displayName = locale.getDisplayCountry(Locale.ENGLISH).ifBlank { uppercaseIso }
-            CountryRecord(
-                isoCode = uppercaseIso,
-                name = displayName,
-                dialCode = "+$dial",
-                flag = uppercaseIso.toFlagEmoji(),
-            )
-        }.distinctBy { it.isoCode }
+                val locale = Locale("", uppercaseIso)
+                val displayName = locale.getDisplayCountry(Locale.ENGLISH).ifBlank { uppercaseIso }
+                CountryRecord(
+                    isoCode = uppercaseIso,
+                    name = displayName,
+                    dialCode = "+$dial",
+                    flag = uppercaseIso.toFlagEmoji(),
+                )
+            }.distinctBy { it.isoCode }
             .sortedWith(compareBy(Collator.getInstance(Locale.ENGLISH), CountryRecord::name))
 
     val outputDir =

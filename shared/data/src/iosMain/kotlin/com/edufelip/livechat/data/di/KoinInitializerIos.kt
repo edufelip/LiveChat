@@ -24,10 +24,9 @@ fun startKoinForiOS(
     httpClient: HttpClient = defaultHttpClient(),
     backendModules: List<Module>? = null,
     extraModules: List<Module> = emptyList(),
-): KoinApplication {
-    return initSharedKoin(
+): KoinApplication =
+    initSharedKoin(
         platformModules = listOf(iosPlatformModule(config, bridgeBundle, httpClient)),
         backendModules = backendModules ?: listOf(firebaseBackendModule),
         extraModules = extraModules,
     )
-}

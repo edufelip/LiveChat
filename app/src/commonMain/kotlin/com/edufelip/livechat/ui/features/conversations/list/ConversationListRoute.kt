@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
@@ -18,7 +19,6 @@ import com.edufelip.livechat.ui.features.conversations.list.screens.Conversation
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberConversationListPresenter
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ConversationListRoute(

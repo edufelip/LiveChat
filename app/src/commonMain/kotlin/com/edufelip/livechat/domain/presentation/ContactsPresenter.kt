@@ -49,8 +49,7 @@ class ContactsPresenter(
             getLocalContactsUseCase()
                 .catch { throwable ->
                     updateState { it.copy(isLoading = false, errorMessage = throwable.message) }
-                }
-                .collectLatest { contacts ->
+                }.collectLatest { contacts ->
                     updateState { state ->
                         state.copy(
                             localContacts = contacts,
@@ -92,8 +91,7 @@ class ContactsPresenter(
                     .catch { throwable ->
                         hadError = true
                         updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
-                    }
-                    .collect { contact ->
+                    }.collect { contact ->
                         updateState { state ->
                             val updated =
                                 (state.validatedContacts + contact).distinctBy {
@@ -182,7 +180,13 @@ class ContactsPresenter(
 }
 
 sealed interface ContactsEvent {
-    data class ShareInvite(val contact: Contact, val message: String) : ContactsEvent
+    data class ShareInvite(
+        val contact: Contact,
+        val message: String,
+    ) : ContactsEvent
 
-    data class OpenConversation(val contact: Contact, val conversationId: String) : ContactsEvent
+    data class OpenConversation(
+        val contact: Contact,
+        val conversationId: String,
+    ) : ContactsEvent
 }

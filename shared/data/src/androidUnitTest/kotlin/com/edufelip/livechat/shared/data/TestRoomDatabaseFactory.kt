@@ -10,11 +10,11 @@ import java.io.File
 fun createTestDatabase(): LiveChatDatabase {
     val context: Context = ApplicationProvider.getApplicationContext()
     val dbFile = File.createTempFile("livechat-test", ".db")
-    return Room.databaseBuilder<LiveChatDatabase>(
-        context = context,
-        name = dbFile.absolutePath,
-    )
-        .setQueryCoroutineContext(Dispatchers.Default)
+    return Room
+        .databaseBuilder<LiveChatDatabase>(
+            context = context,
+            name = dbFile.absolutePath,
+        ).setQueryCoroutineContext(Dispatchers.Default)
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 }

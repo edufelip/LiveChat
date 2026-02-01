@@ -185,9 +185,10 @@ class AppPresenter(
                 // Clean up old message IDs to prevent memory leak (keep max 1000)
                 if (notifiedMessageIds.size > 1000) {
                     val currentMessageIds =
-                        messages.mapNotNull {
-                            it.id.takeIf { it.isNotBlank() } ?: it.localTempId
-                        }.toSet()
+                        messages
+                            .mapNotNull {
+                                it.id.takeIf { it.isNotBlank() } ?: it.localTempId
+                            }.toSet()
                     notifiedMessageIds.retainAll(currentMessageIds)
                 }
             }

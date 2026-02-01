@@ -15,7 +15,11 @@ sealed class PhoneAuthError {
 
     data object ResendNotAvailable : PhoneAuthError()
 
-    data class Configuration(val message: String?) : PhoneAuthError()
+    data class Configuration(
+        val message: String?,
+    ) : PhoneAuthError()
 
-    data class Unknown(val message: String?) : PhoneAuthError()
+    data class Unknown(
+        val message: String?,
+    ) : PhoneAuthError()
 }

@@ -25,9 +25,7 @@ data class SettingsHighlightState(
      * @param itemId The ID of the item to check
      * @return true if this item should be highlighted, false otherwise
      */
-    fun shouldHighlight(itemId: String): Boolean {
-        return isHighlighted && targetItemId == itemId
-    }
+    fun shouldHighlight(itemId: String): Boolean = isHighlighted && targetItemId == itemId
 
     companion object {
         /**

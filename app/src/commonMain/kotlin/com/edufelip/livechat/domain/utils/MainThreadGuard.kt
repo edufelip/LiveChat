@@ -2,7 +2,9 @@ package com.edufelip.livechat.domain.utils
 
 internal expect fun isMainThread(): Boolean
 
-internal expect class AtomicFlag(initial: Boolean) {
+internal expect class AtomicFlag(
+    initial: Boolean,
+) {
     fun get(): Boolean
 
     fun set(value: Boolean)

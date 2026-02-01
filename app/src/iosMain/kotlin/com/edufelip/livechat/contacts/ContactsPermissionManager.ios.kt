@@ -45,30 +45,26 @@ private class IosContactsPermissionManager : ContactsPermissionManager {
 
     override fun status(): PermissionState = currentState
 
-    private fun authorizationStatusToState(): PermissionState {
-        return when (CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)) {
+    private fun authorizationStatusToState(): PermissionState =
+        when (CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)) {
             CNAuthorizationStatusAuthorized -> PermissionState.Granted
             CNAuthorizationStatusDenied, CNAuthorizationStatusRestricted -> PermissionState.Denied
             CNAuthorizationStatusNotDetermined -> PermissionState.Denied
             else -> PermissionState.Denied
         }
-    }
 
-    private suspend fun requestAccess(): Boolean {
-        return suspendCancellableCoroutine { continuation ->
+    private suspend fun requestAccess(): Boolean =
+        suspendCancellableCoroutine { continuation ->
             store.requestAccessForEntityType(CNEntityType.CNEntityTypeContacts) { granted, _ ->
                 if (continuation.isActive) {
                     continuation.resume(granted)
                 }
             }
         }
-    }
 }
 
 @Composable
-actual fun rememberContactsPermissionManager(): ContactsPermissionManager {
-    return remember { IosContactsPermissionManager() }
-}
+actual fun rememberContactsPermissionManager(): ContactsPermissionManager = remember { IosContactsPermissionManager() }
 
 private fun isContactsUiTestFlowEnabled(): Boolean {
     val environment = NSProcessInfo.processInfo.environment

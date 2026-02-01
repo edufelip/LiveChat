@@ -45,6 +45,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
@@ -55,7 +56,6 @@ import com.edufelip.livechat.ui.platform.openWebViewUrl
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun WelcomeScreen(
@@ -171,14 +171,16 @@ internal fun WelcomeScreen(
                 text = termsAnnotated,
                 modifier = Modifier.fillMaxWidth(),
                 onClick = { offset ->
-                    termsAnnotated.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                    termsAnnotated
+                        .getStringAnnotations(tag = "terms", start = offset, end = offset)
                         .firstOrNull()
                         ?.let {
                             if (strings.welcomeTermsUrl.isNotBlank()) {
                                 openWebViewUrl(strings.welcomeTermsUrl)
                             }
                         }
-                    termsAnnotated.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                    termsAnnotated
+                        .getStringAnnotations(tag = "privacy", start = offset, end = offset)
                         .firstOrNull()
                         ?.let {
                             if (strings.welcomePrivacyUrl.isNotBlank()) {

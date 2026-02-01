@@ -39,8 +39,7 @@ class AppearanceSettingsPresenter(
                             errorMessage = throwable.message ?: "Failed to load appearance settings",
                         )
                     }
-                }
-                .collectLatest { settings ->
+                }.collectLatest { settings ->
                     mutableState.update {
                         it.copy(isLoading = false, settings = settings, errorMessage = null)
                     }
@@ -92,8 +91,7 @@ class AppearanceSettingsPresenter(
                             settings = localUpdate(state.settings),
                         )
                     }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     mutableState.update {
                         it.copy(
                             isUpdating = false,

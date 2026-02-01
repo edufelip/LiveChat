@@ -22,11 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun NotificationSettingsHeader(

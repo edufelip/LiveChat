@@ -9,12 +9,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.resources.liveChatStrings
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun rememberLazyListStateWithAutoscroll(messages: List<Message>): LazyListState {

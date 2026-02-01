@@ -101,11 +101,10 @@ private fun firebaseRestConfig(
         )
     }
 
-private fun ensureFirebaseApp(context: Context): FirebaseApp {
-    return FirebaseApp.getApps(context).firstOrNull()
+private fun ensureFirebaseApp(context: Context): FirebaseApp =
+    FirebaseApp.getApps(context).firstOrNull()
         ?: FirebaseApp.initializeApp(context)
         ?: error("FirebaseApp could not be initialized. Ensure google-services.json is present.")
-}
 
 private fun Context.defaultRegionIso(): String? {
     val telephony = getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager

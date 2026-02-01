@@ -61,7 +61,8 @@ actual fun PlatformBackGestureHandler(
 
 private class EdgePanHandler(
     private val onBack: () -> Unit,
-) : NSObject(), UIGestureRecognizerDelegateProtocol {
+) : NSObject(),
+    UIGestureRecognizerDelegateProtocol {
     @OptIn(ExperimentalForeignApi::class)
     @ObjCAction
     fun handleEdgePan(recognizer: UIScreenEdgePanGestureRecognizer) {

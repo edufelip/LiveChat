@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.AppDestination
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.AppearanceSettings
@@ -51,7 +52,6 @@ import com.edufelip.livechat.ui.theme.LiveChatTheme
 import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

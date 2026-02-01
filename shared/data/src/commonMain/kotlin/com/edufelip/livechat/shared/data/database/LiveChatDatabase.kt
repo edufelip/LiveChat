@@ -37,7 +37,8 @@ abstract class LiveChatDatabase : RoomDatabase() {
 expect object LiveChatDatabaseConstructor : RoomDatabaseConstructor<LiveChatDatabase>
 
 fun RoomDatabase.Builder<LiveChatDatabase>.configureDefaults(): RoomDatabase.Builder<LiveChatDatabase> =
-    this.setDriver(BundledSQLiteDriver())
+    this
+        .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
         .addMigrations(MIGRATION_3_4)
         .fallbackToDestructiveMigration(dropAllTables = false)

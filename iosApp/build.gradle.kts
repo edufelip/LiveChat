@@ -22,10 +22,14 @@ kotlin {
                 baseName = appName
                 entryPoint = "com.edufelip.livechat"
                 linkerOpts(
-                    "-framework", "UIKit",
-                    "-framework", "Metal",
-                    "-framework", "CoreText",
-                    "-framework", "CoreGraphics",
+                    "-framework",
+                    "UIKit",
+                    "-framework",
+                    "Metal",
+                    "-framework",
+                    "CoreText",
+                    "-framework",
+                    "CoreGraphics",
                     "-lsqlite3",
                 )
             }

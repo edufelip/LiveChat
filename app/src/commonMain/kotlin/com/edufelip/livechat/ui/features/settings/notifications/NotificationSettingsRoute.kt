@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
 import com.edufelip.livechat.notifications.NotificationPermissionState
@@ -26,7 +27,6 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberNotificationSettingsPresenter
 import kotlinx.coroutines.launch
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun NotificationSettingsRoute(

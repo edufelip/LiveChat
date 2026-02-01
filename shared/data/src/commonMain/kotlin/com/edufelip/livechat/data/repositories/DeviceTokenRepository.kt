@@ -49,8 +49,8 @@ class DeviceTokenRepository(
         }
     }
 
-    override suspend fun getDeviceTokens(): List<DeviceToken> {
-        return withContext(dispatcher) {
+    override suspend fun getDeviceTokens(): List<DeviceToken> =
+        withContext(dispatcher) {
             println("[FCM] DeviceTokenRepository.getDeviceTokens: fetching device tokens")
             val session = requireSession()
             val tokens =
@@ -61,7 +61,6 @@ class DeviceTokenRepository(
             println("[FCM] DeviceTokenRepository.getDeviceTokens: fetched ${tokens.size} tokens")
             tokens
         }
-    }
 
     override suspend fun cleanupInactiveTokens() {
         withContext(dispatcher) {

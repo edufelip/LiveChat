@@ -8,7 +8,9 @@ internal actual fun isMainThread(): Boolean {
     return Looper.myLooper() == mainLooper
 }
 
-internal actual class AtomicFlag actual constructor(initial: Boolean) {
+internal actual class AtomicFlag actual constructor(
+    initial: Boolean,
+) {
     private val atomic = AtomicBoolean(initial)
 
     actual fun get(): Boolean = atomic.get()

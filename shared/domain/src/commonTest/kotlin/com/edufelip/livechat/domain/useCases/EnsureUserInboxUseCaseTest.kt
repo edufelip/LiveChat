@@ -183,13 +183,12 @@ class EnsureUserInboxUseCaseTest {
         override suspend fun verifyCode(
             session: PhoneVerificationSession,
             code: String,
-        ): PhoneAuthResult {
-            return if (shouldFail) {
+        ): PhoneAuthResult =
+            if (shouldFail) {
                 PhoneAuthResult.Failure(com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError.InvalidVerificationCode)
             } else {
                 PhoneAuthResult.Success
             }
-        }
 
         override fun requestVerification(
             phoneNumber: com.edufelip.livechat.domain.auth.phone.model.PhoneNumber,

@@ -30,7 +30,8 @@ private class IosNotificationPermissionManager : NotificationPermissionManager {
         }
 
         return suspendCancellableCoroutine { continuation ->
-            UNUserNotificationCenter.currentNotificationCenter()
+            UNUserNotificationCenter
+                .currentNotificationCenter()
                 .requestAuthorizationWithOptions(
                     options =
                         UNAuthorizationOptionAlert or
@@ -54,9 +55,10 @@ private class IosNotificationPermissionManager : NotificationPermissionManager {
 
     override fun status(): NotificationPermissionState = currentState
 
-    private suspend fun fetchStatus(): NotificationPermissionState {
-        return suspendCancellableCoroutine { continuation ->
-            UNUserNotificationCenter.currentNotificationCenter()
+    private suspend fun fetchStatus(): NotificationPermissionState =
+        suspendCancellableCoroutine { continuation ->
+            UNUserNotificationCenter
+                .currentNotificationCenter()
                 .getNotificationSettingsWithCompletionHandler { settings ->
                     val status = settings?.authorizationStatus
                     val nextState =
@@ -76,10 +78,7 @@ private class IosNotificationPermissionManager : NotificationPermissionManager {
                     }
                 }
         }
-    }
 }
 
 @Composable
-actual fun rememberNotificationPermissionManager(): NotificationPermissionManager {
-    return remember { IosNotificationPermissionManager() }
-}
+actual fun rememberNotificationPermissionManager(): NotificationPermissionManager = remember { IosNotificationPermissionManager() }

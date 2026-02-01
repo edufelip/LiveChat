@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -47,7 +48,6 @@ import com.edufelip.livechat.ui.util.AvatarImageCache
 import com.edufelip.livechat.ui.util.loadAvatarImageBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun AccountSettingsHeader(
@@ -346,7 +346,12 @@ private fun AccountSettingsHeaderPreview() {
 private fun AccountProfileCardPreview() {
     val strings = liveChatStrings()
     val displayName = strings.account.displayNameMissing
-    val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+    val initials =
+        displayName
+            .firstOrNull()
+            ?.uppercaseChar()
+            ?.toString()
+            .orEmpty()
     LiveChatPreviewContainer {
         AccountProfileCard(
             displayName = displayName,

@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.Message
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import com.edufelip.livechat.preview.DevicePreviews
@@ -30,7 +31,6 @@ import com.edufelip.livechat.ui.state.rememberConversationPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ConversationDetailRoute(

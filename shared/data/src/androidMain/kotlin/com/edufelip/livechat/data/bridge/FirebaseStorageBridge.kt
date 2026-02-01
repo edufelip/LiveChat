@@ -12,7 +12,11 @@ class FirebaseStorageBridge(
     ): String {
         val ref = storage.reference.child(objectPath)
         val upload = ref.putBytes(bytes).await()
-        return upload.metadata?.reference?.downloadUrl?.await().toString()
+        return upload.metadata
+            ?.reference
+            ?.downloadUrl
+            ?.await()
+            .toString()
     }
 
     override suspend fun downloadBytes(

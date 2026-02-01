@@ -119,8 +119,7 @@ class ConversationPresenter(
                                 errorMessage = throwable.message ?: "Failed to observe conversation",
                             )
                         }
-                    }
-                    .collect { messages ->
+                    }.collect { messages ->
                         _state.update { state ->
                             state.copy(
                                 messages = messages,
@@ -140,8 +139,7 @@ class ConversationPresenter(
                         _state.update { state ->
                             state.copy(errorMessage = state.errorMessage ?: throwable.message)
                         }
-                    }
-                    .collectLatest { participant ->
+                    }.collectLatest { participant ->
                         val mutedUntil = participant?.muteUntil
                         val isMuted =
                             mutedUntil?.let { it > currentEpochMillis() } ?: false

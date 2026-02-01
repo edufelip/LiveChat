@@ -97,25 +97,25 @@ class FirebaseRestDeviceTokenRemoteData(
     override suspend fun getTokens(
         userId: String,
         idToken: String,
-    ): List<DeviceToken> {
-        return withContext(dispatcher) {
+    ): List<DeviceToken> =
+        withContext(dispatcher) {
             println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: fetching tokens for userId=$userId")
             ensureConfigured(idToken)
             val url = deviceTokensCollectionUrl(userId)
             println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: GET URL=$url")
             val response =
-                httpClient.get(url) {
-                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                    if (config.apiKey.isNotBlank()) {
-                        parameter("key", config.apiKey)
-                    }
-                }.body<ListDocumentsResponse>()
+                httpClient
+                    .get(url) {
+                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                        if (config.apiKey.isNotBlank()) {
+                            parameter("key", config.apiKey)
+                        }
+                    }.body<ListDocumentsResponse>()
 
             val tokens = response.documents?.mapNotNull { it.toDeviceToken() } ?: emptyList()
             println("[FCM] FirebaseRestDeviceTokenRemoteData.getTokens: fetched ${tokens.size} tokens")
             tokens
         }
-    }
 
     override suspend fun cleanupInactiveTokens(
         userId: String,

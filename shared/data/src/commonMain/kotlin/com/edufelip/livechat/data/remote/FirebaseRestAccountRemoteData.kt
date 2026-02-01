@@ -36,12 +36,13 @@ class FirebaseRestAccountRemoteData(
             val url = "${config.documentsEndpoint}/${config.usersCollection}/$userId"
             val document =
                 runCatching {
-                    httpClient.get(url) {
-                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                        if (config.apiKey.isNotBlank()) {
-                            parameter("key", config.apiKey)
-                        }
-                    }.body<FirestoreDocument>()
+                    httpClient
+                        .get(url) {
+                            header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                            if (config.apiKey.isNotBlank()) {
+                                parameter("key", config.apiKey)
+                            }
+                        }.body<FirestoreDocument>()
                 }.getOrNull() ?: return@withContext null
 
             document.toAccountProfile(userId)

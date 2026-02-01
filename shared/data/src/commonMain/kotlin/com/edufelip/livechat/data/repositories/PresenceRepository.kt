@@ -38,7 +38,8 @@ class PresenceRepository(
                 when (audience) {
                     LastSeenAudience.Nobody -> flowOf(emptyMap())
                     LastSeenAudience.Contacts ->
-                        contactsRepository.getLocalContacts()
+                        contactsRepository
+                            .getLocalContacts()
                             .map { contacts -> contacts.mapNotNull { it.firebaseUid }.toSet() }
                             .distinctUntilChanged()
                             .flatMapLatest { contactIds ->

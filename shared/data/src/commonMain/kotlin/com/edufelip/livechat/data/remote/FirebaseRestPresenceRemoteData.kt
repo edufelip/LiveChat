@@ -123,14 +123,15 @@ class FirebaseRestPresenceRemoteData(
 
         val response =
             runCatching {
-                httpClient.post(config.queryEndpoint) {
-                    header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                    if (config.apiKey.isNotBlank()) {
-                        parameter("key", config.apiKey)
-                    }
-                    contentType(ContentType.Application.Json)
-                    setBody(request)
-                }.body<List<RunQueryResponse>>()
+                httpClient
+                    .post(config.queryEndpoint) {
+                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                        if (config.apiKey.isNotBlank()) {
+                            parameter("key", config.apiKey)
+                        }
+                        contentType(ContentType.Application.Json)
+                        setBody(request)
+                    }.body<List<RunQueryResponse>>()
             }.getOrElse { throwable ->
                 println("FirebaseRestPresenceRemoteData: query failed error=${throwable.message}")
                 emptyList()

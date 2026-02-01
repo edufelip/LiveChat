@@ -114,8 +114,7 @@ private fun DismissibleInAppNotificationBanner(
                 .padding(
                     horizontal = MaterialTheme.spacing.gutter,
                     vertical = MaterialTheme.spacing.sm,
-                )
-                .fillMaxWidth()
+                ).fillMaxWidth()
                 .wrapContentHeight()
                 .draggable(
                     state = draggableState,
@@ -127,8 +126,7 @@ private fun DismissibleInAppNotificationBanner(
                         isDragging = false
                         if (shouldDismiss) onDismiss()
                     },
-                )
-                .clickable(onClick = onClick),
+                ).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         tonalElevation = MaterialTheme.spacing.xs,
         shadowElevation = MaterialTheme.spacing.xs,

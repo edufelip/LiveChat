@@ -34,12 +34,13 @@ class FirebaseRestBlockedContactsRemoteData(
             ensureConfigured(idToken)
             val response =
                 runCatching {
-                    httpClient.get(collectionUrl(userId)) {
-                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                        if (config.apiKey.isNotBlank()) {
-                            parameter("key", config.apiKey)
-                        }
-                    }.body<ListDocumentsResponse>()
+                    httpClient
+                        .get(collectionUrl(userId)) {
+                            header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                            if (config.apiKey.isNotBlank()) {
+                                parameter("key", config.apiKey)
+                            }
+                        }.body<ListDocumentsResponse>()
                 }.getOrNull() ?: return@withContext emptyList()
 
             response.documents.mapNotNull { it.toBlockedContact() }

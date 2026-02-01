@@ -14,7 +14,8 @@ class FirebaseRemoteConfigRemoteData(
     init {
         if (BuildConfig.DEBUG) {
             val settings =
-                FirebaseRemoteConfigSettings.Builder()
+                FirebaseRemoteConfigSettings
+                    .Builder()
                     .setMinimumFetchIntervalInSeconds(0)
                     .build()
             remoteConfig.setConfigSettingsAsync(settings)

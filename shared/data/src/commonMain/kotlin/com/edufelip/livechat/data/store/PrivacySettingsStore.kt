@@ -23,11 +23,11 @@ class PrivacySettingsStore(
 
     init {
         scope.launch {
-            repository.observeSettings()
+            repository
+                .observeSettings()
                 .catch { throwable ->
                     println("PrivacySettingsStore: observe failed ${throwable.message}")
-                }
-                .collectLatest { settings ->
+                }.collectLatest { settings ->
                     settingsState.value = settings
                 }
         }

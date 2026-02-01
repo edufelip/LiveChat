@@ -21,7 +21,9 @@ class RemoteConfigUseCasesTest {
         }
 }
 
-private class FakeRemoteConfigRepository(initialUrl: String) : IRemoteConfigRepository {
+private class FakeRemoteConfigRepository(
+    initialUrl: String,
+) : IRemoteConfigRepository {
     private val privacyPolicyUrl = MutableStateFlow(initialUrl)
 
     override fun observePrivacyPolicyUrl(): Flow<String> = privacyPolicyUrl

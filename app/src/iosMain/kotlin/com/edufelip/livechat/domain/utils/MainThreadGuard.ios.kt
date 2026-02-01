@@ -7,7 +7,9 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 internal actual fun isMainThread(): Boolean = NSThread.isMainThread
 
 @OptIn(ExperimentalAtomicApi::class)
-internal actual class AtomicFlag actual constructor(initial: Boolean) {
+internal actual class AtomicFlag actual constructor(
+    initial: Boolean,
+) {
     private val atomic = AtomicInt(if (initial) 1 else 0)
 
     actual fun get(): Boolean = atomic.load() != 0

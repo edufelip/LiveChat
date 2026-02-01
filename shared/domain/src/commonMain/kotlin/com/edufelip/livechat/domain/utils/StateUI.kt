@@ -1,7 +1,9 @@
 package com.edufelip.livechat.domain.utils
 
 sealed class StateUI<out T> {
-    data class Success<T>(val data: T) : StateUI<T>()
+    data class Success<T>(
+        val data: T,
+    ) : StateUI<T>()
 
     data class Error(
         val type: Enum<*>? = null,

@@ -40,7 +40,8 @@ class MessagesLocalDataSource(
         conversationId: String,
         limit: Int,
     ): Flow<List<Message>> =
-        messagesDao.observeMessages(conversationId)
+        messagesDao
+            .observeMessages(conversationId)
             .map { rows ->
                 val mapped = rows.map { it.toDomain() }
                 val preview =
@@ -197,14 +198,16 @@ class MessagesLocalDataSource(
     }
 
     override fun observeConversationSummaries(currentUserId: String): Flow<List<ConversationSummary>> =
-        messagesDao.observeConversationSummaries(currentUserId)
+        messagesDao
+            .observeConversationSummaries(currentUserId)
             .map { rows ->
                 println("$logTag: local observeConversationSummaries count=${rows.size}")
                 rows.map { it.toConversationSummary() }
             }
 
     override fun observeParticipant(conversationId: String): Flow<Participant?> =
-        conversationStateDao.observeConversationState(conversationId)
+        conversationStateDao
+            .observeConversationState(conversationId)
             .map { state ->
                 println("$logTag: local observeParticipant conversation=$conversationId hasState=${state != null}")
                 state?.toParticipant()

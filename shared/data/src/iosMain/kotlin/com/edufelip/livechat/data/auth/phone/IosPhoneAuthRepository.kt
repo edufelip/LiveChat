@@ -99,8 +99,8 @@ class IosPhoneAuthRepository(
     }
 }
 
-internal fun PhoneAuthBridgeError.toPhoneAuthError(): PhoneAuthError {
-    return when (code) {
+internal fun PhoneAuthBridgeError.toPhoneAuthError(): PhoneAuthError =
+    when (code) {
         17042L, // AuthErrorCode.invalidPhoneNumber
         17041L, // AuthErrorCode.missingPhoneNumber
         -> PhoneAuthError.InvalidPhoneNumber
@@ -115,4 +115,3 @@ internal fun PhoneAuthBridgeError.toPhoneAuthError(): PhoneAuthError {
         17020L -> PhoneAuthError.NetworkError
         else -> PhoneAuthError.Unknown(message.orEmpty())
     }
-}

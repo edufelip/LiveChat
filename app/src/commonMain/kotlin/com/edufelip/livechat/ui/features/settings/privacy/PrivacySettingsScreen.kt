@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.InvitePreference
 import com.edufelip.livechat.domain.models.PrivacySettingsUiState
 import com.edufelip.livechat.preview.DevicePreviews
@@ -26,7 +27,6 @@ import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacySett
 import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyToggleCard
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun PrivacySettingsScreen(

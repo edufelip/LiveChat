@@ -10,13 +10,9 @@ class ContactsRepository(
     private val remoteData: IContactsRemoteData,
     private val localData: IContactsLocalData,
 ) : IContactsRepository {
-    override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> {
-        return remoteData.checkContacts(phoneContacts)
-    }
+    override fun checkRegisteredContacts(phoneContacts: List<Contact>): Flow<Contact> = remoteData.checkContacts(phoneContacts)
 
-    override fun getLocalContacts(): Flow<List<Contact>> {
-        return localData.getLocalContacts()
-    }
+    override fun getLocalContacts(): Flow<List<Contact>> = localData.getLocalContacts()
 
     override fun observeContact(phoneNumber: String): Flow<Contact?> = localData.observeContact(phoneNumber)
 
@@ -38,7 +34,5 @@ class ContactsRepository(
         localData.updateContacts(contacts)
     }
 
-    override suspend fun inviteContact(contact: Contact): Boolean {
-        return remoteData.inviteContact(contact)
-    }
+    override suspend fun inviteContact(contact: Contact): Boolean = remoteData.inviteContact(contact)
 }

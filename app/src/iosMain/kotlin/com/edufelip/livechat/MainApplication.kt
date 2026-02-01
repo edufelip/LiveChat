@@ -28,7 +28,9 @@ fun main() {
 
 @OptIn(ExperimentalForeignApi::class)
 @ExportObjCClass
-class LiveChatAppDelegate : UIResponder(), UIApplicationDelegateProtocol {
+class LiveChatAppDelegate :
+    UIResponder(),
+    UIApplicationDelegateProtocol {
     companion object : UIResponderMeta(), UIApplicationDelegateProtocolMeta
 
     private var windowHolder: UIWindow? = null

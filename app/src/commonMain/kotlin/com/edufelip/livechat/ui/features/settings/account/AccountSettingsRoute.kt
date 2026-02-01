@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
 import com.edufelip.livechat.domain.models.AccountUiState
@@ -42,7 +43,6 @@ import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AccountSettingsRoute(

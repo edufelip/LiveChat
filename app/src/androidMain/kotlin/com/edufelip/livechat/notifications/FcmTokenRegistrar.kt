@@ -36,7 +36,10 @@ object FcmTokenRegistrar {
                 val prefs = context.getSharedPreferences("livechat_device", Context.MODE_PRIVATE)
                 var deviceId = prefs.getString("device_id", null)
                 if (deviceId == null) {
-                    deviceId = java.util.UUID.randomUUID().toString()
+                    deviceId =
+                        java.util.UUID
+                            .randomUUID()
+                            .toString()
                     prefs.edit().putString("device_id", deviceId).apply()
                     Log.d(TAG, "registerCurrentToken: generated new deviceId=$deviceId")
                 } else {

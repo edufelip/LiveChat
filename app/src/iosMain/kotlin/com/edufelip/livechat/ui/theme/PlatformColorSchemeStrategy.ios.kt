@@ -4,6 +4,4 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
 @Composable
-actual fun rememberPlatformColorSchemeStrategy(): PlatformColorSchemeStrategy {
-    return remember { PastelColorSchemeStrategy() }
-}
+actual fun rememberPlatformColorSchemeStrategy(): PlatformColorSchemeStrategy = remember { PastelColorSchemeStrategy() }

@@ -10,9 +10,7 @@ class ObserveConversationUseCase(
     operator fun invoke(
         conversationId: String,
         pageSize: Int = IMessagesRepository.DEFAULT_PAGE_SIZE,
-    ): Flow<List<Message>> {
-        return messagesRepository.observeConversation(conversationId, pageSize)
-    }
+    ): Flow<List<Message>> = messagesRepository.observeConversation(conversationId, pageSize)
 
     fun observeAll(): Flow<List<Message>> = messagesRepository.observeAllIncomingMessages()
 }

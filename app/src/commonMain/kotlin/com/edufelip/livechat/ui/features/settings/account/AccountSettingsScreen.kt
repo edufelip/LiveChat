@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.AccountUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
@@ -24,7 +25,6 @@ import com.edufelip.livechat.ui.features.settings.account.components.AccountSett
 import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AccountSettingsScreen(
@@ -57,7 +57,12 @@ fun AccountSettingsScreen(
                     ?: profile?.phoneNumber?.takeIf { it.isNotBlank() }
                     ?: accountStrings.phoneMissing
             val email = profile?.email?.takeIf { it.isNotBlank() } ?: accountStrings.emailMissing
-            val initials = displayName.firstOrNull()?.uppercaseChar()?.toString().orEmpty()
+            val initials =
+                displayName
+                    .firstOrNull()
+                    ?.uppercaseChar()
+                    ?.toString()
+                    .orEmpty()
             val photoUrl = profile?.photoUrl?.takeIf { it.isNotBlank() }
             val photoValue =
                 if (photoUrl.isNullOrBlank()) {

@@ -31,12 +31,13 @@ class FirebaseRestAppearanceSettingsRemoteData(
             ensureConfigured(idToken)
             val document =
                 runCatching {
-                    httpClient.get(documentUrl(userId)) {
-                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                        if (config.apiKey.isNotBlank()) {
-                            parameter("key", config.apiKey)
-                        }
-                    }.body<FirestoreDocument>()
+                    httpClient
+                        .get(documentUrl(userId)) {
+                            header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                            if (config.apiKey.isNotBlank()) {
+                                parameter("key", config.apiKey)
+                            }
+                        }.body<FirestoreDocument>()
                 }.getOrNull() ?: return@withContext null
 
             document.toSettings()

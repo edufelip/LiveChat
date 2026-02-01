@@ -8,7 +8,8 @@ import com.edufelip.livechat.App
 actual fun openWebViewUrl(url: String) {
     val context = App.instance.applicationContext
     val customTabs =
-        CustomTabsIntent.Builder()
+        CustomTabsIntent
+            .Builder()
             .setShowTitle(true)
             .build()
             .apply {

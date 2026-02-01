@@ -70,9 +70,7 @@ private class AndroidNotificationPermissionManager(
         pendingResult = null
     }
 
-    private fun resolveState(): NotificationPermissionState {
-        return resolveState(grantedOverride = null)
-    }
+    private fun resolveState(): NotificationPermissionState = resolveState(grantedOverride = null)
 
     private fun resolveState(grantedOverride: Boolean?): NotificationPermissionState {
         val notificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
@@ -93,15 +91,14 @@ private class AndroidNotificationPermissionManager(
         }
     }
 
-    private suspend fun awaitPendingResult(deferred: CompletableDeferred<NotificationPermissionState>): NotificationPermissionState {
-        return try {
+    private suspend fun awaitPendingResult(deferred: CompletableDeferred<NotificationPermissionState>): NotificationPermissionState =
+        try {
             deferred.await()
         } finally {
             if (pendingResult === deferred) {
                 pendingResult = null
             }
         }
-    }
 }
 
 @Composable

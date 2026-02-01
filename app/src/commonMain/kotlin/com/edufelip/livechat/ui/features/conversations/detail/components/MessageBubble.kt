@@ -43,6 +43,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.Message
@@ -56,7 +57,6 @@ import com.edufelip.livechat.ui.features.conversations.detail.loadLocalImageBitm
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.formatDurationMillis
-import androidx.compose.ui.tooling.preview.Preview
 
 /**
  * Single chat bubble aligned by sender ownership.
@@ -141,8 +141,7 @@ fun MessageBubble(
                             } else {
                                 Modifier
                             },
-                        )
-                        .then(
+                        ).then(
                             if (onBubblePositioned != null) {
                                 Modifier.onGloballyPositioned { coordinates ->
                                     onBubblePositioned(coordinates.boundsInWindow())
@@ -150,8 +149,7 @@ fun MessageBubble(
                             } else {
                                 Modifier
                             },
-                        )
-                        .then(
+                        ).then(
                             if (highlighted) {
                                 Modifier.border(1.dp, highlightBorderColor, bubbleShape)
                             } else {

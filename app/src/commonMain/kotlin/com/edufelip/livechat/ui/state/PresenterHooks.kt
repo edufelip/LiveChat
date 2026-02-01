@@ -82,11 +82,10 @@ internal fun rememberConversationPresenter(conversationId: String): Conversation
 internal fun ConversationPresenter.collectState(): State<ConversationUiState> = this.state.collectAsComposeState()
 
 @Composable
-internal fun rememberContactsPresenter(): ContactsPresenter {
-    return remember {
+internal fun rememberContactsPresenter(): ContactsPresenter =
+    remember {
         provideContactsPresenter()
     }
-}
 
 @Composable
 internal fun ContactsPresenter.collectState(): State<ContactsUiState> = this.state.collectAsComposeState()
@@ -167,11 +166,10 @@ internal fun rememberBlockedContactsPresenter(): BlockedContactsPresenter {
 internal fun BlockedContactsPresenter.collectState(): State<BlockedContactsUiState> = this.state.collectAsComposeState()
 
 @Composable
-internal fun rememberSessionProvider(): InMemoryUserSessionProvider {
-    return remember {
+internal fun rememberSessionProvider(): InMemoryUserSessionProvider =
+    remember {
         provideSessionProvider()
     }
-}
 
 @Composable
 internal fun rememberPhoneAuthPresenter(): PhoneAuthPresenter {

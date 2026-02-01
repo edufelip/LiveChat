@@ -2,11 +2,11 @@ package com.edufelip.livechat.ui.features.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
 import com.edufelip.livechat.ui.features.settings.screens.SettingsScreen
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SettingsRoute(

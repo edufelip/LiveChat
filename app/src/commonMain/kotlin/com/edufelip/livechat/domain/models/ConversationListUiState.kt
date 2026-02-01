@@ -12,7 +12,9 @@ data class ConversationListUiState(
     val currentUserId: String? = null,
 )
 
-enum class ConversationFilter(val displayName: String) {
+enum class ConversationFilter(
+    val displayName: String,
+) {
     All("All"),
     Unread("Unread"),
     Pinned("Pinned"),

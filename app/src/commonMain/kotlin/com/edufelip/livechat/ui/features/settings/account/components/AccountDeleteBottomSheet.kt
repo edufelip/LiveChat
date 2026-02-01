@@ -102,8 +102,7 @@ internal fun AccountDeleteBottomSheet(
                         top = MaterialTheme.spacing.xs,
                         end = MaterialTheme.spacing.xl,
                         bottom = MaterialTheme.spacing.xxxl,
-                    )
-                    .navigationBarsPadding()
+                    ).navigationBarsPadding()
                     .imePadding(),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
         ) {

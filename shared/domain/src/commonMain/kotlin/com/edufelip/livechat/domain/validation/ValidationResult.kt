@@ -5,7 +5,9 @@ sealed class ValidationResult {
 
     data object Success : ValidationResult()
 
-    data class Error(val type: ValidationError) : ValidationResult()
+    data class Error(
+        val type: ValidationError,
+    ) : ValidationResult()
 }
 
 enum class ValidationError {

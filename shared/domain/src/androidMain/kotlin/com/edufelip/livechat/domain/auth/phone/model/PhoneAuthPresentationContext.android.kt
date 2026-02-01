@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 
-actual class PhoneAuthPresentationContext internal constructor(val activity: Activity)
+actual class PhoneAuthPresentationContext internal constructor(
+    val activity: Activity,
+)
 
 actual fun phoneAuthPresentationContext(platformContext: Any?): PhoneAuthPresentationContext {
     val activity =

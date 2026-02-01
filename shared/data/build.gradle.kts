@@ -110,14 +110,20 @@ kotlin {
 
 android {
     namespace = "com.edufelip.livechat.shared.data"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
 
     buildFeatures {
         buildConfig = true
     }
 
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         val localPropsFile = rootProject.file("local.properties")

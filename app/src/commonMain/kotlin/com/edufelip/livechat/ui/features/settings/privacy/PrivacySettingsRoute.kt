@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.LastSeenAudience
 import com.edufelip.livechat.domain.models.PrivacySettings
 import com.edufelip.livechat.domain.models.PrivacySettingsUiState
@@ -31,7 +32,6 @@ import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyOpti
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPrivacySettingsPresenter
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

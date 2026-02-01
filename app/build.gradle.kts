@@ -95,13 +95,22 @@ kotlin {
 
 android {
     namespace = "com.edufelip.livechat"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
     buildToolsVersion = "35.0.1"
 
     defaultConfig {
         applicationId = "com.edufelip.livechat"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.targetSdk
+                .get()
+                .toInt()
         versionCode = ciVersionCode ?: 1
         versionName = ciVersionName ?: "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

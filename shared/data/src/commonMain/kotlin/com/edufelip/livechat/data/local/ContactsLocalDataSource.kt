@@ -18,13 +18,14 @@ class ContactsLocalDataSource(
 ) : IContactsLocalData {
     private val contactsDao = database.contactsDao()
 
-    override fun getLocalContacts(): Flow<List<Contact>> {
-        return contactsDao.observeContacts()
+    override fun getLocalContacts(): Flow<List<Contact>> =
+        contactsDao
+            .observeContacts()
             .map { contacts -> contacts.map { it.toDomain() } }
-    }
 
     override fun observeContact(phoneNumber: String): Flow<Contact?> =
-        contactsDao.observeContacts()
+        contactsDao
+            .observeContacts()
             .map { contacts ->
                 val normalizedTarget = normalizePhoneNumber(phoneNumber)
                 contacts
@@ -43,7 +44,8 @@ class ContactsLocalDataSource(
     override suspend fun findContact(phoneNumber: String): Contact? =
         withContext(dispatcher) {
             val normalizedTarget = normalizePhoneNumber(phoneNumber)
-            contactsDao.getAll()
+            contactsDao
+                .getAll()
                 .map { it.toDomain() }
                 .firstOrNull { contact ->
                     contact.firebaseUid?.takeIf { it == phoneNumber } != null ||
@@ -54,7 +56,8 @@ class ContactsLocalDataSource(
     override suspend fun removeContacts(contacts: List<Contact>) {
         if (contacts.isEmpty()) return
         withContext(dispatcher) {
-            contacts.map { it.phoneNo }
+            contacts
+                .map { it.phoneNo }
                 .chunked(CHUNK_SIZE)
                 .forEach { phoneChunk ->
                     contactsDao.deleteContactsByPhone(phoneChunk)

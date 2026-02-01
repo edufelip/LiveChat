@@ -61,7 +61,8 @@ class FirebaseMessagesBridge(
     }
 
     override suspend fun ensureConversation(conversationId: String) {
-        firestore.collection(config.conversationsCollection)
+        firestore
+            .collection(config.conversationsCollection)
             .document(conversationId)
             .set(
                 mapOf(
@@ -69,12 +70,12 @@ class FirebaseMessagesBridge(
                     FIELD_UPDATED_AT to FieldValue.serverTimestamp(),
                 ),
                 SetOptions.merge(),
-            )
-            .await()
+            ).await()
     }
 
     private fun inboundMessagesCollection(recipientId: String) =
-        firestore.collection(config.conversationsCollection)
+        firestore
+            .collection(config.conversationsCollection)
             .document(recipientId)
             .collection(config.messagesCollection)
 

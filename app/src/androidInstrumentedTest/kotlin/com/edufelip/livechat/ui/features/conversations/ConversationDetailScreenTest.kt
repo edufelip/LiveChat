@@ -28,8 +28,16 @@ class ConversationDetailScreenTest {
                 val state = PreviewFixtures.conversationUiState(strings)
                 val snackbarHostState = remember { SnackbarHostState() }
                 SideEffect {
-                    firstMessage = state.messages.firstOrNull()?.body.orEmpty()
-                    lastMessage = state.messages.lastOrNull()?.body.orEmpty()
+                    firstMessage =
+                        state.messages
+                            .firstOrNull()
+                            ?.body
+                            .orEmpty()
+                    lastMessage =
+                        state.messages
+                            .lastOrNull()
+                            ?.body
+                            .orEmpty()
                 }
                 ConversationDetailScreen(
                     state = state,

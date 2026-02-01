@@ -67,8 +67,8 @@ private class IosConversationMediaController : ConversationMediaController {
     private var recorderPath: String? = null
     private var autoStopJob: Job? = null
 
-    override suspend fun pickImage(): MediaResult<String> {
-        return when (ensurePhotoPermission()) {
+    override suspend fun pickImage(): MediaResult<String> =
+        when (ensurePhotoPermission()) {
             PermissionStatus.GRANTED -> {
                 val path =
                     presentImagePicker(
@@ -79,10 +79,9 @@ private class IosConversationMediaController : ConversationMediaController {
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
             PermissionStatus.BLOCKED -> MediaResult.Permission(PermissionStatus.BLOCKED)
         }
-    }
 
-    override suspend fun capturePhoto(): MediaResult<String> {
-        return when (ensureCameraPermission()) {
+    override suspend fun capturePhoto(): MediaResult<String> =
+        when (ensureCameraPermission()) {
             PermissionStatus.GRANTED -> {
                 val path =
                     presentImagePicker(
@@ -93,7 +92,6 @@ private class IosConversationMediaController : ConversationMediaController {
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
             PermissionStatus.BLOCKED -> MediaResult.Permission(PermissionStatus.BLOCKED)
         }
-    }
 
     override suspend fun startAudioRecording(): MediaResult<Unit> {
         if (recorder != null) return MediaResult.Success(Unit)
@@ -195,7 +193,9 @@ private class IosConversationMediaController : ConversationMediaController {
 
     private class PickerDelegate(
         private val onResult: (String?, Throwable?) -> Unit,
-    ) : NSObject(), UIImagePickerControllerDelegateProtocol, UINavigationControllerDelegateProtocol {
+    ) : NSObject(),
+        UIImagePickerControllerDelegateProtocol,
+        UINavigationControllerDelegateProtocol {
         override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {
             onResult(null, null)
         }

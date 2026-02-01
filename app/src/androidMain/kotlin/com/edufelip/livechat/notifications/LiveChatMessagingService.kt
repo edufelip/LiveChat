@@ -141,7 +141,10 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         val prefs = getSharedPreferences("livechat_device", MODE_PRIVATE)
         var deviceId = prefs.getString("device_id", null)
         if (deviceId == null) {
-            deviceId = java.util.UUID.randomUUID().toString()
+            deviceId =
+                java.util.UUID
+                    .randomUUID()
+                    .toString()
             prefs.edit().putString("device_id", deviceId).apply()
             Log.d(TAG, "getDeviceId: generated new deviceId=$deviceId")
         } else {
@@ -150,14 +153,13 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         return deviceId
     }
 
-    private fun getAppVersion(): String? {
-        return try {
+    private fun getAppVersion(): String? =
+        try {
             packageManager.getPackageInfo(packageName, 0).versionName
         } catch (e: Exception) {
             Log.w(TAG, "getAppVersion: failed to get app version", e)
             null
         }
-    }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showNotification(
@@ -190,7 +192,8 @@ class LiveChatMessagingService : FirebaseMessagingService() {
             )
 
         val builder =
-            NotificationCompat.Builder(this, channelId)
+            NotificationCompat
+                .Builder(this, channelId)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(body)
@@ -202,7 +205,6 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         NotificationManagerCompat.from(this).notify(payload.notificationId, builder.build())
         Log.i(TAG, "showNotification: system notification posted with id=${payload.notificationId}")
     }
-
 
     private fun isQuietModeActive(settings: NotificationSettings): Boolean {
         val calendar = Calendar.getInstance()

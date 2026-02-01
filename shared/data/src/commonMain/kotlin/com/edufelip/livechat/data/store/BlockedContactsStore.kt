@@ -21,11 +21,11 @@ class BlockedContactsStore(
 
     init {
         scope.launch {
-            repository.observeBlockedContacts()
+            repository
+                .observeBlockedContacts()
                 .catch { throwable ->
                     println("BlockedContactsStore: observe failed ${throwable.message}")
-                }
-                .collectLatest { contacts ->
+                }.collectLatest { contacts ->
                     blockedUserIdsState.value = contacts.map { it.userId }.toSet()
                 }
         }

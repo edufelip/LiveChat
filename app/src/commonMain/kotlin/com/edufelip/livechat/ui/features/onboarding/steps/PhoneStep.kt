@@ -59,6 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
@@ -68,7 +69,6 @@ import com.edufelip.livechat.ui.features.onboarding.OnboardingTestTags
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import kotlinx.coroutines.launch
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun PhoneStep(
@@ -234,8 +234,7 @@ internal fun PhoneStep(
                                     .bringIntoViewRequester(bringIntoViewRequester)
                                     .onGloballyPositioned { coordinates ->
                                         inputBounds.value = coordinates.boundsInRoot()
-                                    }
-                                    .onFocusChanged { state ->
+                                    }.onFocusChanged { state ->
                                         isPhoneFocused = state.isFocused
                                         if (state.isFocused) {
                                             scope.launch {

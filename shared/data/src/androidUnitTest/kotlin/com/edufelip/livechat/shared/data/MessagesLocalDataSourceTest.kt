@@ -127,14 +127,17 @@ class MessagesLocalDataSourceTest {
     @Test
     fun processedActionsPersistAcrossDatabaseRestart() =
         runTest {
-            val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+            val context =
+                androidx.test.core.app.ApplicationProvider
+                    .getApplicationContext<android.content.Context>()
             val dbFile = java.io.File.createTempFile("livechat-persist", ".db")
             val dispatcher = StandardTestDispatcher(testScheduler)
             val database =
-                androidx.room.Room.databaseBuilder<com.edufelip.livechat.shared.data.database.LiveChatDatabase>(
-                    context = context,
-                    name = dbFile.absolutePath,
-                ).setQueryCoroutineContext(kotlinx.coroutines.Dispatchers.Default)
+                androidx.room.Room
+                    .databaseBuilder<com.edufelip.livechat.shared.data.database.LiveChatDatabase>(
+                        context = context,
+                        name = dbFile.absolutePath,
+                    ).setQueryCoroutineContext(kotlinx.coroutines.Dispatchers.Default)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
             val dataSource = MessagesLocalDataSource(database, dispatcher = dispatcher)
@@ -145,10 +148,11 @@ class MessagesLocalDataSourceTest {
             database.close()
 
             val reopened =
-                androidx.room.Room.databaseBuilder<com.edufelip.livechat.shared.data.database.LiveChatDatabase>(
-                    context = context,
-                    name = dbFile.absolutePath,
-                ).setQueryCoroutineContext(kotlinx.coroutines.Dispatchers.Default)
+                androidx.room.Room
+                    .databaseBuilder<com.edufelip.livechat.shared.data.database.LiveChatDatabase>(
+                        context = context,
+                        name = dbFile.absolutePath,
+                    ).setQueryCoroutineContext(kotlinx.coroutines.Dispatchers.Default)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
             val reopenedDataSource = MessagesLocalDataSource(reopened, dispatcher = dispatcher)

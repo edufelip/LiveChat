@@ -42,8 +42,7 @@ class PrivacySettingsPresenter(
                             errorMessage = throwable.message ?: "Failed to load privacy settings",
                         )
                     }
-                }
-                .collectLatest { settings ->
+                }.collectLatest { settings ->
                     mutableState.update {
                         it.copy(isLoading = false, settings = settings, errorMessage = null)
                     }
@@ -102,8 +101,7 @@ class PrivacySettingsPresenter(
                             settings = localUpdate(state.settings),
                         )
                     }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     mutableState.update {
                         it.copy(
                             isUpdating = false,

@@ -61,7 +61,8 @@ class MessagesRepository(
                 }
             val remoteJob =
                 launch {
-                    remoteData.observeConversation(conversationId, sinceEpoch)
+                    remoteData
+                        .observeConversation(conversationId, sinceEpoch)
                         .catch { throwable ->
                             val kind =
                                 if (throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true) {
@@ -71,8 +72,7 @@ class MessagesRepository(
                                 }
                             println("$logTag: repo remote observe $kind conv=$conversationId error=${throwable.message}")
                             throw throwable
-                        }
-                        .collect { remoteItems ->
+                        }.collect { remoteItems ->
                             val (messages, actions) = splitInboxItems(remoteItems)
                             val blockedUserIds = blockedUserIdsProvider()
                             val filteredMessages =
@@ -115,7 +115,8 @@ class MessagesRepository(
                             launch {
                                 println("$logTag: INBOX_LISTENER starting remote observe user=$currentUser")
                                 // Empty conversationId disables sender filtering; we want every inbox item.
-                                remoteData.observeConversation("", null)
+                                remoteData
+                                    .observeConversation("", null)
                                     .catch { throwable ->
                                         val isPermissionError = throwable.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true
                                         if (isPermissionError) {
@@ -127,8 +128,7 @@ class MessagesRepository(
                                             }
                                         }
                                         println("$logTag: repo observeAllIncomingMessages error=${throwable.message}")
-                                    }
-                                    .collect { remoteItems ->
+                                    }.collect { remoteItems ->
                                         println("$logTag: INBOX_LISTENER remote items received count=${remoteItems.size}")
                                         val (messages, actions) = splitInboxItems(remoteItems)
                                         val blockedUserIds = blockedUserIdsProvider()
@@ -157,8 +157,8 @@ class MessagesRepository(
                 }
             }
 
-    override suspend fun sendMessage(draft: MessageDraft): Message {
-        return withContext(dispatcher) {
+    override suspend fun sendMessage(draft: MessageDraft): Message =
+        withContext(dispatcher) {
             if (draft.body.isBlank()) {
                 error("Cannot send an empty message.")
             }
@@ -198,7 +198,6 @@ class MessagesRepository(
                 throw error
             }
         }
-    }
 
     override suspend fun deleteMessageLocal(messageId: String) {
         withContext(dispatcher) {
@@ -210,8 +209,8 @@ class MessagesRepository(
     override suspend fun syncConversation(
         conversationId: String,
         sinceEpochMillis: Long?,
-    ): List<Message> {
-        return withContext(dispatcher) {
+    ): List<Message> =
+        withContext(dispatcher) {
             val remoteMessages = remoteData.pullHistorical(conversationId, sinceEpochMillis)
             if (sinceEpochMillis == null) {
                 if (remoteMessages.isNotEmpty()) {
@@ -225,10 +224,9 @@ class MessagesRepository(
             maybeRunMediaCleanup(conversationId, force = true)
             remoteMessages
         }
-    }
 
-    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> {
-        return sessionProvider.session
+    override fun observeConversationSummaries(): Flow<List<ConversationSummary>> =
+        sessionProvider.session
             .flatMapLatest { session ->
                 val userId = session?.userId
                 if (userId.isNullOrBlank()) {
@@ -236,11 +234,9 @@ class MessagesRepository(
                 } else {
                     localData.observeConversationSummaries(userId)
                 }
-            }
-            .let { flow ->
+            }.let { flow ->
                 flowOfMaybeReadReceipts(flow)
             }
-    }
 
     override suspend fun markConversationAsRead(
         conversationId: String,
@@ -338,7 +334,8 @@ class MessagesRepository(
         val participant = localData.getParticipant(conversationId)
         val lastReadAt = participant?.lastReadAt ?: 0L
         val messages = localData.getMessages(conversationId)
-        messages.asSequence()
+        messages
+            .asSequence()
             .filter { it.senderId != currentUserId }
             .filter { it.contentType.isMedia() }
             .filter { it.remoteUrl() != null }

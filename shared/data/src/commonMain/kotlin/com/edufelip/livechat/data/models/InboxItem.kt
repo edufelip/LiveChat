@@ -17,7 +17,11 @@ data class InboxAction(
 )
 
 sealed class InboxItem {
-    data class MessageItem(val message: Message) : InboxItem()
+    data class MessageItem(
+        val message: Message,
+    ) : InboxItem()
 
-    data class ActionItem(val action: InboxAction) : InboxItem()
+    data class ActionItem(
+        val action: InboxAction,
+    ) : InboxItem()
 }

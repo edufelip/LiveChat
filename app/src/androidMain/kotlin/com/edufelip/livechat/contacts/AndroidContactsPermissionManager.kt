@@ -71,15 +71,14 @@ private class AndroidContactsPermissionManager(
         return if (granted) PermissionState.Granted else PermissionState.Denied
     }
 
-    private suspend fun awaitPendingResult(deferred: CompletableDeferred<PermissionState>): PermissionState {
-        return try {
+    private suspend fun awaitPendingResult(deferred: CompletableDeferred<PermissionState>): PermissionState =
+        try {
             deferred.await()
         } finally {
             if (pendingResult === deferred) {
                 pendingResult = null
             }
         }
-    }
 }
 
 @Composable

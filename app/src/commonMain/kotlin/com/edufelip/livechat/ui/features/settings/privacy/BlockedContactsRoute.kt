@@ -11,13 +11,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.BlockedContactsUiState
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberBlockedContactsPresenter
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun BlockedContactsRoute(

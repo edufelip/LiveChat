@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
 import com.edufelip.livechat.preview.DevicePreviews
@@ -30,7 +31,6 @@ import com.edufelip.livechat.ui.features.settings.appearance.components.Appearan
 import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AppearanceSettingsScreen(

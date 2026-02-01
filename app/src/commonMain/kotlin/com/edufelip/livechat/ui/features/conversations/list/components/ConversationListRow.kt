@@ -41,6 +41,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.MessageContentType
@@ -57,7 +58,6 @@ import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.loadAvatarImageBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.absoluteValue
 
 private val AVATAR_SIZE = 52.dp
@@ -99,13 +99,15 @@ fun ConversationListRow(
     val previewText =
         remember(messageLabel, isOutgoing, conversationStrings) {
             if (isOutgoing) {
-                AnnotatedString.Builder().apply {
-                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                        append(conversationStrings.youPrefix)
-                    }
-                    append(" ")
-                    append(messageLabel)
-                }.toAnnotatedString()
+                AnnotatedString
+                    .Builder()
+                    .apply {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append(conversationStrings.youPrefix)
+                        }
+                        append(" ")
+                        append(messageLabel)
+                    }.toAnnotatedString()
             } else {
                 AnnotatedString(messageLabel)
             }

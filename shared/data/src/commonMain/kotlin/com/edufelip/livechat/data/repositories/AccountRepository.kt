@@ -37,8 +37,7 @@ class AccountRepository(
                         profile.copy(phoneNumber = fallbackPhone)
                     else -> profile
                 }
-            }
-            .flowOn(dispatcher)
+            }.flowOn(dispatcher)
 
     override suspend fun updateDisplayName(displayName: String) {
         val session = requireSession(forceRefresh = false)

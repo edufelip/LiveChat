@@ -603,7 +603,9 @@ class MessagesRepositoryInboxActionTest {
         }
     }
 
-    private class FakeSessionProvider(private val userId: String) : UserSessionProvider {
+    private class FakeSessionProvider(
+        private val userId: String,
+    ) : UserSessionProvider {
         override val session: Flow<UserSession?> = emptyFlow()
 
         override suspend fun refreshSession(forceRefresh: Boolean): UserSession? = null

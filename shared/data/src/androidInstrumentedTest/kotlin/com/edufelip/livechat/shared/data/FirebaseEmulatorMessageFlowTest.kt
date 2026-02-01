@@ -64,7 +64,8 @@ class FirebaseEmulatorMessageFlowTest {
 
             FirebaseApp.getApps(context).forEach { it.delete() }
             val options =
-                FirebaseOptions.Builder()
+                FirebaseOptions
+                    .Builder()
                     .setProjectId("livechat-emulator")
                     .setApplicationId("1:livechat:android:emulator")
                     .setApiKey("emulator-api-key")
@@ -132,7 +133,8 @@ class FirebaseEmulatorMessageFlowTest {
 
             val messages =
                 withTimeout(10_000) {
-                    receiverRepo.observeConversation(senderId, pageSize = 50)
+                    receiverRepo
+                        .observeConversation(senderId, pageSize = 50)
                         .first { list -> list.any { it.senderId == senderId } }
                 }
             val received = messages.first { it.senderId == senderId }

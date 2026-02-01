@@ -64,8 +64,7 @@ class ConversationListPresenter(
             observeConversationSummaries()
                 .catch { throwable ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = throwable.message) }
-                }
-                .collectLatest { summaries ->
+                }.collectLatest { summaries ->
                     if (ignoreInitialEmptyEmission && summaries.isEmpty()) {
                         ignoreInitialEmptyEmission = false
                         return@collectLatest
@@ -192,10 +191,13 @@ class ConversationListPresenter(
             }
         if (query.isBlank()) return filtered.sortedWith(summaryComparator)
         val lower = query.lowercase()
-        return filtered.filter {
-            it.displayName.lowercase().contains(lower) ||
-                it.lastMessage.body.lowercase().contains(lower)
-        }.sortedWith(summaryComparator)
+        return filtered
+            .filter {
+                it.displayName.lowercase().contains(lower) ||
+                    it.lastMessage.body
+                        .lowercase()
+                        .contains(lower)
+            }.sortedWith(summaryComparator)
     }
 
     private val summaryComparator =

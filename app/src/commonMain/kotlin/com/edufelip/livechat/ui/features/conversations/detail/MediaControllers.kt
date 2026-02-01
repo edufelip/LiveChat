@@ -9,13 +9,19 @@ enum class PermissionStatus {
 }
 
 sealed class MediaResult<out T> {
-    data class Success<T>(val value: T) : MediaResult<T>()
+    data class Success<T>(
+        val value: T,
+    ) : MediaResult<T>()
 
-    data class Permission(val status: PermissionStatus) : MediaResult<Nothing>()
+    data class Permission(
+        val status: PermissionStatus,
+    ) : MediaResult<Nothing>()
 
     object Cancelled : MediaResult<Nothing>()
 
-    data class Error(val message: String? = null) : MediaResult<Nothing>()
+    data class Error(
+        val message: String? = null,
+    ) : MediaResult<Nothing>()
 }
 
 interface ConversationMediaController {

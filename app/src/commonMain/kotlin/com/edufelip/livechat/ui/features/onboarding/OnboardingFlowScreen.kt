@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
 import com.edufelip.livechat.domain.auth.phone.model.phoneAuthPresentationContext
@@ -48,7 +49,6 @@ import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.util.isDigitsOnly
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

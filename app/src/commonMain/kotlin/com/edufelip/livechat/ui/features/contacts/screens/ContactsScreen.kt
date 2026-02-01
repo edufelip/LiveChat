@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.domain.models.Contact
@@ -64,7 +65,6 @@ import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
 import com.edufelip.livechat.ui.resources.ContactsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ContactsScreen(

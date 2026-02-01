@@ -7,7 +7,5 @@ import kotlinx.coroutines.flow.Flow
 class ObserveContactByPhoneUseCase(
     private val repository: IContactsRepository,
 ) {
-    operator fun invoke(phoneNumber: String): Flow<Contact?> {
-        return repository.observeContact(phoneNumber)
-    }
+    operator fun invoke(phoneNumber: String): Flow<Contact?> = repository.observeContact(phoneNumber)
 }

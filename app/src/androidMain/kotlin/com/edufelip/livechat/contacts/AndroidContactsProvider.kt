@@ -8,9 +8,7 @@ import com.edufelip.livechat.domain.models.Contact
 import java.util.Locale
 
 object AndroidContactsProvider {
-    fun fetch(context: Context): List<Contact> {
-        return runCatching { queryContacts(context) }.getOrDefault(emptyList())
-    }
+    fun fetch(context: Context): List<Contact> = runCatching { queryContacts(context) }.getOrDefault(emptyList())
 
     private fun queryContacts(context: Context): List<Contact> {
         val resolver = context.contentResolver

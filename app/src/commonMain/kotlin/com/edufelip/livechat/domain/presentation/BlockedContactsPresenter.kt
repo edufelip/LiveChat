@@ -36,8 +36,7 @@ class BlockedContactsPresenter(
                             errorMessage = throwable.message ?: "Failed to load blocked contacts",
                         )
                     }
-                }
-                .collectLatest { contacts ->
+                }.collectLatest { contacts ->
                     mutableState.update {
                         it.copy(isLoading = false, contacts = contacts, errorMessage = null)
                     }
@@ -84,8 +83,7 @@ class BlockedContactsPresenter(
                             contacts = localUpdate(state.contacts),
                         )
                     }
-                }
-                .onFailure { throwable ->
+                }.onFailure { throwable ->
                     mutableState.update {
                         it.copy(
                             isUpdating = false,

@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.edufelip.livechat.preview.DevicePreviews
@@ -63,7 +64,6 @@ import com.edufelip.livechat.ui.resources.SettingsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import com.edufelip.livechat.ui.util.FuzzyMatcher
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SettingsScreen(

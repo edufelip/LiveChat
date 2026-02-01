@@ -54,8 +54,8 @@ class FirebasePhoneAuthRepository(
     override suspend fun verifyCode(
         session: PhoneVerificationSession,
         code: String,
-    ): PhoneAuthResult {
-        return runCatching {
+    ): PhoneAuthResult =
+        runCatching {
             val credential = PhoneAuthProvider.getCredential(session.verificationId, code)
             firebaseAuth.signInWithCredential(credential).await()
             lastSession = session.markAutoVerified()
@@ -63,7 +63,6 @@ class FirebasePhoneAuthRepository(
         }.getOrElse { throwable ->
             PhoneAuthResult.Failure(throwable.toPhoneAuthError())
         }
-    }
 
     override fun clearActiveSession() {
         clearStoredSession()
@@ -81,13 +80,13 @@ class FirebasePhoneAuthRepository(
                 object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                     override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                         val session = lastSession ?: PhoneVerificationSession("", phoneNumber)
-                        firebaseAuth.signInWithCredential(credential)
+                        firebaseAuth
+                            .signInWithCredential(credential)
                             .addOnSuccessListener {
                                 val updated = session.markAutoVerified()
                                 lastSession = updated
                                 trySend(PhoneAuthEvent.VerificationCompleted(updated))
-                            }
-                            .addOnFailureListener { error ->
+                            }.addOnFailureListener { error ->
                                 trySend(PhoneAuthEvent.Error(error.toPhoneAuthError()))
                             }
                     }
@@ -114,7 +113,8 @@ class FirebasePhoneAuthRepository(
                 }
 
             val optionsBuilder =
-                PhoneAuthOptions.newBuilder(firebaseAuth)
+                PhoneAuthOptions
+                    .newBuilder(firebaseAuth)
                     .setPhoneNumber(phoneNumber.e164)
                     .setTimeout(DEFAULT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                     .setActivity(presentationContext.activity)

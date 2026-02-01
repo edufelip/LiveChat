@@ -128,8 +128,8 @@ private class AndroidConversationMediaController(
     private var recorderFile: File? = null
     private var autoStopJob: Job? = null
 
-    override suspend fun pickImage(): MediaResult<String> {
-        return when (ensureReadImagesPermission()) {
+    override suspend fun pickImage(): MediaResult<String> =
+        when (ensureReadImagesPermission()) {
             PermissionStatus.GRANTED -> {
                 val path = pickImageAction().awaitResult()
                 if (path != null) MediaResult.Success(path) else MediaResult.Cancelled
@@ -137,10 +137,9 @@ private class AndroidConversationMediaController(
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
             PermissionStatus.BLOCKED -> MediaResult.Permission(PermissionStatus.BLOCKED)
         }
-    }
 
-    override suspend fun capturePhoto(): MediaResult<String> {
-        return when (ensureCameraPermission()) {
+    override suspend fun capturePhoto(): MediaResult<String> =
+        when (ensureCameraPermission()) {
             PermissionStatus.GRANTED -> {
                 val path = capturePhotoAction().awaitResult()
                 if (path != null) MediaResult.Success(path) else MediaResult.Cancelled
@@ -148,7 +147,6 @@ private class AndroidConversationMediaController(
             PermissionStatus.DENIED -> MediaResult.Permission(PermissionStatus.DENIED)
             PermissionStatus.BLOCKED -> MediaResult.Permission(PermissionStatus.BLOCKED)
         }
-    }
 
     override suspend fun startAudioRecording(): MediaResult<Unit> {
         if (recorder != null) return MediaResult.Success(Unit)
@@ -212,13 +210,9 @@ private class AndroidConversationMediaController(
         return ensurePermission(permission)
     }
 
-    private suspend fun ensureCameraPermission(): PermissionStatus {
-        return ensurePermission(Manifest.permission.CAMERA)
-    }
+    private suspend fun ensureCameraPermission(): PermissionStatus = ensurePermission(Manifest.permission.CAMERA)
 
-    private suspend fun ensureAudioPermission(): PermissionStatus {
-        return ensurePermission(Manifest.permission.RECORD_AUDIO)
-    }
+    private suspend fun ensureAudioPermission(): PermissionStatus = ensurePermission(Manifest.permission.RECORD_AUDIO)
 
     private suspend fun ensurePermission(permission: String): PermissionStatus {
         val deferred = requestPermission(permission)
@@ -273,8 +267,8 @@ private fun createTempImageFile(context: Context): Pair<File, Uri> {
     return file to uri
 }
 
-private fun Uri.toFilePath(context: Context): String? {
-    return try {
+private fun Uri.toFilePath(context: Context): String? =
+    try {
         val file = File(context.cacheDir, "captured_${UUID.randomUUID()}.jpg")
         context.contentResolver.openInputStream(this)?.use { input ->
             BufferedOutputStream(file.outputStream()).use { output ->
@@ -285,7 +279,6 @@ private fun Uri.toFilePath(context: Context): String? {
     } catch (_: Throwable) {
         null
     }
-}
 
 private fun Context.findActivity(): Activity? {
     var current: Context? = this

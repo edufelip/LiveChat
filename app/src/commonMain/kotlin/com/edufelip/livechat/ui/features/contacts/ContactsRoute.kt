@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.contacts.PermissionState
 import com.edufelip.livechat.contacts.rememberContactsPermissionManager
 import com.edufelip.livechat.domain.models.Contact
@@ -26,7 +27,6 @@ import com.edufelip.livechat.ui.util.isUiTestMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ContactsRoute(
@@ -80,15 +80,14 @@ fun ContactsRoute(
         } ?: baseState
     val showSyncButton = permissionStatus.value != PermissionState.Granted
 
-    suspend fun loadContacts(): List<Contact> {
-        return if (isUiTest) {
+    suspend fun loadContacts(): List<Contact> =
+        if (isUiTest) {
             phoneContactsProvider().ifEmpty { previewContacts }
         } else {
             withContext(Dispatchers.Default) {
                 phoneContactsProvider()
             }
         }
-    }
 
     LaunchedEffect(Unit) {
         if (!isUiTest && !hasRequestedPermission.value && permissionStatus.value != PermissionState.Granted) {

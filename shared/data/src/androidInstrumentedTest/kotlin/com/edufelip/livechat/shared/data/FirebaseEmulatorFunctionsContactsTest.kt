@@ -37,7 +37,8 @@ class FirebaseEmulatorFunctionsContactsTest {
         runBlocking {
             FirebaseApp.getApps(context).forEach { it.delete() }
             val options =
-                FirebaseOptions.Builder()
+                FirebaseOptions
+                    .Builder()
                     .setProjectId(projectId)
                     .setApplicationId("1:livechat:android:emulator")
                     .setApiKey("emulator-api-key")
@@ -118,7 +119,8 @@ class FirebaseEmulatorFunctionsContactsTest {
             val functions = FirebaseFunctions.getInstance()
             val error =
                 runCatching {
-                    functions.getHttpsCallable("phoneExistsMany")
+                    functions
+                        .getHttpsCallable("phoneExistsMany")
                         .call(mapOf("phones" to emptyList<String>()))
                         .await()
                 }.exceptionOrNull()

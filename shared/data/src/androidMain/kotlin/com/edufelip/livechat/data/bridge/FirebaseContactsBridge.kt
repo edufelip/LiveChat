@@ -85,8 +85,7 @@ class FirebaseContactsBridge(
                         phone = match[FIELD_PHONE] as? String,
                         uid = match[FIELD_UID] as? String,
                     )
-                }
-                .orEmpty()
+                }.orEmpty()
         return PhoneExistsManyResponse(
             registered = registered,
             matches = matches,

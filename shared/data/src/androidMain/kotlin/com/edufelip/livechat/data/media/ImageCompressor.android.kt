@@ -23,15 +23,16 @@ actual object ImageCompressor {
             val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, decodeOptions) ?: return@runCatching null
 
             val resized = resizeIfNeeded(decoded, maxDimensionPx)
-            ByteArrayOutputStream().use { stream ->
-                resized.compress(Bitmap.CompressFormat.JPEG, qualityPercent.coerceIn(0, 100), stream)
-                stream.toByteArray()
-            }.also {
-                if (resized !== decoded) {
-                    resized.recycle()
+            ByteArrayOutputStream()
+                .use { stream ->
+                    resized.compress(Bitmap.CompressFormat.JPEG, qualityPercent.coerceIn(0, 100), stream)
+                    stream.toByteArray()
+                }.also {
+                    if (resized !== decoded) {
+                        resized.recycle()
+                    }
+                    decoded.recycle()
                 }
-                decoded.recycle()
-            }
         }.getOrNull()
     }
 

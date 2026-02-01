@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
@@ -20,7 +21,6 @@ import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
-import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -130,9 +130,7 @@ private fun sliderFromScale(scale: Float): Float {
     return ((clamped - AppearanceSettings.MIN_TEXT_SCALE) / range) * 100f
 }
 
-private fun Float.roundToTwoDecimals(): Float {
-    return (this * 100f).roundToInt() / 100f
-}
+private fun Float.roundToTwoDecimals(): Float = (this * 100f).roundToInt() / 100f
 
 private fun approximatelyEqual(
     a: Float,

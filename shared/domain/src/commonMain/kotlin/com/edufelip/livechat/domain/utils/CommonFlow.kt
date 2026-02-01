@@ -8,11 +8,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class Closeable(private val onClose: () -> Unit) {
+class Closeable(
+    private val onClose: () -> Unit,
+) {
     fun close() = onClose()
 }
 
-class CFlow<T>(private val origin: Flow<T>) {
+class CFlow<T>(
+    private val origin: Flow<T>,
+) {
     fun watch(block: (T) -> Unit): Closeable {
         val scope = MainScope()
         val job =
@@ -28,7 +32,9 @@ class CFlow<T>(private val origin: Flow<T>) {
     }
 }
 
-class CStateFlow<T>(private val origin: StateFlow<T>) {
+class CStateFlow<T>(
+    private val origin: StateFlow<T>,
+) {
     val value: T
         get() = origin.value
 

@@ -7,7 +7,5 @@ import com.edufelip.livechat.domain.repositories.IMessagesRepository
 class SendMessageUseCase(
     private val messagesRepository: IMessagesRepository,
 ) {
-    suspend operator fun invoke(draft: MessageDraft): Message {
-        return messagesRepository.sendMessage(draft)
-    }
+    suspend operator fun invoke(draft: MessageDraft): Message = messagesRepository.sendMessage(draft)
 }
