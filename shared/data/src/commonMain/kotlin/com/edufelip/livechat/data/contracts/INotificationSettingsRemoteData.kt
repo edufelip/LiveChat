@@ -14,12 +14,6 @@ interface INotificationSettingsRemoteData {
         enabled: Boolean,
     )
 
-    suspend fun updateSound(
-        userId: String,
-        idToken: String,
-        sound: String,
-    )
-
     suspend fun updateQuietHoursEnabled(
         userId: String,
         idToken: String,
@@ -33,20 +27,9 @@ interface INotificationSettingsRemoteData {
         to: String,
     )
 
-    suspend fun updateInAppVibration(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    )
-
     suspend fun updateShowMessagePreview(
         userId: String,
         idToken: String,
         enabled: Boolean,
-    )
-
-    suspend fun resetSettings(
-        userId: String,
-        idToken: String,
     )
 }

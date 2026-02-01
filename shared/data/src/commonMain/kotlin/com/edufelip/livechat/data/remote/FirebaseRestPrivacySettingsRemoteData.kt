@@ -78,14 +78,6 @@ class FirebaseRestPrivacySettingsRemoteData(
         updateFields(userId, idToken, mapOf(FIELD_READ_RECEIPTS to Value(booleanValue = enabled)))
     }
 
-    override suspend fun updateShareUsageData(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    ) {
-        updateFields(userId, idToken, mapOf(FIELD_SHARE_USAGE_DATA to Value(booleanValue = enabled)))
-    }
-
     override suspend fun resetSettings(
         userId: String,
         idToken: String,
@@ -98,7 +90,6 @@ class FirebaseRestPrivacySettingsRemoteData(
                 FIELD_INVITE_PREFERENCE to Value(stringValue = defaults.invitePreference.toRemoteValue()),
                 FIELD_LAST_SEEN to Value(stringValue = defaults.lastSeenAudience.toRemoteValue()),
                 FIELD_READ_RECEIPTS to Value(booleanValue = defaults.readReceiptsEnabled),
-                FIELD_SHARE_USAGE_DATA to Value(booleanValue = defaults.shareUsageData),
             ),
         )
     }
@@ -172,7 +163,6 @@ class FirebaseRestPrivacySettingsRemoteData(
             invitePreference = invitePreference,
             lastSeenAudience = lastSeen,
             readReceiptsEnabled = fields[FIELD_READ_RECEIPTS]?.booleanValue ?: defaults.readReceiptsEnabled,
-            shareUsageData = fields[FIELD_SHARE_USAGE_DATA]?.booleanValue ?: defaults.shareUsageData,
         )
     }
 
@@ -232,7 +222,6 @@ class FirebaseRestPrivacySettingsRemoteData(
         const val FIELD_INVITE_PREFERENCE = "invite_preference"
         const val FIELD_LAST_SEEN = "last_seen_audience"
         const val FIELD_READ_RECEIPTS = "read_receipts"
-        const val FIELD_SHARE_USAGE_DATA = "share_usage_data"
         const val VALUE_EVERYONE = "everyone"
         const val VALUE_CONTACTS = "contacts"
         const val VALUE_NOBODY = "nobody"

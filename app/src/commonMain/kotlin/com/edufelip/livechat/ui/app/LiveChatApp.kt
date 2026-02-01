@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
-import com.edufelip.livechat.analytics.rememberAnalyticsController
 import com.edufelip.livechat.domain.models.AppDestination
 import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.AppearanceSettings
@@ -48,9 +47,7 @@ import com.edufelip.livechat.ui.resources.rememberLiveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppPresenter
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
-import com.edufelip.livechat.ui.state.rememberPrivacySettingsPresenter
 import com.edufelip.livechat.ui.theme.LiveChatTheme
-import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
@@ -86,8 +83,6 @@ fun LiveChatApp(
     LiveChatTheme(
         themeMode = appearanceSettings.themeMode,
         textScale = appearanceSettings.textScale,
-        reduceMotion = appearanceSettings.reduceMotion,
-        highContrast = appearanceSettings.highContrast,
         strings = resolvedStrings,
     ) {
         Box(
@@ -119,11 +114,7 @@ fun LiveChatApp(
             val uiTestOverrides = uiTestOverrides()
             val isUiTest = isUiTestMode()
             val isE2e = isE2eMode()
-            val reduceMotion = LocalReduceMotion.current
             val strings = liveChatStrings()
-            val privacyPresenter = rememberPrivacySettingsPresenter()
-            val privacyState by privacyPresenter.collectState()
-            val analyticsController = rememberAnalyticsController()
 
             AppLifecycleObserver(
                 onForeground = {
@@ -135,10 +126,6 @@ fun LiveChatApp(
                     presenter.onAppBackground()
                 },
             )
-
-            LaunchedEffect(privacyState.settings.shareUsageData) {
-                analyticsController.setCollectionEnabled(privacyState.settings.shareUsageData)
-            }
 
             LaunchedEffect(Unit) {
                 NotificationNavigation.events.collect { target ->
@@ -166,29 +153,25 @@ fun LiveChatApp(
             AnimatedContent(
                 targetState = state.destination,
                 transitionSpec = {
-                    if (reduceMotion) {
-                        fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
-                    } else {
-                        val direction =
-                            when {
-                                targetState.animationOrder() > initialState.animationOrder() -> 1
-                                targetState.animationOrder() < initialState.animationOrder() -> -1
-                                else -> 0
-                            }
-                        if (direction == 0) {
-                            fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                        } else {
-                            (
-                                slideInHorizontally(
-                                    animationSpec = tween(300),
-                                ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                            ) togetherWith
-                                (
-                                    slideOutHorizontally(
-                                        animationSpec = tween(300),
-                                    ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                                )
+                    val direction =
+                        when {
+                            targetState.animationOrder() > initialState.animationOrder() -> 1
+                            targetState.animationOrder() < initialState.animationOrder() -> -1
+                            else -> 0
                         }
+                    if (direction == 0) {
+                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                    } else {
+                        (
+                            slideInHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                        ) togetherWith
+                            (
+                                slideOutHorizontally(
+                                    animationSpec = tween(300),
+                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                            )
                     }
                 },
                 contentKey = { it.navigationKey() },
@@ -217,7 +200,6 @@ fun LiveChatApp(
                             modifier = contentModifier,
                             fullScreenModifier = fullScreenModifier,
                             strings = strings,
-                            reduceMotion = reduceMotion,
                             onSelectTab = presenter::selectTab,
                             onOpenConversation = presenter::openConversation,
                             onOpenContacts = presenter::openContacts,

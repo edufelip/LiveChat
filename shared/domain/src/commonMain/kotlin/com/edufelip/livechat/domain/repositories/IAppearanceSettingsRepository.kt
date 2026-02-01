@@ -11,9 +11,5 @@ interface IAppearanceSettingsRepository {
 
     suspend fun updateTextScale(scale: Float)
 
-    suspend fun updateReduceMotion(enabled: Boolean)
-
-    suspend fun updateHighContrast(enabled: Boolean)
-
     suspend fun resetSettings()
 }

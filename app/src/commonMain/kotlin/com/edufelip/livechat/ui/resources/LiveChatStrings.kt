@@ -36,9 +36,9 @@ data class SettingsStrings(
     val accountTitle: String = "Account",
     val accountDescription: String = "Profile, status, and linked phone number",
     val notificationsTitle: String = "Notifications",
-    val notificationsDescription: String = "Mute, schedule quiet hours, sounds",
+    val notificationsDescription: String = "Mute and schedule quiet hours",
     val appearanceTitle: String = "Appearance",
-    val appearanceDescription: String = "Themes, typography scale, accessibility",
+    val appearanceDescription: String = "Themes and typography scale",
     val privacyTitle: String = "Privacy",
     val privacyDescription: String = "Blocked contacts, invite preferences",
     val privacyPolicyTitle: String = "Privacy Policy",
@@ -100,13 +100,6 @@ data class NotificationsStrings(
     val pushTitle: String = "Push Notifications",
     val pushSubtitle: String = "Receive messages when away",
     val permissionDisabledHint: String = "Notifications disabled in system settings.",
-    val soundTitle: String = "Sound",
-    val soundSheetTitle: String = "Notification sound",
-    val soundSheetDescription: String = "Choose a tone for incoming messages.",
-    val soundOptionPopcorn: String = "Popcorn",
-    val soundOptionChime: String = "Chime",
-    val soundOptionRipple: String = "Ripple",
-    val soundOptionSilent: String = "Silent",
     val quietHoursTitle: String = "Scheduled Quiet Mode",
     val quietHoursSubtitle: String = "Mute notifications during set times",
     val quietHoursFromLabel: String = "From",
@@ -115,10 +108,8 @@ data class NotificationsStrings(
     val quietHoursToPlaceholder: String = "07:00",
     val quietHoursSheetTitle: String = "Edit quiet hours",
     val quietHoursSheetDescription: String = "Use 24h format (HH:MM).",
-    val vibrationTitle: String = "In-App Vibration",
     val previewTitle: String = "Show Message Preview",
     val previewSubtitle: String = "Display text in banners",
-    val resetTitle: String = "Reset Notifications",
     val saveCta: String = "Save",
 )
 
@@ -126,7 +117,6 @@ data class AppearanceStrings(
     val screenTitle: String = "Appearance",
     val themesSection: String = "Themes",
     val typographySection: String = "Typography scale",
-    val accessibilitySection: String = "Accessibility",
     val themeSystemTitle: String = "System default",
     val themeSystemSubtitle: String = "Match your device settings",
     val themeLightTitle: String = "Light mode",
@@ -139,10 +129,6 @@ data class AppearanceStrings(
     val typographySample: String =
         "The quick brown fox jumps over the lazy dog. " +
             "Adjust the slider to see how text will appear in your chats.",
-    val reduceMotionTitle: String = "Reduce motion",
-    val reduceMotionSubtitle: String = "Minimize animations",
-    val highContrastTitle: String = "High contrast",
-    val highContrastSubtitle: String = "Increase text legibility",
     val resetTitle: String = "Reset appearance",
 )
 
@@ -169,9 +155,6 @@ data class PrivacyStrings(
     val readReceiptsTitle: String = "Read Receipts",
     val readReceiptsSubtitle: String =
         "If turned off, you won't see read receipts from other people either.",
-    val shareUsageDataTitle: String = "Share Usage Data",
-    val shareUsageDataSubtitle: String =
-        "Help us improve LiveChat by automatically sending diagnostic data.",
     val privacyPolicyTitle: String = "Privacy Policy",
     val privacyPolicySubtitle: String =
         "View our privacy policy and terms of service.",
@@ -454,13 +437,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             pushTitle = stringResource(Res.string.notifications_push_title),
             pushSubtitle = stringResource(Res.string.notifications_push_subtitle),
             permissionDisabledHint = stringResource(Res.string.notifications_permission_disabled_hint),
-            soundTitle = stringResource(Res.string.notifications_sound_title),
-            soundSheetTitle = stringResource(Res.string.notifications_sound_sheet_title),
-            soundSheetDescription = stringResource(Res.string.notifications_sound_sheet_description),
-            soundOptionPopcorn = stringResource(Res.string.notifications_sound_option_popcorn),
-            soundOptionChime = stringResource(Res.string.notifications_sound_option_chime),
-            soundOptionRipple = stringResource(Res.string.notifications_sound_option_ripple),
-            soundOptionSilent = stringResource(Res.string.notifications_sound_option_silent),
             quietHoursTitle = stringResource(Res.string.notifications_quiet_hours_title),
             quietHoursSubtitle = stringResource(Res.string.notifications_quiet_hours_subtitle),
             quietHoursFromLabel = stringResource(Res.string.notifications_quiet_hours_from_label),
@@ -469,10 +445,8 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             quietHoursToPlaceholder = stringResource(Res.string.notifications_quiet_hours_to_placeholder),
             quietHoursSheetTitle = stringResource(Res.string.notifications_quiet_hours_sheet_title),
             quietHoursSheetDescription = stringResource(Res.string.notifications_quiet_hours_sheet_description),
-            vibrationTitle = stringResource(Res.string.notifications_vibration_title),
             previewTitle = stringResource(Res.string.notifications_preview_title),
             previewSubtitle = stringResource(Res.string.notifications_preview_subtitle),
-            resetTitle = stringResource(Res.string.notifications_reset_title),
             saveCta = stringResource(Res.string.notifications_save_cta),
         )
 
@@ -481,7 +455,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             screenTitle = stringResource(Res.string.appearance_screen_title),
             themesSection = stringResource(Res.string.appearance_themes_section),
             typographySection = stringResource(Res.string.appearance_typography_section),
-            accessibilitySection = stringResource(Res.string.appearance_accessibility_section),
             themeSystemTitle = stringResource(Res.string.appearance_theme_system_title),
             themeSystemSubtitle = stringResource(Res.string.appearance_theme_system_subtitle),
             themeLightTitle = stringResource(Res.string.appearance_theme_light_title),
@@ -492,10 +465,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             typographyDefaultLabel = stringResource(Res.string.appearance_typography_default_label),
             typographyLargeLabel = stringResource(Res.string.appearance_typography_large_label),
             typographySample = stringResource(Res.string.appearance_typography_sample),
-            reduceMotionTitle = stringResource(Res.string.appearance_reduce_motion_title),
-            reduceMotionSubtitle = stringResource(Res.string.appearance_reduce_motion_subtitle),
-            highContrastTitle = stringResource(Res.string.appearance_high_contrast_title),
-            highContrastSubtitle = stringResource(Res.string.appearance_high_contrast_subtitle),
             resetTitle = stringResource(Res.string.appearance_reset_title),
         )
 
@@ -520,8 +489,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             lastSeenNobody = stringResource(Res.string.privacy_last_seen_nobody),
             readReceiptsTitle = stringResource(Res.string.privacy_read_receipts_title),
             readReceiptsSubtitle = stringResource(Res.string.privacy_read_receipts_subtitle),
-            shareUsageDataTitle = stringResource(Res.string.privacy_share_usage_data_title),
-            shareUsageDataSubtitle = stringResource(Res.string.privacy_share_usage_data_subtitle),
             privacyPolicyTitle = stringResource(Res.string.privacy_policy_title),
             privacyPolicySubtitle = stringResource(Res.string.privacy_policy_subtitle),
             saveCta = stringResource(Res.string.privacy_save_cta),

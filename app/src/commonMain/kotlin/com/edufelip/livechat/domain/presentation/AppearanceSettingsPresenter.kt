@@ -5,8 +5,6 @@ import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
-import com.edufelip.livechat.domain.useCases.UpdateHighContrastUseCase
-import com.edufelip.livechat.domain.useCases.UpdateReduceMotionUseCase
 import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
@@ -24,8 +22,6 @@ class AppearanceSettingsPresenter(
     private val observeSettings: ObserveAppearanceSettingsUseCase,
     private val updateThemeMode: UpdateThemeModeUseCase,
     private val updateTextScale: UpdateTextScaleUseCase,
-    private val updateReduceMotion: UpdateReduceMotionUseCase,
-    private val updateHighContrast: UpdateHighContrastUseCase,
     private val resetSettings: ResetAppearanceSettingsUseCase,
     private val scope: CoroutineScope,
 ) {
@@ -63,20 +59,6 @@ class AppearanceSettingsPresenter(
         updateSettings(
             update = { updateTextScale(scale) },
             localUpdate = { it.copy(textScale = scale) },
-        )
-    }
-
-    fun updateReduceMotion(enabled: Boolean) {
-        updateSettings(
-            update = { updateReduceMotion(enabled) },
-            localUpdate = { it.copy(reduceMotion = enabled) },
-        )
-    }
-
-    fun updateHighContrast(enabled: Boolean) {
-        updateSettings(
-            update = { updateHighContrast(enabled) },
-            localUpdate = { it.copy(highContrast = enabled) },
         )
     }
 

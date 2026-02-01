@@ -57,12 +57,9 @@ val presentationModule: Module =
             NotificationSettingsPresenter(
                 observeSettings = get(),
                 updatePushEnabled = get(),
-                updateSound = get(),
                 updateQuietHoursEnabled = get(),
                 updateQuietHoursWindow = get(),
-                updateInAppVibration = get(),
                 updateShowMessagePreview = get(),
-                resetSettings = get(),
                 scope = MainScope(),
             )
         }
@@ -71,8 +68,6 @@ val presentationModule: Module =
                 observeSettings = get(),
                 updateThemeMode = get(),
                 updateTextScale = get(),
-                updateReduceMotion = get(),
-                updateHighContrast = get(),
                 resetSettings = get(),
                 scope = MainScope(),
             )
@@ -83,7 +78,6 @@ val presentationModule: Module =
                 updateInvitePreference = get(),
                 updateLastSeenAudience = get(),
                 updateReadReceipts = get(),
-                updateShareUsageData = get(),
                 resetSettings = get(),
                 scope = MainScope(),
             )

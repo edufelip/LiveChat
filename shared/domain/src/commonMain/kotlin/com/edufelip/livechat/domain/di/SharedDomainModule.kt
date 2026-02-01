@@ -39,7 +39,6 @@ import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
 import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
-import com.edufelip.livechat.domain.useCases.ResetNotificationSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
@@ -55,19 +54,14 @@ import com.edufelip.livechat.domain.useCases.UpdateAccountDisplayNameUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountEmailUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountPhotoUseCase
 import com.edufelip.livechat.domain.useCases.UpdateAccountStatusMessageUseCase
-import com.edufelip.livechat.domain.useCases.UpdateHighContrastUseCase
-import com.edufelip.livechat.domain.useCases.UpdateInAppVibrationUseCase
 import com.edufelip.livechat.domain.useCases.UpdateInvitePreferenceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateLastSeenAudienceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateMessagePreviewUseCase
-import com.edufelip.livechat.domain.useCases.UpdateNotificationSoundUseCase
 import com.edufelip.livechat.domain.useCases.UpdatePushNotificationsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateQuietHoursEnabledUseCase
 import com.edufelip.livechat.domain.useCases.UpdateQuietHoursWindowUseCase
 import com.edufelip.livechat.domain.useCases.UpdateReadReceiptsUseCase
-import com.edufelip.livechat.domain.useCases.UpdateReduceMotionUseCase
 import com.edufelip.livechat.domain.useCases.UpdateSelfPresenceUseCase
-import com.edufelip.livechat.domain.useCases.UpdateShareUsageDataUseCase
 import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.useCases.ValidateContactsUseCase
@@ -125,25 +119,19 @@ val sharedDomainModule: Module =
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
         factory { UpdateThemeModeUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateTextScaleUseCase(get<IAppearanceSettingsRepository>()) }
-        factory { UpdateReduceMotionUseCase(get<IAppearanceSettingsRepository>()) }
-        factory { UpdateHighContrastUseCase(get<IAppearanceSettingsRepository>()) }
         factory { ResetAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateInvitePreferenceUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateLastSeenAudienceUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>(), get()) }
-        factory { UpdateShareUsageDataUseCase(get<IPrivacySettingsRepository>()) }
         factory { ResetPrivacySettingsUseCase(get<IPrivacySettingsRepository>()) }
         factory { ObservePresenceUseCase(get()) }
         factory { UpdateSelfPresenceUseCase(get()) }
         factory { BlockContactUseCase(get<IBlockedContactsRepository>(), get()) }
         factory { UnblockContactUseCase(get<IBlockedContactsRepository>()) }
         factory { UpdatePushNotificationsUseCase(get<INotificationSettingsRepository>()) }
-        factory { UpdateNotificationSoundUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateQuietHoursEnabledUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateQuietHoursWindowUseCase(get<INotificationSettingsRepository>()) }
-        factory { UpdateInAppVibrationUseCase(get<INotificationSettingsRepository>()) }
         factory { UpdateMessagePreviewUseCase(get<INotificationSettingsRepository>()) }
-        factory { ResetNotificationSettingsUseCase(get<INotificationSettingsRepository>()) }
         factory { RegisterDeviceTokenUseCase(get<IDeviceTokenRepository>()) }
         factory { UnregisterDeviceTokenUseCase(get<IDeviceTokenRepository>()) }
         factory { RequestPhoneVerificationUseCase(get<IPhoneAuthRepository>()) }

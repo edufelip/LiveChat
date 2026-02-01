@@ -2,7 +2,6 @@ package com.edufelip.livechat.data.repositories
 
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.domain.models.NotificationSettings
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -47,13 +46,6 @@ class NotificationSettingsRepository(
         settingsState.value = settingsState.value.copy(pushEnabled = enabled)
     }
 
-    override suspend fun updateSound(sound: String) {
-        val session = requireSession()
-        val normalizedSound = NotificationSound.normalizeId(sound)
-        remoteData.updateSound(session.userId, session.idToken, normalizedSound)
-        settingsState.value = settingsState.value.copy(sound = normalizedSound)
-    }
-
     override suspend fun updateQuietHoursEnabled(enabled: Boolean) {
         val session = requireSession()
         remoteData.updateQuietHoursEnabled(session.userId, session.idToken, enabled)
@@ -72,22 +64,10 @@ class NotificationSettingsRepository(
             )
     }
 
-    override suspend fun updateInAppVibration(enabled: Boolean) {
-        val session = requireSession()
-        remoteData.updateInAppVibration(session.userId, session.idToken, enabled)
-        settingsState.value = settingsState.value.copy(inAppVibration = enabled)
-    }
-
     override suspend fun updateShowMessagePreview(enabled: Boolean) {
         val session = requireSession()
         remoteData.updateShowMessagePreview(session.userId, session.idToken, enabled)
         settingsState.value = settingsState.value.copy(showMessagePreview = enabled)
-    }
-
-    override suspend fun resetSettings() {
-        val session = requireSession()
-        remoteData.resetSettings(session.userId, session.idToken)
-        settingsState.value = NotificationSettings()
     }
 
     private suspend fun requireSession() =

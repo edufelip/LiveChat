@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronLeft
-import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -124,63 +122,6 @@ internal fun NotificationToggleCard(
                 checked = checked,
                 onCheckedChange = null,
                 enabled = enabled,
-            )
-        }
-    }
-}
-
-@Composable
-internal fun NotificationOptionCard(
-    title: String,
-    value: String,
-    enabled: Boolean,
-    onClick: (() -> Unit)?,
-) {
-    val isEnabled = enabled && onClick != null
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .then(
-                    if (isEnabled) {
-                        Modifier.clickable(onClick = onClick)
-                    } else {
-                        Modifier
-                    },
-                ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Row(
-            modifier = Modifier.padding(MaterialTheme.spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxs),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-            Icon(
-                imageVector = Icons.Rounded.ChevronRight,
-                contentDescription = null,
-                tint =
-                    if (isEnabled) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    },
             )
         }
     }
@@ -293,41 +234,8 @@ internal fun QuietHoursTimeCard(
 }
 
 @Composable
-internal fun NotificationResetCard(
-    title: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val errorColor = MaterialTheme.colorScheme.error
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .then(
-                    if (enabled) {
-                        Modifier.clickable(onClick = onClick)
-                    } else {
-                        Modifier
-                    },
-                ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Row(
-            modifier = Modifier.padding(MaterialTheme.spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = if (enabled) errorColor else errorColor.copy(alpha = 0.6f),
-            )
-        }
-    }
-}
-
 @DevicePreviews
 @Preview
-@Composable
 private fun NotificationSettingsHeaderPreview() {
     LiveChatPreviewContainer {
         val strings = liveChatStrings()
@@ -368,21 +276,6 @@ private fun NotificationToggleCardPreview() {
 @DevicePreviews
 @Preview
 @Composable
-private fun NotificationOptionCardPreview() {
-    LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        NotificationOptionCard(
-            title = strings.notifications.soundTitle,
-            value = strings.notifications.soundOptionPopcorn,
-            enabled = true,
-            onClick = {},
-        )
-    }
-}
-
-@DevicePreviews
-@Preview
-@Composable
 private fun QuietHoursCardPreview() {
     LiveChatPreviewContainer {
         val strings = liveChatStrings()
@@ -397,20 +290,6 @@ private fun QuietHoursCardPreview() {
             toTime = strings.notifications.quietHoursToPlaceholder,
             onCheckedChange = {},
             onEditQuietHours = {},
-        )
-    }
-}
-
-@DevicePreviews
-@Preview
-@Composable
-private fun NotificationResetCardPreview() {
-    LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        NotificationResetCard(
-            title = strings.notifications.resetTitle,
-            enabled = true,
-            onClick = {},
         )
     }
 }

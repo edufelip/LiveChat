@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BrightnessAuto
@@ -22,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -141,47 +138,6 @@ internal fun AppearanceThemeCard(
                 }
             }
             SelectionIndicator(selected = selected)
-        }
-    }
-}
-
-@Composable
-internal fun AppearanceToggleCard(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    enabled: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Row(
-            modifier = Modifier.padding(MaterialTheme.spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxs),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-            Switch(
-                checked = checked,
-                onCheckedChange = if (enabled) onCheckedChange else null,
-                enabled = enabled,
-            )
         }
     }
 }
@@ -324,22 +280,6 @@ private fun AppearanceThemeCardPreview() {
             selected = true,
             enabled = true,
             onClick = {},
-        )
-    }
-}
-
-@DevicePreviews
-@Preview
-@Composable
-private fun AppearanceToggleCardPreview() {
-    LiveChatPreviewContainer {
-        val strings = liveChatStrings()
-        AppearanceToggleCard(
-            title = strings.appearance.reduceMotionTitle,
-            subtitle = strings.appearance.reduceMotionSubtitle,
-            checked = true,
-            enabled = true,
-            onCheckedChange = {},
         )
     }
 }

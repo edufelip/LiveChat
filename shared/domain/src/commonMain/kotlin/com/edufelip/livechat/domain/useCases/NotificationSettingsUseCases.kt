@@ -18,14 +18,6 @@ class UpdatePushNotificationsUseCase(
     }
 }
 
-class UpdateNotificationSoundUseCase(
-    private val repository: INotificationSettingsRepository,
-) {
-    suspend operator fun invoke(sound: String) {
-        repository.updateSound(sound)
-    }
-}
-
 class UpdateQuietHoursEnabledUseCase(
     private val repository: INotificationSettingsRepository,
 ) {
@@ -45,26 +37,10 @@ class UpdateQuietHoursWindowUseCase(
     }
 }
 
-class UpdateInAppVibrationUseCase(
-    private val repository: INotificationSettingsRepository,
-) {
-    suspend operator fun invoke(enabled: Boolean) {
-        repository.updateInAppVibration(enabled)
-    }
-}
-
 class UpdateMessagePreviewUseCase(
     private val repository: INotificationSettingsRepository,
 ) {
     suspend operator fun invoke(enabled: Boolean) {
         repository.updateShowMessagePreview(enabled)
-    }
-}
-
-class ResetNotificationSettingsUseCase(
-    private val repository: INotificationSettingsRepository,
-) {
-    suspend operator fun invoke() {
-        repository.resetSettings()
     }
 }

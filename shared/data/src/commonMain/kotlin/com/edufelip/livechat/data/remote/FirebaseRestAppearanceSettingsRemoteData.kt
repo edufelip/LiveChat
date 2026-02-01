@@ -58,22 +58,6 @@ class FirebaseRestAppearanceSettingsRemoteData(
         updateFields(userId, idToken, mapOf(FIELD_TEXT_SCALE to Value(doubleValue = scale.toDouble())))
     }
 
-    override suspend fun updateReduceMotion(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    ) {
-        updateFields(userId, idToken, mapOf(FIELD_REDUCE_MOTION to Value(booleanValue = enabled)))
-    }
-
-    override suspend fun updateHighContrast(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    ) {
-        updateFields(userId, idToken, mapOf(FIELD_HIGH_CONTRAST to Value(booleanValue = enabled)))
-    }
-
     override suspend fun resetSettings(
         userId: String,
         idToken: String,
@@ -85,8 +69,6 @@ class FirebaseRestAppearanceSettingsRemoteData(
             mapOf(
                 FIELD_THEME_MODE to Value(stringValue = defaults.themeMode.toRemoteValue()),
                 FIELD_TEXT_SCALE to Value(doubleValue = defaults.textScale.toDouble()),
-                FIELD_REDUCE_MOTION to Value(booleanValue = defaults.reduceMotion),
-                FIELD_HIGH_CONTRAST to Value(booleanValue = defaults.highContrast),
             ),
         )
     }
@@ -127,8 +109,6 @@ class FirebaseRestAppearanceSettingsRemoteData(
         return defaults.copy(
             themeMode = themeMode,
             textScale = textScale,
-            reduceMotion = fields[FIELD_REDUCE_MOTION]?.booleanValue ?: defaults.reduceMotion,
-            highContrast = fields[FIELD_HIGH_CONTRAST]?.booleanValue ?: defaults.highContrast,
         )
     }
 
@@ -169,8 +149,6 @@ class FirebaseRestAppearanceSettingsRemoteData(
         const val APPEARANCE_DOC = "appearance"
         const val FIELD_THEME_MODE = "theme_mode"
         const val FIELD_TEXT_SCALE = "text_scale"
-        const val FIELD_REDUCE_MOTION = "reduce_motion"
-        const val FIELD_HIGH_CONTRAST = "high_contrast"
         const val VALUE_SYSTEM = "system"
         const val VALUE_LIGHT = "light"
         const val VALUE_DARK = "dark"

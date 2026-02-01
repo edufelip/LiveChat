@@ -9,8 +9,6 @@ enum class ThemeMode {
 data class AppearanceSettings(
     val themeMode: ThemeMode = ThemeMode.System,
     val textScale: Float = DEFAULT_TEXT_SCALE,
-    val reduceMotion: Boolean = false,
-    val highContrast: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_TEXT_SCALE = 1.0f

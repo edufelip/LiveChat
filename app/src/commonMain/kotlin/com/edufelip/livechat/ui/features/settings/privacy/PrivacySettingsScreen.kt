@@ -39,7 +39,6 @@ fun PrivacySettingsScreen(
     onInvitePreferenceSelected: (InvitePreference) -> Unit = {},
     onOpenLastSeen: () -> Unit = {},
     onToggleReadReceipts: (Boolean) -> Unit = {},
-    onToggleShareUsageData: (Boolean) -> Unit = {},
     onOpenPrivacyPolicy: () -> Unit = {},
 ) {
     val strings = liveChatStrings()
@@ -52,7 +51,6 @@ fun PrivacySettingsScreen(
     val onOpenBlockedContactsAction = rememberStableAction(onOpenBlockedContacts)
     val onOpenLastSeenAction = rememberStableAction(onOpenLastSeen)
     val onToggleReadReceiptsAction = rememberStableAction(onToggleReadReceipts)
-    val onToggleShareUsageDataAction = rememberStableAction(onToggleShareUsageData)
     val onOpenPrivacyPolicyAction = rememberStableAction(onOpenPrivacyPolicy)
     val onInvitePreferenceSelectedAction = rememberStableAction(onInvitePreferenceSelected)
     val inviteOptions =
@@ -143,16 +141,6 @@ fun PrivacySettingsScreen(
                 checked = settings.readReceiptsEnabled,
                 enabled = allowEdits,
                 onCheckedChange = onToggleReadReceiptsAction,
-            )
-        }
-
-        Box(modifier = Modifier.settingsItemHighlight("privacy_usage_data", targetItemId)) {
-            PrivacyToggleCard(
-                title = privacyStrings.shareUsageDataTitle,
-                subtitle = privacyStrings.shareUsageDataSubtitle,
-                checked = settings.shareUsageData,
-                enabled = allowEdits,
-                onCheckedChange = onToggleShareUsageDataAction,
             )
         }
 

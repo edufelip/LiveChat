@@ -28,12 +28,6 @@ interface IPrivacySettingsRemoteData {
         enabled: Boolean,
     )
 
-    suspend fun updateShareUsageData(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    )
-
     suspend fun resetSettings(
         userId: String,
         idToken: String,

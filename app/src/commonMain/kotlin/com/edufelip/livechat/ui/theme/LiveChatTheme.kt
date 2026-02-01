@@ -13,8 +13,6 @@ import com.edufelip.livechat.ui.resources.rememberLiveChatStrings
 fun LiveChatTheme(
     themeMode: ThemeMode = ThemeMode.System,
     textScale: Float = 1.0f,
-    reduceMotion: Boolean = false,
-    highContrast: Boolean = false,
     palette: LiveChatPalette = LiveChatPalettes.Pastel,
     strategy: PlatformColorSchemeStrategy = rememberPlatformColorSchemeStrategy(),
     strings: LiveChatStrings? = null,
@@ -27,14 +25,13 @@ fun LiveChatTheme(
             ThemeMode.Dark -> true
         }
     val baseScheme = strategy.scheme(darkTheme, palette)
-    val colorScheme = if (highContrast) baseScheme.highContrast(darkTheme) else baseScheme
+    val colorScheme = baseScheme
     val typography = LiveChatTypography.scaled(textScale)
     val resolvedStrings = strings ?: rememberLiveChatStrings()
 
     CompositionLocalProvider(
         LocalLiveChatSpacing provides LiveChatSpacing(),
         LocalLiveChatStrings provides resolvedStrings,
-        LocalReduceMotion provides reduceMotion,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -27,22 +27,6 @@ class UpdateTextScaleUseCase(
     }
 }
 
-class UpdateReduceMotionUseCase(
-    private val repository: IAppearanceSettingsRepository,
-) {
-    suspend operator fun invoke(enabled: Boolean) {
-        repository.updateReduceMotion(enabled)
-    }
-}
-
-class UpdateHighContrastUseCase(
-    private val repository: IAppearanceSettingsRepository,
-) {
-    suspend operator fun invoke(enabled: Boolean) {
-        repository.updateHighContrast(enabled)
-    }
-}
-
 class ResetAppearanceSettingsUseCase(
     private val repository: IAppearanceSettingsRepository,
 ) {

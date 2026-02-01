@@ -8,8 +8,6 @@ interface INotificationSettingsRepository {
 
     suspend fun updatePushEnabled(enabled: Boolean)
 
-    suspend fun updateSound(sound: String)
-
     suspend fun updateQuietHoursEnabled(enabled: Boolean)
 
     suspend fun updateQuietHoursWindow(
@@ -17,9 +15,5 @@ interface INotificationSettingsRepository {
         to: String,
     )
 
-    suspend fun updateInAppVibration(enabled: Boolean)
-
     suspend fun updateShowMessagePreview(enabled: Boolean)
-
-    suspend fun resetSettings()
 }

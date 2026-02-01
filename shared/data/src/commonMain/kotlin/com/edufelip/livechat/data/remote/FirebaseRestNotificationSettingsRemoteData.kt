@@ -2,7 +2,6 @@ package com.edufelip.livechat.data.remote
 
 import com.edufelip.livechat.data.contracts.INotificationSettingsRemoteData
 import com.edufelip.livechat.domain.models.NotificationSettings
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.models.QuietHours
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -54,14 +53,6 @@ class FirebaseRestNotificationSettingsRemoteData(
         updateFields(userId, idToken, mapOf(FIELD_PUSH_ENABLED to Value(booleanValue = enabled)))
     }
 
-    override suspend fun updateSound(
-        userId: String,
-        idToken: String,
-        sound: String,
-    ) {
-        updateFields(userId, idToken, mapOf(FIELD_SOUND to Value(stringValue = sound)))
-    }
-
     override suspend fun updateQuietHoursEnabled(
         userId: String,
         idToken: String,
@@ -86,40 +77,12 @@ class FirebaseRestNotificationSettingsRemoteData(
         )
     }
 
-    override suspend fun updateInAppVibration(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    ) {
-        updateFields(userId, idToken, mapOf(FIELD_IN_APP_VIBRATION to Value(booleanValue = enabled)))
-    }
-
     override suspend fun updateShowMessagePreview(
         userId: String,
         idToken: String,
         enabled: Boolean,
     ) {
         updateFields(userId, idToken, mapOf(FIELD_SHOW_PREVIEW to Value(booleanValue = enabled)))
-    }
-
-    override suspend fun resetSettings(
-        userId: String,
-        idToken: String,
-    ) {
-        val defaults = NotificationSettings()
-        updateFields(
-            userId,
-            idToken,
-            mapOf(
-                FIELD_PUSH_ENABLED to Value(booleanValue = defaults.pushEnabled),
-                FIELD_SOUND to Value(stringValue = defaults.sound),
-                FIELD_QUIET_ENABLED to Value(booleanValue = defaults.quietHoursEnabled),
-                FIELD_QUIET_FROM to Value(stringValue = defaults.quietHours.from),
-                FIELD_QUIET_TO to Value(stringValue = defaults.quietHours.to),
-                FIELD_IN_APP_VIBRATION to Value(booleanValue = defaults.inAppVibration),
-                FIELD_SHOW_PREVIEW to Value(booleanValue = defaults.showMessagePreview),
-            ),
-        )
     }
 
     private suspend fun updateFields(
@@ -149,11 +112,9 @@ class FirebaseRestNotificationSettingsRemoteData(
                     val initialFields =
                         mapOf(
                             FIELD_PUSH_ENABLED to Value(booleanValue = defaults.pushEnabled),
-                            FIELD_SOUND to Value(stringValue = defaults.sound),
                             FIELD_QUIET_ENABLED to Value(booleanValue = defaults.quietHoursEnabled),
                             FIELD_QUIET_FROM to Value(stringValue = defaults.quietHours.from),
                             FIELD_QUIET_TO to Value(stringValue = defaults.quietHours.to),
-                            FIELD_IN_APP_VIBRATION to Value(booleanValue = defaults.inAppVibration),
                             FIELD_SHOW_PREVIEW to Value(booleanValue = defaults.showMessagePreview),
                         ) + fields
 
@@ -188,13 +149,10 @@ class FirebaseRestNotificationSettingsRemoteData(
                 from = fields[FIELD_QUIET_FROM]?.stringValue ?: defaults.quietHours.from,
                 to = fields[FIELD_QUIET_TO]?.stringValue ?: defaults.quietHours.to,
             )
-        val rawSound = fields[FIELD_SOUND]?.stringValue ?: defaults.sound
         return defaults.copy(
             pushEnabled = fields[FIELD_PUSH_ENABLED]?.booleanValue ?: defaults.pushEnabled,
-            sound = NotificationSound.normalizeId(rawSound),
             quietHoursEnabled = fields[FIELD_QUIET_ENABLED]?.booleanValue ?: defaults.quietHoursEnabled,
             quietHours = quietHours,
-            inAppVibration = fields[FIELD_IN_APP_VIBRATION]?.booleanValue ?: defaults.inAppVibration,
             showMessagePreview = fields[FIELD_SHOW_PREVIEW]?.booleanValue ?: defaults.showMessagePreview,
         )
     }
@@ -220,11 +178,9 @@ class FirebaseRestNotificationSettingsRemoteData(
         const val SETTINGS_COLLECTION = "settings"
         const val NOTIFICATIONS_DOC = "notifications"
         const val FIELD_PUSH_ENABLED = "push_enabled"
-        const val FIELD_SOUND = "sound"
         const val FIELD_QUIET_ENABLED = "quiet_hours_enabled"
         const val FIELD_QUIET_FROM = "quiet_from"
         const val FIELD_QUIET_TO = "quiet_to"
-        const val FIELD_IN_APP_VIBRATION = "in_app_vibration"
         const val FIELD_SHOW_PREVIEW = "show_preview"
     }
 }

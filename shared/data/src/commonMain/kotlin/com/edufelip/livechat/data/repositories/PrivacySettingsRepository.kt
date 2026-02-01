@@ -60,12 +60,6 @@ class PrivacySettingsRepository(
         settingsState.value = settingsState.value.copy(readReceiptsEnabled = enabled)
     }
 
-    override suspend fun updateShareUsageData(enabled: Boolean) {
-        val session = requireSession()
-        remoteData.updateShareUsageData(session.userId, session.idToken, enabled)
-        settingsState.value = settingsState.value.copy(shareUsageData = enabled)
-    }
-
     override suspend fun resetSettings() {
         val session = requireSession()
         remoteData.resetSettings(session.userId, session.idToken)

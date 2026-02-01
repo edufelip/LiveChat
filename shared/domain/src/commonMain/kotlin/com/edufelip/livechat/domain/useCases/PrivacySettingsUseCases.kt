@@ -41,14 +41,6 @@ class UpdateReadReceiptsUseCase(
     }
 }
 
-class UpdateShareUsageDataUseCase(
-    private val repository: IPrivacySettingsRepository,
-) {
-    suspend operator fun invoke(enabled: Boolean) {
-        repository.updateShareUsageData(enabled)
-    }
-}
-
 class ResetPrivacySettingsUseCase(
     private val repository: IPrivacySettingsRepository,
 ) {

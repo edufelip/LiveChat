@@ -14,7 +14,5 @@ interface IPrivacySettingsRepository {
 
     suspend fun updateReadReceipts(enabled: Boolean)
 
-    suspend fun updateShareUsageData(enabled: Boolean)
-
     suspend fun resetSettings()
 }

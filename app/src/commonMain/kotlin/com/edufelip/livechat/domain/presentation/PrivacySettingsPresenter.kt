@@ -9,7 +9,6 @@ import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateInvitePreferenceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateLastSeenAudienceUseCase
 import com.edufelip.livechat.domain.useCases.UpdateReadReceiptsUseCase
-import com.edufelip.livechat.domain.useCases.UpdateShareUsageDataUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +25,6 @@ class PrivacySettingsPresenter(
     private val updateInvitePreference: UpdateInvitePreferenceUseCase,
     private val updateLastSeenAudience: UpdateLastSeenAudienceUseCase,
     private val updateReadReceipts: UpdateReadReceiptsUseCase,
-    private val updateShareUsageData: UpdateShareUsageDataUseCase,
     private val resetSettings: ResetPrivacySettingsUseCase,
     private val scope: CoroutineScope,
 ) {
@@ -71,13 +69,6 @@ class PrivacySettingsPresenter(
         updateSettings(
             update = { updateReadReceipts(enabled) },
             localUpdate = { it.copy(readReceiptsEnabled = enabled) },
-        )
-    }
-
-    fun updateShareUsageData(enabled: Boolean) {
-        updateSettings(
-            update = { updateShareUsageData(enabled) },
-            localUpdate = { it.copy(shareUsageData = enabled) },
         )
     }
 

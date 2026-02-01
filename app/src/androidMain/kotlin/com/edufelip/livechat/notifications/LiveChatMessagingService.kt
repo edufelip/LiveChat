@@ -3,7 +3,6 @@ package com.edufelip.livechat.notifications
 import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
@@ -14,7 +13,6 @@ import com.edufelip.livechat.di.AndroidKoinBridge
 import com.edufelip.livechat.domain.models.DevicePlatform
 import com.edufelip.livechat.domain.models.DeviceTokenRegistration
 import com.edufelip.livechat.domain.models.NotificationSettings
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.domain.notifications.InAppNotification
 import com.edufelip.livechat.domain.notifications.InAppNotificationCenter
 import com.edufelip.livechat.domain.useCases.IsQuietModeActiveUseCase
@@ -25,8 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalTime
 import java.time.LocalTime as JavaLocalTime
-
-val DEFAULT_VIBRATION_PATTERN = longArrayOf(0, 50, 40, 50)
 
 class LiveChatMessagingService : FirebaseMessagingService() {
     private val notificationSettingsRepository = AndroidKoinBridge.notificationSettingsRepository()
@@ -74,7 +70,6 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         }
 
         val showPreview = settings.showMessagePreview
-        val isSilent = NotificationSound.normalizeId(settings.sound) == NotificationSound.Silent.id
         val titleSource = payload.senderName?.takeIf { it.isNotBlank() } ?: payload.title
         val title = if (showPreview) titleSource.ifBlank { defaults.title } else defaults.title
         val body = if (showPreview) payload.body else defaults.hiddenBody
@@ -82,7 +77,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         val isForeground = AppForegroundTracker.isForeground.value
         Log.d(
             TAG,
-            "onMessageReceived: app isForeground=$isForeground, showPreview=$showPreview, isSilent=$isSilent",
+            "onMessageReceived: app isForeground=$isForeground, showPreview=$showPreview",
         )
 
         if (isForeground) {
@@ -95,13 +90,9 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                     messageId = payload.messageId,
                 ),
             )
-            if (!isSilent && settings.inAppVibration) {
-                Log.d(TAG, "onMessageReceived: triggering in-app vibration")
-                NotificationVibrationHelper.vibrate(this)
-            }
         } else {
             Log.i(TAG, "onMessageReceived: app is background, showing system notification")
-            showNotification(title, body, payload, settings, isSilent)
+            showNotification(title, body, payload)
         }
     }
 
@@ -160,11 +151,9 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         title: String,
         body: String,
         payload: NotificationPayload,
-        settings: NotificationSettings,
-        isSilent: Boolean,
     ) {
-        Log.d(TAG, "showNotification: creating system notification (title=$title, isSilent=$isSilent)")
-        val channelId = LiveChatNotificationChannels.ensureChannel(this, settings)
+        Log.d(TAG, "showNotification: creating system notification (title=$title)")
+        val channelId = LiveChatNotificationChannels.ensureChannel(this)
         Log.d(TAG, "showNotification: using channelId=$channelId")
 
         val intent =
@@ -195,20 +184,7 @@ class LiveChatMessagingService : FirebaseMessagingService() {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setVibrate(if (isSilent) null else DEFAULT_VIBRATION_PATTERN)
-        }
-
-        val soundUri = if (isSilent) null else NotificationSoundResolver.resolve(this, settings.sound)
-        if (soundUri == null) {
-            builder.setSound(null)
-            builder.setSilent(true)
-            Log.d(TAG, "showNotification: notification is silent")
-        } else {
-            builder.setSound(soundUri)
-            Log.d(TAG, "showNotification: notification sound=$soundUri")
-        }
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
 
         NotificationManagerCompat.from(this).notify(payload.notificationId, builder.build())
         Log.i(TAG, "showNotification: system notification posted with id=${payload.notificationId}")

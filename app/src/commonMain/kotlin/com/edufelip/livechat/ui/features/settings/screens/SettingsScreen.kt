@@ -564,34 +564,16 @@ private fun buildAllSearchableItems(strings: LiveChatStrings): List<SettingsSear
                 keywords = listOf("push", "alert", "banner", "badge", "notification"),
             ),
             SettingsSearchableItem.SubItem(
-                id = "notifications_sound",
-                title = strings.notifications.soundTitle,
-                parentSection = SettingsSection.Notifications,
-                keywords = listOf("sound", "tone", "ringtone", "audio", "chime", "popcorn", "ripple"),
-            ),
-            SettingsSearchableItem.SubItem(
                 id = "notifications_quiet_hours",
                 title = strings.notifications.quietHoursTitle,
                 parentSection = SettingsSection.Notifications,
                 keywords = listOf("quiet", "hours", "schedule", "mute", "do not disturb", "dnd", "silent"),
             ),
             SettingsSearchableItem.SubItem(
-                id = "notifications_vibration",
-                title = strings.notifications.vibrationTitle,
-                parentSection = SettingsSection.Notifications,
-                keywords = listOf("vibration", "haptic", "feedback"),
-            ),
-            SettingsSearchableItem.SubItem(
                 id = "notifications_preview",
                 title = strings.notifications.previewTitle,
                 parentSection = SettingsSection.Notifications,
                 keywords = listOf("preview", "message", "show", "display", "content"),
-            ),
-            SettingsSearchableItem.SubItem(
-                id = "notifications_reset",
-                title = strings.notifications.resetTitle,
-                parentSection = SettingsSection.Notifications,
-                keywords = listOf("reset", "default", "restore"),
             ),
         ),
     )
@@ -623,18 +605,6 @@ private fun buildAllSearchableItems(strings: LiveChatStrings): List<SettingsSear
                 parentSection = SettingsSection.Appearance,
                 keywords = listOf("text", "font", "size", "scale", "typography", "large", "small"),
             ),
-            SettingsSearchableItem.SubItem(
-                id = "appearance_reduce_motion",
-                title = strings.appearance.reduceMotionTitle,
-                parentSection = SettingsSection.Appearance,
-                keywords = listOf("motion", "animation", "reduce", "minimize", "accessibility"),
-            ),
-            SettingsSearchableItem.SubItem(
-                id = "appearance_high_contrast",
-                title = strings.appearance.highContrastTitle,
-                parentSection = SettingsSection.Appearance,
-                keywords = listOf("contrast", "high", "accessibility", "legibility", "visibility"),
-            ),
         ),
     )
 
@@ -664,12 +634,6 @@ private fun buildAllSearchableItems(strings: LiveChatStrings): List<SettingsSear
                 title = strings.privacy.readReceiptsTitle,
                 parentSection = SettingsSection.Privacy,
                 keywords = listOf("read", "receipts", "seen", "checkmarks", "blue ticks"),
-            ),
-            SettingsSearchableItem.SubItem(
-                id = "privacy_usage_data",
-                title = strings.privacy.shareUsageDataTitle,
-                parentSection = SettingsSection.Privacy,
-                keywords = listOf("usage", "data", "analytics", "diagnostic", "telemetry", "share"),
             ),
         ),
     )

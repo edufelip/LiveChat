@@ -21,18 +21,6 @@ interface IAppearanceSettingsRemoteData {
         scale: Float,
     )
 
-    suspend fun updateReduceMotion(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    )
-
-    suspend fun updateHighContrast(
-        userId: String,
-        idToken: String,
-        enabled: Boolean,
-    )
-
     suspend fun resetSettings(
         userId: String,
         idToken: String,

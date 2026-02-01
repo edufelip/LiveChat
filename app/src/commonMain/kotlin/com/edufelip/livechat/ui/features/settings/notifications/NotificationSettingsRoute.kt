@@ -4,7 +4,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,16 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.domain.models.NotificationSettings
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.notifications.NotificationPermissionState
 import com.edufelip.livechat.notifications.rememberNotificationPermissionManager
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
-import com.edufelip.livechat.ui.common.audio.rememberSoundPlayer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationQuietHoursBottomSheet
-import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundBottomSheet
-import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSoundOption
 import com.edufelip.livechat.ui.platform.AppLifecycleObserver
 import com.edufelip.livechat.ui.platform.openAppSettings
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -53,47 +48,14 @@ fun NotificationSettingsRoute(
     val presenter = rememberNotificationSettingsPresenter()
     val state by presenter.collectState()
 
-    val soundPlayer = rememberSoundPlayer()
-
-    DisposableEffect(soundPlayer) {
-        onDispose { soundPlayer.stop() }
-    }
-
     val permissionManager = rememberNotificationPermissionManager()
     var permissionState by remember { mutableStateOf(permissionManager.status()) }
     val coroutineScope = rememberCoroutineScope()
 
     var activeSheet by remember { mutableStateOf(NotificationSheet.None) }
-    val normalizedSound =
-        remember(state.settings.sound) {
-            NotificationSound.normalizeId(state.settings.sound)
-        }
-    var selectedSound by remember { mutableStateOf(normalizedSound) }
     var quietFrom by remember { mutableStateOf(state.settings.quietHours.from) }
     var quietTo by remember { mutableStateOf(state.settings.quietHours.to) }
     var showErrorDialog by remember { mutableStateOf(false) }
-
-    val soundOptions =
-        remember(strings) {
-            listOf(
-                NotificationSoundOption(
-                    id = NotificationSound.Popcorn.id,
-                    label = strings.notifications.soundOptionPopcorn,
-                ),
-                NotificationSoundOption(
-                    id = NotificationSound.Chime.id,
-                    label = strings.notifications.soundOptionChime,
-                ),
-                NotificationSoundOption(
-                    id = NotificationSound.Ripple.id,
-                    label = strings.notifications.soundOptionRipple,
-                ),
-                NotificationSoundOption(
-                    id = NotificationSound.Silent.id,
-                    label = strings.notifications.soundOptionSilent,
-                ),
-            )
-        }
 
     LaunchedEffect(Unit) {
         permissionState = permissionManager.refreshStatus()
@@ -114,7 +76,6 @@ fun NotificationSettingsRoute(
 
     LaunchedEffect(activeSheet) {
         when (activeSheet) {
-            NotificationSheet.Sound -> selectedSound = normalizedSound
             NotificationSheet.QuietHours -> {
                 quietFrom = state.settings.quietHours.from
                 quietTo = state.settings.quietHours.to
@@ -142,30 +103,6 @@ fun NotificationSettingsRoute(
             },
             title = { Text(strings.general.errorTitle) },
             text = { Text(errorMessage) },
-        )
-    }
-
-    if (activeSheet == NotificationSheet.Sound) {
-        NotificationSoundBottomSheet(
-            title = strings.notifications.soundSheetTitle,
-            description = strings.notifications.soundSheetDescription,
-            options = soundOptions,
-            selectedId = selectedSound,
-            onSelect = {
-                selectedSound = it
-                soundPlayer.playNotificationSound(it)
-            },
-            onDismiss = {
-                activeSheet = NotificationSheet.None
-                soundPlayer.stop()
-            },
-            onConfirm = {
-                presenter.updateSound(selectedSound)
-                activeSheet = NotificationSheet.None
-                soundPlayer.stop()
-            },
-            confirmEnabled = !state.isUpdating && selectedSound != normalizedSound,
-            confirmLabel = strings.notifications.saveCta,
         )
     }
 
@@ -218,18 +155,14 @@ fun NotificationSettingsRoute(
                 }
             }
         },
-        onEditSound = { activeSheet = NotificationSheet.Sound },
         onToggleQuietHours = presenter::updateQuietHoursEnabled,
         onEditQuietHours = { activeSheet = NotificationSheet.QuietHours },
-        onToggleVibration = presenter::updateInAppVibration,
         onToggleMessagePreview = presenter::updateShowMessagePreview,
-        onResetNotifications = presenter::resetNotificationSettings,
         onOpenSystemSettings = { openAppSettings() },
     )
 }
 
 private enum class NotificationSheet {
-    Sound,
     QuietHours,
     None,
 }

@@ -25,9 +25,9 @@
     <string name="settings_account_title">Account</string>
     <string name="settings_account_description">Profile, status, and linked phone number</string>
     <string name="settings_notifications_title">Notifications</string>
-    <string name="settings_notifications_description">Mute, schedule quiet hours, sounds</string>
+    <string name="settings_notifications_description">Mute and schedule quiet hours</string>
     <string name="settings_appearance_title">Appearance</string>
-    <string name="settings_appearance_description">Themes, typography scale, accessibility</string>
+    <string name="settings_appearance_description">Themes and typography scale</string>
     <string name="settings_privacy_title">Privacy</string>
     <string name="settings_privacy_description">Blocked contacts, invite preferences</string>
     <string name="settings_privacy_policy_title">Privacy Policy</string>
@@ -87,13 +87,6 @@
     <string name="notifications_push_title">Push Notifications</string>
     <string name="notifications_push_subtitle">Receive messages when away</string>
     <string name="notifications_permission_disabled_hint">Notifications disabled in system settings.</string>
-    <string name="notifications_sound_title">Sound</string>
-    <string name="notifications_sound_sheet_title">Notification sound</string>
-    <string name="notifications_sound_sheet_description">Choose a tone for incoming messages.</string>
-    <string name="notifications_sound_option_popcorn">Popcorn</string>
-    <string name="notifications_sound_option_chime">Chime</string>
-    <string name="notifications_sound_option_ripple">Ripple</string>
-    <string name="notifications_sound_option_silent">Silent</string>
     <string name="notifications_quiet_hours_title">Scheduled Quiet Mode</string>
     <string name="notifications_quiet_hours_subtitle">Mute notifications during set times</string>
     <string name="notifications_quiet_hours_from_label">From</string>
@@ -102,17 +95,14 @@
     <string name="notifications_quiet_hours_to_placeholder">07:00</string>
     <string name="notifications_quiet_hours_sheet_title">Edit quiet hours</string>
     <string name="notifications_quiet_hours_sheet_description">Use 24h format (HH:MM).</string>
-    <string name="notifications_vibration_title">In-App Vibration</string>
     <string name="notifications_preview_title">Show Message Preview</string>
     <string name="notifications_preview_subtitle">Display text in banners</string>
-    <string name="notifications_reset_title">Reset Notifications</string>
     <string name="notifications_save_cta">Save</string>
 
     <!-- Appearance -->
     <string name="appearance_screen_title">Appearance</string>
     <string name="appearance_themes_section">Themes</string>
     <string name="appearance_typography_section">Typography scale</string>
-    <string name="appearance_accessibility_section">Accessibility</string>
     <string name="appearance_theme_system_title">System default</string>
     <string name="appearance_theme_system_subtitle">Match your device settings</string>
     <string name="appearance_theme_light_title">Light mode</string>
@@ -123,10 +113,6 @@
     <string name="appearance_typography_default_label">Default</string>
     <string name="appearance_typography_large_label">Large</string>
     <string name="appearance_typography_sample">The quick brown fox jumps over the lazy dog. Adjust the slider to see how text will appear in your chats.</string>
-    <string name="appearance_reduce_motion_title">Reduce motion</string>
-    <string name="appearance_reduce_motion_subtitle">Minimize animations</string>
-    <string name="appearance_high_contrast_title">High contrast</string>
-    <string name="appearance_high_contrast_subtitle">Increase text legibility</string>
     <string name="appearance_reset_title">Reset appearance</string>
 
     <!-- Privacy -->
@@ -149,8 +135,6 @@
     <string name="privacy_last_seen_nobody">Nobody</string>
     <string name="privacy_read_receipts_title">Read Receipts</string>
     <string name="privacy_read_receipts_subtitle">If turned off, you won&apos;t see read receipts from other people either.</string>
-    <string name="privacy_share_usage_data_title">Share Usage Data</string>
-    <string name="privacy_share_usage_data_subtitle">Help us improve LiveChat by automatically sending diagnostic data.</string>
     <string name="privacy_policy_title">Privacy Policy</string>
     <string name="privacy_policy_subtitle">View our privacy policy and terms of service.</string>
     <string name="privacy_save_cta">Save</string>

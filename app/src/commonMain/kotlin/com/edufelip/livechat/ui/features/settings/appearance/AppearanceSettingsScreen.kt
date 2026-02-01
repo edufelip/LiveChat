@@ -26,7 +26,6 @@ import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceSectionHeader
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceSettingsHeader
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceThemeCard
-import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceToggleCard
 import com.edufelip.livechat.ui.features.settings.appearance.components.AppearanceTypographyCard
 import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
@@ -44,8 +43,6 @@ fun AppearanceSettingsScreen(
     onThemeSelected: (ThemeMode) -> Unit = {},
     onTextScaleChange: (Float) -> Unit = {},
     onTextScaleChangeFinished: () -> Unit = {},
-    onToggleReduceMotion: (Boolean) -> Unit = {},
-    onToggleHighContrast: (Boolean) -> Unit = {},
 ) {
     val strings = liveChatStrings()
     val appearanceStrings = strings.appearance
@@ -59,8 +56,6 @@ fun AppearanceSettingsScreen(
     val onThemeSelectedAction = rememberStableAction(onThemeSelected)
     val onTextScaleChangeAction = rememberStableAction(onTextScaleChange)
     val onTextScaleChangeFinishedAction = rememberStableAction(onTextScaleChangeFinished)
-    val onToggleReduceMotionAction = rememberStableAction(onToggleReduceMotion)
-    val onToggleHighContrastAction = rememberStableAction(onToggleHighContrast)
     val themeOptions =
         remember(appearanceStrings) {
             listOf(
@@ -147,28 +142,6 @@ fun AppearanceSettingsScreen(
                 onValueChangeFinished = onTextScaleChangeFinishedAction,
                 sampleText = appearanceStrings.typographySample,
                 sampleScale = sampleScale,
-            )
-        }
-
-        AppearanceSectionHeader(title = appearanceStrings.accessibilitySection)
-
-        Box(modifier = Modifier.settingsItemHighlight("appearance_reduce_motion", targetItemId)) {
-            AppearanceToggleCard(
-                title = appearanceStrings.reduceMotionTitle,
-                subtitle = appearanceStrings.reduceMotionSubtitle,
-                checked = settings.reduceMotion,
-                enabled = allowEdits,
-                onCheckedChange = onToggleReduceMotionAction,
-            )
-        }
-
-        Box(modifier = Modifier.settingsItemHighlight("appearance_high_contrast", targetItemId)) {
-            AppearanceToggleCard(
-                title = appearanceStrings.highContrastTitle,
-                subtitle = appearanceStrings.highContrastSubtitle,
-                checked = settings.highContrast,
-                enabled = allowEdits,
-                onCheckedChange = onToggleHighContrastAction,
             )
         }
     }

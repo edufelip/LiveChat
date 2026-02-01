@@ -45,7 +45,6 @@ import com.edufelip.livechat.ui.resources.OnboardingStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
-import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import com.edufelip.livechat.ui.util.isDigitsOnly
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
@@ -80,7 +79,6 @@ internal fun OnboardingFlowScreen(
     val inspectionMode = LocalInspectionMode.current
     val context = rememberPlatformContext()
     val allowVerification = !inspectionMode
-    val reduceMotion = LocalReduceMotion.current
     val onFinishedAction = rememberStableAction(onFinished)
     val onPickCountryAction = rememberStableAction { showCountryPicker = true }
     val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
@@ -181,29 +179,25 @@ internal fun OnboardingFlowScreen(
         AnimatedContent(
             targetState = currentStep,
             transitionSpec = {
-                if (reduceMotion) {
-                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
-                } else {
-                    val direction =
-                        when {
-                            targetState.animationOrder() > initialState.animationOrder() -> 1
-                            targetState.animationOrder() < initialState.animationOrder() -> -1
-                            else -> 0
-                        }
-                    if (direction == 0) {
-                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                    } else {
-                        (
-                            slideInHorizontally(
-                                animationSpec = tween(300),
-                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                        ) togetherWith
-                            (
-                                slideOutHorizontally(
-                                    animationSpec = tween(300),
-                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                            )
+                val direction =
+                    when {
+                        targetState.animationOrder() > initialState.animationOrder() -> 1
+                        targetState.animationOrder() < initialState.animationOrder() -> -1
+                        else -> 0
                     }
+                if (direction == 0) {
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                } else {
+                    (
+                        slideInHorizontally(
+                            animationSpec = tween(300),
+                        ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                    ) togetherWith
+                        (
+                            slideOutHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                        )
                 }
             },
             label = strings.general.homeDestinationTransitionLabel,
@@ -273,7 +267,6 @@ internal fun UiTestOnboardingFlow(
     var otpError by remember { mutableStateOf<String?>(null) }
     var showCountryPicker by remember { mutableStateOf(false) }
     var step by rememberSaveable { mutableStateOf(OnboardingStep.PhoneEntry) }
-    val reduceMotion = LocalReduceMotion.current
     val onFinishedAction = rememberStableAction(onFinished)
     val onPickCountryAction = rememberStableAction { showCountryPicker = true }
     val onDismissCountryPickerAction = rememberStableAction { showCountryPicker = false }
@@ -344,29 +337,25 @@ internal fun UiTestOnboardingFlow(
         AnimatedContent(
             targetState = step,
             transitionSpec = {
-                if (reduceMotion) {
-                    fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
-                } else {
-                    val direction =
-                        when {
-                            targetState.animationOrder() > initialState.animationOrder() -> 1
-                            targetState.animationOrder() < initialState.animationOrder() -> -1
-                            else -> 0
-                        }
-                    if (direction == 0) {
-                        fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                    } else {
-                        (
-                            slideInHorizontally(
-                                animationSpec = tween(300),
-                            ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                        ) togetherWith
-                            (
-                                slideOutHorizontally(
-                                    animationSpec = tween(300),
-                                ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                            )
+                val direction =
+                    when {
+                        targetState.animationOrder() > initialState.animationOrder() -> 1
+                        targetState.animationOrder() < initialState.animationOrder() -> -1
+                        else -> 0
                     }
+                if (direction == 0) {
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+                } else {
+                    (
+                        slideInHorizontally(
+                            animationSpec = tween(300),
+                        ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                    ) togetherWith
+                        (
+                            slideOutHorizontally(
+                                animationSpec = tween(300),
+                            ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                        )
                 }
             },
             label = strings.general.homeDestinationTransitionLabel,

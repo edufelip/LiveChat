@@ -54,18 +54,6 @@ class AppearanceSettingsRepository(
         settingsState.value = settingsState.value.copy(textScale = clamped)
     }
 
-    override suspend fun updateReduceMotion(enabled: Boolean) {
-        val session = requireSession()
-        remoteData.updateReduceMotion(session.userId, session.idToken, enabled)
-        settingsState.value = settingsState.value.copy(reduceMotion = enabled)
-    }
-
-    override suspend fun updateHighContrast(enabled: Boolean) {
-        val session = requireSession()
-        remoteData.updateHighContrast(session.userId, session.idToken, enabled)
-        settingsState.value = settingsState.value.copy(highContrast = enabled)
-    }
-
     override suspend fun resetSettings() {
         val session = requireSession()
         remoteData.resetSettings(session.userId, session.idToken)

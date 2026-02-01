@@ -114,8 +114,6 @@ fun AppearanceSettingsRoute(
                 presenter.updateTextScale(newScale)
             }
         },
-        onToggleReduceMotion = presenter::updateReduceMotion,
-        onToggleHighContrast = presenter::updateHighContrast,
     )
 }
 

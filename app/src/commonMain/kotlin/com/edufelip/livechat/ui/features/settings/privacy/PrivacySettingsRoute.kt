@@ -31,7 +31,6 @@ import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyOpti
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPrivacySettingsPresenter
-import com.edufelip.livechat.ui.theme.LocalReduceMotion
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -43,8 +42,6 @@ fun PrivacySettingsRoute(
     targetItemId: String? = null,
 ) {
     val strings = liveChatStrings()
-    val reduceMotion = LocalReduceMotion.current
-
     if (LocalInspectionMode.current) {
         PrivacySettingsScreen(
             state = previewState(),
@@ -141,29 +138,25 @@ fun PrivacySettingsRoute(
     AnimatedContent(
         targetState = destination,
         transitionSpec = {
-            if (reduceMotion) {
-                fadeIn(animationSpec = tween(100)) togetherWith fadeOut(animationSpec = tween(100))
-            } else {
-                val direction =
-                    when {
-                        targetState.animationOrder() > initialState.animationOrder() -> 1
-                        targetState.animationOrder() < initialState.animationOrder() -> -1
-                        else -> 0
-                    }
-                if (direction == 0) {
-                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
-                } else {
-                    (
-                        slideInHorizontally(
-                            animationSpec = tween(300),
-                        ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
-                    ) togetherWith
-                        (
-                            slideOutHorizontally(
-                                animationSpec = tween(300),
-                            ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
-                        )
+            val direction =
+                when {
+                    targetState.animationOrder() > initialState.animationOrder() -> 1
+                    targetState.animationOrder() < initialState.animationOrder() -> -1
+                    else -> 0
                 }
+            if (direction == 0) {
+                fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(200))
+            } else {
+                (
+                    slideInHorizontally(
+                        animationSpec = tween(300),
+                    ) { fullWidth -> fullWidth / 4 * direction } + fadeIn(animationSpec = tween(300))
+                ) togetherWith
+                    (
+                        slideOutHorizontally(
+                            animationSpec = tween(300),
+                        ) { fullWidth -> -fullWidth / 4 * direction } + fadeOut(animationSpec = tween(200))
+                    )
             }
         },
         label = "privacy_navigation_transition",
@@ -184,7 +177,6 @@ fun PrivacySettingsRoute(
                     },
                     onOpenLastSeen = { activeSheet = PrivacySheet.LastSeen },
                     onToggleReadReceipts = presenter::updateReadReceipts,
-                    onToggleShareUsageData = presenter::updateShareUsageData,
                     onOpenPrivacyPolicy = onOpenPrivacyPolicy,
                 )
 

@@ -16,5 +16,4 @@ data class PrivacySettings(
     val invitePreference: InvitePreference = InvitePreference.Everyone,
     val lastSeenAudience: LastSeenAudience = LastSeenAudience.Everyone,
     val readReceiptsEnabled: Boolean = true,
-    val shareUsageData: Boolean = false,
 )

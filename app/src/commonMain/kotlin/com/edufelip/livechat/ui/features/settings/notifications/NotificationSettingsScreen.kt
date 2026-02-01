@@ -3,10 +3,8 @@ package com.edufelip.livechat.ui.features.settings.notifications
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,17 +18,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.NotificationSettingsUiState
-import com.edufelip.livechat.domain.models.NotificationSound
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
-import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationOptionCard
-import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationResetCard
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSectionHeader
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationSettingsHeader
 import com.edufelip.livechat.ui.features.settings.notifications.components.NotificationToggleCard
 import com.edufelip.livechat.ui.features.settings.notifications.components.QuietHoursCard
-import com.edufelip.livechat.ui.resources.NotificationsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -43,12 +37,9 @@ fun NotificationSettingsScreen(
     onBack: () -> Unit = {},
     targetItemId: String? = null,
     onTogglePush: (Boolean) -> Unit = {},
-    onEditSound: () -> Unit = {},
     onToggleQuietHours: (Boolean) -> Unit = {},
     onEditQuietHours: () -> Unit = {},
-    onToggleVibration: (Boolean) -> Unit = {},
     onToggleMessagePreview: (Boolean) -> Unit = {},
-    onResetNotifications: () -> Unit = {},
     onOpenSystemSettings: (() -> Unit)? = null,
 ) {
     val strings = liveChatStrings()
@@ -56,10 +47,6 @@ fun NotificationSettingsScreen(
     val generalStrings = strings.general
     val settings = state.settings
     val allowEdits = !state.isUpdating && !state.isLoading
-    val soundLabel =
-        remember(settings.sound, notificationStrings) {
-            notificationStrings.labelForSound(settings.sound)
-        }
     val permissionHint =
         if (systemPermissionGranted) {
             null
@@ -69,12 +56,9 @@ fun NotificationSettingsScreen(
     val scrollState = rememberScrollState()
     val onBackAction = rememberStableAction(onBack)
     val onTogglePushAction = rememberStableAction(onTogglePush)
-    val onEditSoundAction = rememberStableAction(onEditSound)
     val onToggleQuietHoursAction = rememberStableAction(onToggleQuietHours)
     val onEditQuietHoursAction = rememberStableAction(onEditQuietHours)
-    val onToggleVibrationAction = rememberStableAction(onToggleVibration)
     val onToggleMessagePreviewAction = rememberStableAction(onToggleMessagePreview)
-    val onResetNotificationsAction = rememberStableAction(onResetNotifications)
     val onOpenSystemSettingsAction = rememberStableAction(onOpenSystemSettings ?: {})
     val quietHoursPresentation =
         remember(settings.quietHours, generalStrings) {
@@ -136,15 +120,6 @@ fun NotificationSettingsScreen(
             }
         }
 
-        Box(modifier = Modifier.settingsItemHighlight("notifications_sound", targetItemId)) {
-            NotificationOptionCard(
-                title = notificationStrings.soundTitle,
-                value = soundLabel,
-                enabled = allowEdits,
-                onClick = onEditSoundAction,
-            )
-        }
-
         NotificationSectionHeader(title = notificationStrings.quietHoursSection)
 
         Box(modifier = Modifier.settingsItemHighlight("notifications_quiet_hours", targetItemId)) {
@@ -164,17 +139,6 @@ fun NotificationSettingsScreen(
 
         NotificationSectionHeader(title = notificationStrings.advancedSection)
 
-        Box(modifier = Modifier.settingsItemHighlight("notifications_vibration", targetItemId)) {
-            NotificationToggleCard(
-                title = notificationStrings.vibrationTitle,
-                subtitle = null,
-                supportingText = null,
-                checked = settings.inAppVibration,
-                enabled = allowEdits,
-                onCheckedChange = onToggleVibrationAction,
-            )
-        }
-
         Box(modifier = Modifier.settingsItemHighlight("notifications_preview", targetItemId)) {
             NotificationToggleCard(
                 title = notificationStrings.previewTitle,
@@ -185,26 +149,6 @@ fun NotificationSettingsScreen(
                 onCheckedChange = onToggleMessagePreviewAction,
             )
         }
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
-
-        Box(modifier = Modifier.settingsItemHighlight("notifications_reset", targetItemId)) {
-            NotificationResetCard(
-                title = notificationStrings.resetTitle,
-                enabled = allowEdits,
-                onClick = onResetNotificationsAction,
-            )
-        }
-    }
-}
-
-private fun NotificationsStrings.labelForSound(soundId: String): String {
-    return when (NotificationSound.normalizeId(soundId)) {
-        NotificationSound.Popcorn.id -> soundOptionPopcorn
-        NotificationSound.Chime.id -> soundOptionChime
-        NotificationSound.Ripple.id -> soundOptionRipple
-        NotificationSound.Silent.id -> soundOptionSilent
-        else -> soundOptionPopcorn
     }
 }
 
