@@ -3,10 +3,13 @@ package com.edufelip.livechat.notifications
 import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.edufelip.livechat.MainActivity
 import com.edufelip.livechat.R
 import com.edufelip.livechat.di.AndroidKoinBridge
@@ -22,7 +25,7 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalTime
-import java.time.LocalTime as JavaLocalTime
+import java.util.Calendar
 
 class LiveChatMessagingService : FirebaseMessagingService() {
     private val notificationSettingsRepository = AndroidKoinBridge.notificationSettingsRepository()
@@ -92,7 +95,17 @@ class LiveChatMessagingService : FirebaseMessagingService() {
             )
         } else {
             Log.i(TAG, "onMessageReceived: app is background, showing system notification")
-            showNotification(title, body, payload)
+            val hasNotificationPermission =
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS,
+                    ) == PackageManager.PERMISSION_GRANTED
+            if (hasNotificationPermission) {
+                showNotification(title, body, payload)
+            } else {
+                Log.w(TAG, "onMessageReceived: missing POST_NOTIFICATIONS permission, skipping notification")
+            }
         }
     }
 
@@ -190,14 +203,15 @@ class LiveChatMessagingService : FirebaseMessagingService() {
         Log.i(TAG, "showNotification: system notification posted with id=${payload.notificationId}")
     }
 
+
     private fun isQuietModeActive(settings: NotificationSettings): Boolean {
-        val now = JavaLocalTime.now()
+        val calendar = Calendar.getInstance()
         val currentTime =
             LocalTime(
-                hour = now.hour,
-                minute = now.minute,
-                second = now.second,
-                nanosecond = now.nano,
+                hour = calendar.get(Calendar.HOUR_OF_DAY),
+                minute = calendar.get(Calendar.MINUTE),
+                second = calendar.get(Calendar.SECOND),
+                nanosecond = calendar.get(Calendar.MILLISECOND) * 1_000_000,
             )
         return quietModeUseCase(settings, currentTime)
     }
