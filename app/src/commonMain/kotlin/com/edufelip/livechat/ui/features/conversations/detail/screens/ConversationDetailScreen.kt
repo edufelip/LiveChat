@@ -93,7 +93,7 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.formatDurationMillis
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)

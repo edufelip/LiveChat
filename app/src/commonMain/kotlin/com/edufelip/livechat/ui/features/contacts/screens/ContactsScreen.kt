@@ -64,7 +64,7 @@ import com.edufelip.livechat.ui.features.contacts.ContactsTestTags
 import com.edufelip.livechat.ui.resources.ContactsStrings
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ContactsScreen(

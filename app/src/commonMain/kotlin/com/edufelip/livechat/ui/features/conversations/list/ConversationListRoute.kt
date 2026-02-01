@@ -18,7 +18,7 @@ import com.edufelip.livechat.ui.features.conversations.list.screens.Conversation
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberConversationListPresenter
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ConversationListRoute(

@@ -1,6 +1,6 @@
 package com.edufelip.livechat.preview
 
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Preview(name = "Light", group = "Device", showBackground = true)
 @Preview(name = "Dark", group = "Device", showBackground = true)

@@ -30,7 +30,7 @@ import com.edufelip.livechat.ui.state.rememberConversationPresenter
 import com.edufelip.livechat.ui.state.rememberSessionProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun ConversationDetailRoute(

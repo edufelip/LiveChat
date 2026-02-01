@@ -51,7 +51,7 @@ import com.edufelip.livechat.ui.theme.LiveChatTheme
 import com.edufelip.livechat.ui.util.isE2eMode
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

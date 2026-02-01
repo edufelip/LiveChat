@@ -47,7 +47,7 @@ import com.edufelip.livechat.ui.util.AvatarImageCache
 import com.edufelip.livechat.ui.util.loadAvatarImageBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun AccountSettingsHeader(

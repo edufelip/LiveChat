@@ -48,7 +48,7 @@ import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.util.isDigitsOnly
 import com.edufelip.livechat.ui.util.isUiTestMode
 import com.edufelip.livechat.ui.util.uiTestOverrides
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

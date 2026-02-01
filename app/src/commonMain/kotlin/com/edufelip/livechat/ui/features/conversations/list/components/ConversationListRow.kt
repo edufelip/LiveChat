@@ -57,7 +57,7 @@ import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.loadAvatarImageBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.absoluteValue
 
 private val AVATAR_SIZE = 52.dp

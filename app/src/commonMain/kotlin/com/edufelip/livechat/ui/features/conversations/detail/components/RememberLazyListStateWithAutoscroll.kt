@@ -14,7 +14,7 @@ import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.preview.PreviewFixtures
 import com.edufelip.livechat.ui.resources.liveChatStrings
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun rememberLazyListStateWithAutoscroll(messages: List<Message>): LazyListState {

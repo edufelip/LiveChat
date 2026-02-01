@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.features.calls.screens.CallsScreen
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun CallsRoute(modifier: Modifier = Modifier) {

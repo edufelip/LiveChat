@@ -26,7 +26,7 @@ import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacySett
 import com.edufelip.livechat.ui.features.settings.privacy.components.PrivacyToggleCard
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun PrivacySettingsScreen(

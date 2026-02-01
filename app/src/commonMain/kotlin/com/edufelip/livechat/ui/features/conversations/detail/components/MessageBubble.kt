@@ -56,7 +56,7 @@ import com.edufelip.livechat.ui.features.conversations.detail.loadLocalImageBitm
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.util.formatAsTime
 import com.edufelip.livechat.ui.util.formatDurationMillis
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 /**
  * Single chat bubble aligned by sender ownership.

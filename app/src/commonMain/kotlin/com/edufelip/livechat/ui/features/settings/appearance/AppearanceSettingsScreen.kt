@@ -30,7 +30,7 @@ import com.edufelip.livechat.ui.features.settings.appearance.components.Appearan
 import com.edufelip.livechat.ui.features.settings.components.settingsItemHighlight
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AppearanceSettingsScreen(

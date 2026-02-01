@@ -24,7 +24,7 @@ import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.components.atoms.BottomSheetDragHandle
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.spacing
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 
 data class PrivacyOption(
     val id: LastSeenAudience,
