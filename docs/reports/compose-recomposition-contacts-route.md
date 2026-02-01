@@ -2,7 +2,7 @@
 
 ## Summary
 
-- Goal: Review recomposition patterns in ContactsRoute after functional change.
+- Goal: Review recomposition patterns in ContactsRoute after dispatcher change for iOS compatibility.
 - Measurement artifacts used (Layout Inspector / compiler reports / benchmarks / traces): None (heuristic review only).
 - Scope (modules/screens): ContactsRoute (`app/src/commonMain/kotlin/com/edufelip/livechat/ui/features/contacts/ContactsRoute.kt`).
 
