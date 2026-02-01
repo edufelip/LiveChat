@@ -73,6 +73,7 @@ class AppPresenter(
     private val notifiedMessageIds = mutableSetOf<String>()
     private val contactsCache = mutableMapOf<String, String>()
     private var homePreloadStarted = false
+    private var lastSessionUserId: String? = sessionProvider.currentUserId()
 
     init {
         ContactsSyncSession.markAppOpen()
@@ -103,6 +104,18 @@ class AppPresenter(
         }
         scope.launch {
             refreshRemoteConfig()
+        }
+        scope.launch {
+            sessionProvider.session.collectLatest { session ->
+                val newUserId = session?.userId
+                if (newUserId != lastSessionUserId) {
+                    lastSessionUserId = newUserId
+                    ContactsUiStateCache.clear()
+                    ContactsSyncSession.reset()
+                    contactsCache.clear()
+                    notifiedMessageIds.clear()
+                }
+            }
         }
         scope.launch {
             observePrivacyPolicyUrl()

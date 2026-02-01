@@ -76,6 +76,8 @@ class FirebaseRestContactsRemoteData(
         val registeredRemembered = mutableSetOf<String>()
         val matchByPhone = mutableMapOf<String, String>()
         val matchByNormalized = mutableMapOf<String, String>()
+        val failedPhones = mutableSetOf<String>()
+        var hadPartial = false
 
         canonicalPhones
             .chunked(BATCH_CHUNK_SIZE)
@@ -85,7 +87,15 @@ class FirebaseRestContactsRemoteData(
                         withTimeout(FUNCTION_TIMEOUT_MS) {
                             contactsBridge.phoneExistsMany(chunk)
                         }
-                    }.getOrElse { PhoneExistsBatchResult(emptyList(), emptyList()) }
+                    }.getOrElse {
+                        failedPhones.addAll(chunk)
+                        hadPartial = true
+                        return@forEach
+                    }
+                if (result.failedPhones.isNotEmpty() || result.isPartial) {
+                    failedPhones.addAll(result.failedPhones)
+                    hadPartial = true
+                }
                 registeredRemembered.addAll(result.registeredPhones)
                 result.matches.forEach { match ->
                     matchByPhone[match.phone] = match.uid
@@ -102,6 +112,7 @@ class FirebaseRestContactsRemoteData(
                 .filter { it.isNotBlank() }
                 .toSet()
 
+        val allowResolveUid = !hadPartial
         canonicalContacts.forEach { (canonical, contact) ->
             val normalized = normalizePhoneNumber(canonical)
             val matchedUid = matchByPhone[canonical] ?: matchByNormalized[normalized]
@@ -111,10 +122,14 @@ class FirebaseRestContactsRemoteData(
             val resolvedUid =
                 matchedUid
                     ?: contact.firebaseUid?.takeIf { it.isNotBlank() }
-                    ?: resolveUid(canonical)
+                    ?: if (allowResolveUid) resolveUid(canonical) else null
             if (!resolvedUid.isNullOrBlank()) {
                 emit(contact.copy(isRegistered = true, firebaseUid = resolvedUid))
             }
+        }
+
+        if (hadPartial) {
+            throw PartialContactSyncException(failedPhones.toList())
         }
     }
 
@@ -143,4 +158,8 @@ class FirebaseRestContactsRemoteData(
         const val FUNCTION_TIMEOUT_MS = 5_000L
         const val BATCH_CHUNK_SIZE = 100
     }
+
+    private class PartialContactSyncException(
+        failedPhones: List<String>,
+    ) : IllegalStateException("Contact validation incomplete for ${failedPhones.size} phone(s)")
 }

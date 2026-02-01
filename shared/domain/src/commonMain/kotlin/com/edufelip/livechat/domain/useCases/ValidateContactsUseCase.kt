@@ -26,7 +26,8 @@ class ValidateContactsUseCase(
                 validatedNumbers.add(phoneNumberFormatter.normalize(registered.phoneNo))
                 repository.updateContacts(listOf(registered))
             }
-            .onCompletion {
+            .onCompletion { cause ->
+                if (cause != null) return@onCompletion
                 val toMarkUnregistered =
                     needsValidation
                         .filter { phoneNumberFormatter.normalize(it.phoneNo) !in validatedNumbers }

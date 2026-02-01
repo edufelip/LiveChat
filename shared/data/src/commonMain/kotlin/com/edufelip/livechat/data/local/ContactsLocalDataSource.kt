@@ -85,14 +85,26 @@ class ContactsLocalDataSource(
         if (contacts.isEmpty()) return
         withContext(dispatcher) {
             contacts.forEach { contact ->
-                contactsDao.updateContactByPhone(
-                    name = contact.name,
-                    description = contact.description,
-                    photo = contact.photo,
-                    isRegistered = contact.isRegistered,
-                    firebaseUid = contact.firebaseUid,
-                    phoneNo = contact.phoneNo,
-                )
+                if (contact.id > 0) {
+                    contactsDao.updateContactById(
+                        id = contact.id,
+                        name = contact.name,
+                        description = contact.description,
+                        photo = contact.photo,
+                        isRegistered = contact.isRegistered,
+                        firebaseUid = contact.firebaseUid,
+                        phoneNo = contact.phoneNo,
+                    )
+                } else {
+                    contactsDao.updateContactByPhone(
+                        name = contact.name,
+                        description = contact.description,
+                        photo = contact.photo,
+                        isRegistered = contact.isRegistered,
+                        firebaseUid = contact.firebaseUid,
+                        phoneNo = contact.phoneNo,
+                    )
+                }
             }
         }
     }

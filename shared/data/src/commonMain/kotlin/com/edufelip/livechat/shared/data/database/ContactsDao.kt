@@ -40,6 +40,28 @@ interface ContactsDao {
         phoneNo: String,
     ): Int
 
+    @Query(
+        """
+        UPDATE contacts
+        SET name = :name,
+            description = :description,
+            photo = :photo,
+            is_registered = :isRegistered,
+            firebase_uid = :firebaseUid,
+            phone_no = :phoneNo
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateContactById(
+        id: Long,
+        name: String,
+        description: String?,
+        photo: String?,
+        isRegistered: Boolean,
+        firebaseUid: String?,
+        phoneNo: String,
+    ): Int
+
     @Query("DELETE FROM contacts WHERE phone_no IN (:phones)")
     suspend fun deleteContactsByPhone(phones: List<String>)
 }

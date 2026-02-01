@@ -45,7 +45,8 @@ class BuildContactSyncPlanUseCase(
                     )
                 if (local.name != merged.name ||
                     local.description != merged.description ||
-                    local.photo != merged.photo
+                    local.photo != merged.photo ||
+                    local.phoneNo != merged.phoneNo
                 ) {
                     toUpdate.add(merged)
                 }

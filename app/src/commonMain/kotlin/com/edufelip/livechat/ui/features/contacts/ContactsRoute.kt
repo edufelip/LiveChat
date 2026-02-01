@@ -84,7 +84,7 @@ fun ContactsRoute(
         return if (isUiTest) {
             phoneContactsProvider().ifEmpty { previewContacts }
         } else {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 phoneContactsProvider()
             }
         }

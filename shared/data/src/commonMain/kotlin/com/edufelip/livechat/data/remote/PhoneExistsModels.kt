@@ -12,6 +12,8 @@ data class PhoneExistsResponse(
 data class PhoneExistsManyResponse(
     val registered: List<String> = emptyList(),
     val matches: List<PhoneExistsMatchPayload> = emptyList(),
+    val failed: List<String> = emptyList(),
+    val partial: Boolean = false,
 )
 
 @Serializable
@@ -28,6 +30,8 @@ data class PhoneExistsMatch(
 data class PhoneExistsBatchResult(
     val registeredPhones: List<String>,
     val matches: List<PhoneExistsMatch>,
+    val failedPhones: List<String> = emptyList(),
+    val isPartial: Boolean = false,
 )
 
 data class PhoneExistsSingleResult(

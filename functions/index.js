@@ -21,19 +21,29 @@ exports.phoneExistsMany = onCall(async (req) => {
         .map((phone) => phone.trim()),
     ),
   ];
+  const validPhones = [];
+  const invalidPhones = [];
+  normalized.forEach((phone) => {
+    if (isValidE164(phone)) {
+      validPhones.push(phone);
+    } else {
+      invalidPhones.push(phone);
+    }
+  });
 
-  if (normalized.length === 0) {
-    return { registered: [] };
+  if (validPhones.length === 0) {
+    return { registered: [], matches: [], failed: invalidPhones, partial: invalidPhones.length > 0 };
   }
 
-  const registered = [];
+  const registered = new Set();
   const result = [];
   const errors = [];
+  const failed = new Set(invalidPhones);
   const chunkSize = 100;
   let successfulChunks = 0;
 
-  for (let index = 0; index < normalized.length; index += chunkSize) {
-    const chunk = normalized.slice(index, index + chunkSize);
+  for (let index = 0; index < validPhones.length; index += chunkSize) {
+    const chunk = validPhones.slice(index, index + chunkSize);
     try {
       const response = await admin.auth().getUsers(
         chunk.map((phone) => ({
@@ -46,22 +56,28 @@ exports.phoneExistsMany = onCall(async (req) => {
         if (deleted.has(userRecord.uid)) return;
         const phoneNumber = userRecord.phoneNumber;
         if (!phoneNumber) return;
-        registered.push(phoneNumber);
+        registered.add(phoneNumber);
         result.push({
           phone: phoneNumber,
           uid: userRecord.uid,
         });
       });
     } catch (error) {
+      chunk.forEach((phone) => failed.add(phone));
       errors.push({ phones: chunk, code: error.code, message: error.message });
     }
   }
 
   if (successfulChunks === 0) {
-    throw new HttpsError('internal', 'Failed to verify phone numbers', { errors });
+    throw new HttpsError('internal', 'Failed to verify phone numbers', { errors, failed: [...failed] });
   }
 
-  return { registered, matches: result };
+  return {
+    registered: [...registered],
+    matches: result,
+    failed: [...failed],
+    partial: failed.size > 0 || errors.length > 0,
+  };
 });
 
 exports.phoneExists = onCall(async (req) => {
@@ -73,9 +89,13 @@ exports.phoneExists = onCall(async (req) => {
   if (!phone || typeof phone !== 'string') {
     throw new HttpsError('invalid-argument', 'phone must be a string');
   }
+  const trimmed = phone.trim();
+  if (!isValidE164(trimmed)) {
+    throw new HttpsError('invalid-argument', 'phone must be in E.164 format');
+  }
 
   try {
-    const userRecord = await admin.auth().getUserByPhoneNumber(phone.trim());
+    const userRecord = await admin.auth().getUserByPhoneNumber(trimmed);
     const deleted = await fetchDeletedUserIds([userRecord.uid]);
     if (deleted.has(userRecord.uid)) {
       return { exists: false, uid: null };
@@ -110,6 +130,10 @@ async function fetchDeletedUserIds(uids) {
     snapshot.docs.forEach((doc) => deletedIds.add(doc.id));
   }
   return deletedIds;
+}
+
+function isValidE164(phone) {
+  return /^\+[1-9]\d{1,14}$/.test(phone);
 }
 
 /**

@@ -15,4 +15,9 @@ object ContactsSyncSession {
     fun markSynced() {
         lastSyncedToken.value = appOpenToken.value
     }
+
+    fun reset() {
+        appOpenToken.value = 0L
+        lastSyncedToken.value = -1L
+    }
 }

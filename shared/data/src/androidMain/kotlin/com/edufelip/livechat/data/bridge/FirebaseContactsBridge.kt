@@ -40,7 +40,12 @@ class FirebaseContactsBridge(
                 PhoneExistsMatch(phone = phone, uid = uid)
             }
 
-        return PhoneExistsBatchResult(payload.registered, matches)
+        return PhoneExistsBatchResult(
+            registeredPhones = payload.registered,
+            matches = matches,
+            failedPhones = payload.failed,
+            isPartial = payload.partial,
+        )
     }
 
     override suspend fun isUserRegistered(phoneE164: String): Boolean {
@@ -67,6 +72,11 @@ class FirebaseContactsBridge(
             (map[FIELD_REGISTERED] as? List<*>)
                 ?.mapNotNull { it as? String }
                 .orEmpty()
+        val failed =
+            (map[FIELD_FAILED] as? List<*>)
+                ?.mapNotNull { it as? String }
+                .orEmpty()
+        val partial = map[FIELD_PARTIAL] as? Boolean ?: false
         val matches =
             (map[FIELD_MATCHES] as? List<*>)
                 ?.mapNotNull { item ->
@@ -77,7 +87,12 @@ class FirebaseContactsBridge(
                     )
                 }
                 .orEmpty()
-        return PhoneExistsManyResponse(registered = registered, matches = matches)
+        return PhoneExistsManyResponse(
+            registered = registered,
+            matches = matches,
+            failed = failed,
+            partial = partial,
+        )
     }
 
     private companion object {
@@ -91,5 +106,7 @@ class FirebaseContactsBridge(
         const val FIELD_REGISTERED = "registered"
         const val FIELD_MATCHES = "matches"
         const val FIELD_PHONE = "phone"
+        const val FIELD_FAILED = "failed"
+        const val FIELD_PARTIAL = "partial"
     }
 }

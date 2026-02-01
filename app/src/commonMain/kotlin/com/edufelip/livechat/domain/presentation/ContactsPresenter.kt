@@ -40,7 +40,8 @@ class ContactsPresenter(
     val cState: CStateFlow<ContactsUiState> = state.asCStateFlow()
     private val mutableEvents = MutableSharedFlow<ContactsEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<ContactsEvent> = mutableEvents
-    private var lastAttemptedFingerprint: String? = null
+    private var lastSuccessfulFingerprint: String? = null
+    private var syncInFlight: Boolean = false
 
     init {
         ContactsUiStateCache.markVisited()
@@ -66,10 +67,10 @@ class ContactsPresenter(
         force: Boolean = false,
     ): Boolean {
         if (force) return true
-        if (!ContactsSyncSession.canSync()) return false
+        if (syncInFlight) return false
         if (phoneContacts.isEmpty()) return false
         val fingerprint = phoneContacts.fingerprint()
-        return fingerprint != lastAttemptedFingerprint
+        return fingerprint != lastSuccessfulFingerprint || ContactsSyncSession.canSync()
     }
 
     fun syncContacts(
@@ -77,23 +78,17 @@ class ContactsPresenter(
         force: Boolean = false,
     ) {
         val targetFingerprint = phoneContacts.fingerprint()
-        if (!force) {
-            if (!ContactsSyncSession.canSync()) return
-            if (targetFingerprint == lastAttemptedFingerprint) return
-        }
-        lastAttemptedFingerprint = targetFingerprint
+        if (syncInFlight) return
+        if (!force && targetFingerprint == lastSuccessfulFingerprint && !ContactsSyncSession.canSync()) return
 
+        if (phoneContacts.isEmpty()) return
+        syncInFlight = true
         scope.launch {
-            if (phoneContacts.isEmpty()) {
-                return@launch
-            }
             val localContacts = mutableState.value.localContacts
             updateState { it.copy(isSyncing = true, errorMessage = null) }
             var hadError = false
-            runCatching {
+            try {
                 checkRegisteredContactsUseCase(phoneContacts, localContacts)
-            }.onSuccess { flow ->
-                flow
                     .catch { throwable ->
                         hadError = true
                         updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
@@ -107,12 +102,16 @@ class ContactsPresenter(
                             state.copy(validatedContacts = updated)
                         }
                     }
+            } catch (throwable: Throwable) {
+                hadError = true
+                updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
+            } finally {
                 updateState { it.copy(isSyncing = false) }
                 if (!hadError) {
+                    lastSuccessfulFingerprint = targetFingerprint
                     ContactsSyncSession.markSynced()
                 }
-            }.onFailure { throwable ->
-                updateState { it.copy(isSyncing = false, errorMessage = throwable.message) }
+                syncInFlight = false
             }
         }
     }
