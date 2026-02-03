@@ -38,6 +38,15 @@ class ConversationListPresenter(
     private val sessionProvider: UserSessionProvider,
     private val scope: CoroutineScope = MainScope(),
 ) {
+    private val summaryComparator =
+        Comparator<ConversationSummary> { a, b ->
+            when {
+                a.isPinned && !b.isPinned -> -1
+                !a.isPinned && b.isPinned -> 1
+                else -> b.lastMessage.createdAt.compareTo(a.lastMessage.createdAt)
+            }
+        }
+
     private val initialSummaries = ConversationListSnapshotCache.snapshot()
     private val _uiState =
         MutableStateFlow(
@@ -199,15 +208,6 @@ class ConversationListPresenter(
                         .contains(lower)
             }.sortedWith(summaryComparator)
     }
-
-    private val summaryComparator =
-        Comparator<ConversationSummary> { a, b ->
-            when {
-                a.isPinned && !b.isPinned -> -1
-                !a.isPinned && b.isPinned -> 1
-                else -> b.lastMessage.createdAt.compareTo(a.lastMessage.createdAt)
-            }
-        }
 
     companion object {
         private const val DEFAULT_MUTE_DURATION_MS = 7L * 24 * 60 * 60 * 1000 // 7 days
