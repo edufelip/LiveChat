@@ -114,15 +114,8 @@ fun AccountSettingsScreen(
             initials = displayData.initials,
             photoUrl = displayData.photoUrl,
             onClick = onEditDisplayNameAction,
+            onEditPhoto = onEditPhotoAction,
         )
-
-        Box(modifier = Modifier.settingsItemHighlight("account_photo", targetItemId)) {
-            AccountFieldCard(
-                title = accountStrings.photoLabel,
-                value = displayData.photoValue,
-                onClick = onEditPhotoAction,
-            )
-        }
 
         Box(modifier = Modifier.settingsItemHighlight("account_display_name", targetItemId)) {
             AccountFieldCard(
