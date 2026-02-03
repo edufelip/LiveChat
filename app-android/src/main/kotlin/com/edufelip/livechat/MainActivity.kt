@@ -25,8 +25,11 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         // Ensure system bars are transparent so content can draw behind them.
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
+        @Suppress("DEPRECATION")
+        run {
+            window.statusBarColor = Color.TRANSPARENT
+            window.navigationBarColor = Color.TRANSPARENT
+        }
         WindowCompat.getInsetsController(window, window.decorView).apply {
             // Keep icons legible by following the current theme background.
             isAppearanceLightStatusBars = false

@@ -550,6 +550,7 @@ private data class CallAvatar(
     val backgroundColor: Color,
 )
 
+@Suppress("DEPRECATION")
 private enum class CallType(
     val icon: ImageVector,
 ) {

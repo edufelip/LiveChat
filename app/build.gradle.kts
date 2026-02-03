@@ -1,5 +1,5 @@
-import org.gradle.api.JavaVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
@@ -8,15 +8,39 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.compose.hot.reload)
-    id("com.android.application")
-    id("com.google.gms.google-services")
+    id("com.android.kotlin.multiplatform.library")
 }
 
-val ciVersionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull()
-val ciVersionName = project.findProperty("versionName") as String?
-
 kotlin {
-    androidTarget {
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
+
+    androidLibrary {
+        namespace = "com.edufelip.livechat.shared"
+        compileSdk =
+            libs.versions.compileSdk
+                .get()
+                .toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        buildToolsVersion = "35.0.1"
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
+    targets.withType<KotlinAndroidTarget>().configureEach {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -54,10 +78,27 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
+                implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.browser)
                 implementation(libs.firebase.analytics)
+                implementation(libs.firebase.auth)
                 implementation(libs.firebase.messaging)
                 implementation(libs.navigationevent.compose)
+            }
+        }
+        val androidHostTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+        val androidDeviceTest by getting {
+            dependencies {
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.androidx.test.uiautomator)
+                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.androidx.compose.ui.test.manifest)
             }
         }
         val iosX64Main by getting
@@ -93,91 +134,7 @@ kotlin {
     }
 }
 
-android {
-    namespace = "com.edufelip.livechat"
-    compileSdk =
-        libs.versions.compileSdk
-            .get()
-            .toInt()
-    buildToolsVersion = "35.0.1"
 
-    defaultConfig {
-        applicationId = "com.edufelip.livechat"
-        minSdk =
-            libs.versions.minSdk
-                .get()
-                .toInt()
-        targetSdk =
-            libs.versions.targetSdk
-                .get()
-                .toInt()
-        versionCode = ciVersionCode ?: 1
-        versionName = ciVersionName ?: "1.0"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    flavorDimensions += "environment"
-    productFlavors {
-        create("dev") {
-            dimension = "environment"
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-            resValue("string", "app_name", "LiveChat Dev")
-            buildConfigField("String", "FLAVOR_NAME", "\"dev\"")
-            buildConfigField("boolean", "IS_DEV", "true")
-        }
-        create("prod") {
-            dimension = "environment"
-            resValue("string", "app_name", "LiveChat")
-            buildConfigField("String", "FLAVOR_NAME", "\"prod\"")
-            buildConfigField("boolean", "IS_DEV", "false")
-        }
-    }
-
-    buildTypes {
-        getByName("debug") {
-            isDebuggable = true
-            isMinifyEnabled = false
-            isShrinkResources = false
-        }
-        getByName("release") {
-            isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-dependencies {
-    implementation(libs.firebase.auth)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.google.android.material)
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.androidx.test.uiautomator)
-    debugImplementation(libs.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-}
 
 compose {
     resources {

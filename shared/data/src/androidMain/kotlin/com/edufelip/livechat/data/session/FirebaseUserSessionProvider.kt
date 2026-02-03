@@ -26,16 +26,20 @@ class FirebaseUserSessionProvider(
     private val state = MutableStateFlow<UserSession?>(null)
 
     private val authStateListener =
-        FirebaseAuth.AuthStateListener { auth ->
-            scope.launch {
-                updateFromFirebaseUser(auth.currentUser, forceRefresh = false)
+        object : FirebaseAuth.AuthStateListener {
+            override fun onAuthStateChanged(auth: FirebaseAuth) {
+                scope.launch {
+                    updateFromFirebaseUser(auth.currentUser, forceRefresh = false)
+                }
             }
         }
 
     private val idTokenListener =
-        FirebaseAuth.IdTokenListener { auth ->
-            scope.launch {
-                updateFromFirebaseUser(auth.currentUser, forceRefresh = false)
+        object : FirebaseAuth.IdTokenListener {
+            override fun onIdTokenChanged(auth: FirebaseAuth) {
+                scope.launch {
+                    updateFromFirebaseUser(auth.currentUser, forceRefresh = false)
+                }
             }
         }
 
@@ -67,7 +71,7 @@ class FirebaseUserSessionProvider(
 
             val tokenResult = runCatching { fetchIdToken(user, forceRefresh) }.getOrNull()
             val token = tokenResult?.token ?: return@withContext null
-            val expiresAt = tokenResult.expirationTimestamp?.times(1000)
+            val expiresAt = tokenResult.expirationTimestamp * 1000
 
             val session =
                 UserSession(

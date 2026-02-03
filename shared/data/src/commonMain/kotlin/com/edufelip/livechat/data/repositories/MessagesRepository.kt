@@ -225,6 +225,7 @@ class MessagesRepository(
             remoteMessages
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeConversationSummaries(): Flow<List<ConversationSummary>> =
         sessionProvider.session
             .flatMapLatest { session ->

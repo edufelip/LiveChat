@@ -167,6 +167,7 @@ internal fun WelcomeScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            @Suppress("DEPRECATION")
             ClickableText(
                 text = termsAnnotated,
                 modifier = Modifier.fillMaxWidth(),

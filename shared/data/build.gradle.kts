@@ -1,17 +1,41 @@
-import org.gradle.api.JavaVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
 }
 
 kotlin {
-    androidTarget()
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
+
+    androidLibrary {
+        namespace = "com.edufelip.livechat.shared.data"
+        compileSdk =
+            libs.versions.compileSdk
+                .get()
+                .toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
 
     val iosX64 = iosX64()
     val iosArm64 = iosArm64()
@@ -56,6 +80,22 @@ kotlin {
                 implementation(libs.androidx.room.sqlite.wrapper)
             }
         }
+        val androidHostTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.robolectric)
+            }
+        }
+        val androidDeviceTest by getting {
+            dependencies {
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+            }
+        }
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
@@ -79,22 +119,7 @@ kotlin {
             iosSimulatorArm64Test.dependsOn(this)
         }
 
-        val androidUnitTest by getting {
-            dependencies {
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.androidx.test.core)
-                implementation(libs.androidx.test.junit)
-                implementation(libs.robolectric)
-            }
-        }
 
-        val androidInstrumentedTest by getting {
-            dependencies {
-                implementation(libs.androidx.test.core)
-                implementation(libs.androidx.test.junit)
-                implementation(libs.androidx.test.runner)
-            }
-        }
     }
 
     listOf(iosX64, iosArm64, iosSimulatorArm64).forEach { target ->
@@ -106,43 +131,6 @@ kotlin {
     }
 
     jvmToolchain(17)
-}
-
-android {
-    namespace = "com.edufelip.livechat.shared.data"
-    compileSdk =
-        libs.versions.compileSdk
-            .get()
-            .toInt()
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    defaultConfig {
-        minSdk =
-            libs.versions.minSdk
-                .get()
-                .toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        val localProps = Properties()
-        val localPropsFile = rootProject.file("local.properties")
-        if (localPropsFile.exists()) {
-            localProps.load(localPropsFile.inputStream())
-        }
-        val storageBucketUrl =
-            (
-                localProps.getProperty("storage.bucket.url")
-                    ?: System.getenv("STORAGE_BUCKET_URL")
-                    ?: ""
-            )
-        buildConfigField("String", "STORAGE_BUCKET_URL", "\"$storageBucketUrl\"")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }
 
 dependencies {

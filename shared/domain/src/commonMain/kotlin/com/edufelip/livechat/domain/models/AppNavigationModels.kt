@@ -1,8 +1,6 @@
 package com.edufelip.livechat.domain.models
 
 sealed class AppDestination {
-    data object Splash : AppDestination()
-
     data object Welcome : AppDestination()
 
     data object Onboarding : AppDestination()

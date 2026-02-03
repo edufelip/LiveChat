@@ -152,6 +152,7 @@ fun SettingsScreen(
                 normalizedQuery.isBlank() ||
                     settingsStrings.privacyPolicyTitle.contains(normalizedQuery, ignoreCase = true)
             if (shouldShow) {
+                @Suppress("DEPRECATION")
                 SettingsRowItem(
                     id = "privacy_policy",
                     title = settingsStrings.privacyPolicyTitle,

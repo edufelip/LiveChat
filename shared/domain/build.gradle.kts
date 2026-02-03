@@ -1,12 +1,31 @@
-import org.gradle.api.JavaVersion
 
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
 }
 
 kotlin {
-    androidTarget()
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
+
+    androidLibrary {
+        namespace = "com.edufelip.livechat.shared.domain"
+        compileSdk =
+            libs.versions.compileSdk
+                .get()
+                .toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -52,24 +71,4 @@ kotlin {
     }
 
     jvmToolchain(17)
-}
-
-android {
-    namespace = "com.edufelip.livechat.shared.domain"
-    compileSdk =
-        libs.versions.compileSdk
-            .get()
-            .toInt()
-
-    defaultConfig {
-        minSdk =
-            libs.versions.minSdk
-                .get()
-                .toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }

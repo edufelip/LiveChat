@@ -35,7 +35,7 @@ fun Modifier.settingsItemHighlight(
     highlightColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
     durationMillis: Int = 2000,
 ): Modifier {
-    val shouldHighlight = itemId == targetItemId && targetItemId != null
+    val shouldHighlight = itemId == targetItemId
     var isHighlighted by remember(shouldHighlight) { mutableStateOf(shouldHighlight) }
 
     // Auto-dismiss after duration

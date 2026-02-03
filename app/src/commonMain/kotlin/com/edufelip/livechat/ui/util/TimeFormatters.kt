@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.edufelip.livechat.ui.util
 
 import kotlinx.datetime.Instant

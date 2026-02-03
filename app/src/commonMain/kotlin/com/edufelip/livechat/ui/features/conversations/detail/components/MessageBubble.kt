@@ -317,7 +317,7 @@ private fun AudioBubbleContent(
             )
             Spacer(modifier = Modifier.height(4.dp))
             LinearProgressIndicator(
-                progress = displayProgress,
+                progress = { displayProgress },
                 modifier = Modifier.fillMaxWidth(),
                 color = textColor,
                 trackColor = textColor.copy(alpha = 0.25f),

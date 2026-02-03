@@ -178,11 +178,6 @@ fun LiveChatApp(
                 label = strings.general.homeDestinationTransitionLabel,
             ) { destination ->
                 when (destination) {
-                    AppDestination.Splash ->
-                        SplashScreen(
-                            modifier = contentModifier,
-                            message = strings.conversation.loadingList,
-                        )
                     AppDestination.Welcome ->
                         WelcomeScreen(
                             modifier = contentModifier,
@@ -269,15 +264,13 @@ private fun HomeScreenDetailPreview() {
 
 private fun AppDestination.animationOrder(): Int =
     when (this) {
-        AppDestination.Splash -> 0
-        AppDestination.Welcome -> 1
-        AppDestination.Onboarding -> 2
-        AppDestination.Home -> 3
+        AppDestination.Welcome -> 0
+        AppDestination.Onboarding -> 1
+        AppDestination.Home -> 2
     }
 
 private fun AppDestination.navigationKey(): String =
     when (this) {
-        AppDestination.Splash -> "splash"
         AppDestination.Welcome -> "welcome"
         AppDestination.Onboarding -> "onboarding"
         AppDestination.Home -> "home"

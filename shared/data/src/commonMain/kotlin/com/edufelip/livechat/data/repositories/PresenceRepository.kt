@@ -11,6 +11,7 @@ import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,6 +30,7 @@ class PresenceRepository(
     private val contactsRepository: IContactsRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IPresenceRepository {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun observePresence(userIds: List<String>): Flow<Map<String, PresenceState>> {
         val sanitized = userIds.distinct().filter { it.isNotBlank() }
         return privacySettingsStore.settings

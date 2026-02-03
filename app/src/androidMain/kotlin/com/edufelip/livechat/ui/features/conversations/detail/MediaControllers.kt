@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -156,7 +157,13 @@ private class AndroidConversationMediaController(
                     withContext(Dispatchers.IO) {
                         runCatching {
                             val output = File.createTempFile("aud_", ".m4a", context.cacheDir)
-                            val mediaRecorder = MediaRecorder()
+                            val mediaRecorder =
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    MediaRecorder(context)
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    MediaRecorder()
+                                }
                             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
                             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
@@ -227,6 +234,7 @@ private class AndroidConversationMediaController(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 private suspend fun <T> CompletableDeferred<T>.awaitResult(): T =
     suspendCancellableCoroutine { cont ->
         invokeOnCompletion { throwable ->

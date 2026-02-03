@@ -46,5 +46,6 @@ rootProject.name = "LiveChat"
 include(":shared:data")
 include(":shared:domain")
 include(":app")
+include(":app-android")
 include(":iosApp")
 include(":tools:countrydata")

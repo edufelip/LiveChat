@@ -13,7 +13,7 @@ LiveChat follows a rigorous testing strategy combining unit, integration, and UI
 - **Data Sources**: `FirebaseRestContactsRemoteDataTest` verifies integration with the networking layer using Ktor's `MockEngine`.
 - **Database**: Room database operations are tested (typically on Android/JVM) to ensure schema validity and query correctness.
 
-## UI & Snapshot Testing (`androidInstrumentedTest`)
+## UI & Snapshot Testing (`androidDeviceTest`)
 
 LiveChat uses **Screenshot Testing** to prevent visual regressions.
 

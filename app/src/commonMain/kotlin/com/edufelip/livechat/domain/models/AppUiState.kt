@@ -13,9 +13,7 @@ data class AppUiState(
 ) {
     val destination: AppDestination
         get() =
-            if (!isAppReady) {
-                AppDestination.Splash
-            } else if (!isOnboardingComplete) {
+            if (!isOnboardingComplete) {
                 if (hasSeenWelcome) {
                     AppDestination.Onboarding
                 } else {

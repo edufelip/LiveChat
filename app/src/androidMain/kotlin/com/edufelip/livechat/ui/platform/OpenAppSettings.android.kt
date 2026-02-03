@@ -3,7 +3,6 @@ package com.edufelip.livechat.ui.platform
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.core.content.ContextCompat
 import com.edufelip.livechat.App
 
 actual fun openAppSettings() {
@@ -15,5 +14,5 @@ actual fun openAppSettings() {
         ).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    ContextCompat.startActivity(context, intent, null)
+    context.startActivity(intent)
 }

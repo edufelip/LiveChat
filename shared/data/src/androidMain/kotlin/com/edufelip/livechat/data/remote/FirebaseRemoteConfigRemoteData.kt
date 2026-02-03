@@ -3,7 +3,6 @@ package com.edufelip.livechat.data.remote
 import com.edufelip.livechat.data.contracts.IRemoteConfigRemoteData
 import com.edufelip.livechat.domain.config.RemoteConfigDefaults
 import com.edufelip.livechat.domain.config.RemoteConfigKeys
-import com.edufelip.livechat.shared.data.BuildConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import kotlinx.coroutines.tasks.await
@@ -12,7 +11,7 @@ class FirebaseRemoteConfigRemoteData(
     private val remoteConfig: FirebaseRemoteConfig,
 ) : IRemoteConfigRemoteData {
     init {
-        if (BuildConfig.DEBUG) {
+        if (isDebugBuild()) {
             val settings =
                 FirebaseRemoteConfigSettings
                     .Builder()
@@ -30,4 +29,10 @@ class FirebaseRemoteConfigRemoteData(
     override suspend fun fetchAndActivate(): Boolean = remoteConfig.fetchAndActivate().await()
 
     override fun getString(key: String): String = remoteConfig.getString(key)
+
+    private fun isDebugBuild(): Boolean =
+        runCatching {
+            val clazz = Class.forName("com.edufelip.livechat.BuildConfig")
+            clazz.getField("DEBUG").getBoolean(null)
+        }.getOrDefault(false)
 }

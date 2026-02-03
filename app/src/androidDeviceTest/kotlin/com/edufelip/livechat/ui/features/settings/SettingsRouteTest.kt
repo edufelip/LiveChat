@@ -1,20 +1,17 @@
 package com.edufelip.livechat.ui.features.settings
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.edufelip.livechat.ui.features.settings.model.SettingsNavigationRequest
+import com.edufelip.livechat.ui.features.settings.model.SettingsSection
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LiveChatTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,7 +33,7 @@ class SettingsRouteTest {
         var notificationsScreenTitle = ""
         var appearanceScreenTitle = ""
         var privacyScreenTitle = ""
-        val backLabel = "Back"
+        var lastRequest: SettingsNavigationRequest? = null
 
         composeRule.setContent {
             LiveChatTheme {
@@ -72,100 +69,56 @@ class SettingsRouteTest {
 
                 SettingsRoute(
                     modifier = Modifier.fillMaxSize(),
-                    accountContent = { modifier, onBack ->
-                        SettingsTestScreen(
-                            modifier = modifier,
-                            title = accountScreenTitleLocal,
-                            backLabel = backLabel,
-                            onBack = onBack,
-                        )
-                    },
-                    notificationsContent = { modifier, onBack ->
-                        SettingsTestScreen(
-                            modifier = modifier,
-                            title = notificationsScreenTitleLocal,
-                            backLabel = backLabel,
-                            onBack = onBack,
-                        )
-                    },
-                    appearanceContent = { modifier, onBack ->
-                        SettingsTestScreen(
-                            modifier = modifier,
-                            title = appearanceScreenTitleLocal,
-                            backLabel = backLabel,
-                            onBack = onBack,
-                        )
-                    },
-                    privacyContent = { modifier, onBack ->
-                        SettingsTestScreen(
-                            modifier = modifier,
-                            title = privacyScreenTitleLocal,
-                            backLabel = backLabel,
-                            onBack = onBack,
-                        )
-                    },
+                    onSectionSelected = { request -> lastRequest = request },
                 )
             }
         }
 
         composeRule.waitForIdle()
 
-        assertSectionNavigation(
+        assertSectionSelection(
             sectionTitle = accountTitle,
-            sectionDescription = accountDescription,
-            destinationTitle = accountScreenTitle,
-            backLabel = backLabel,
+            expectedSection = SettingsSection.Account,
+            expectedDescription = accountDescription,
+            expectedTitle = accountScreenTitle,
+            lastRequestProvider = { lastRequest },
         )
-        assertSectionNavigation(
+        assertSectionSelection(
             sectionTitle = notificationsTitle,
-            sectionDescription = notificationsDescription,
-            destinationTitle = notificationsScreenTitle,
-            backLabel = backLabel,
+            expectedSection = SettingsSection.Notifications,
+            expectedDescription = notificationsDescription,
+            expectedTitle = notificationsScreenTitle,
+            lastRequestProvider = { lastRequest },
         )
-        assertSectionNavigation(
+        assertSectionSelection(
             sectionTitle = appearanceTitle,
-            sectionDescription = appearanceDescription,
-            destinationTitle = appearanceScreenTitle,
-            backLabel = backLabel,
+            expectedSection = SettingsSection.Appearance,
+            expectedDescription = appearanceDescription,
+            expectedTitle = appearanceScreenTitle,
+            lastRequestProvider = { lastRequest },
         )
-        assertSectionNavigation(
+        assertSectionSelection(
             sectionTitle = privacyTitle,
-            sectionDescription = privacyDescription,
-            destinationTitle = privacyScreenTitle,
-            backLabel = backLabel,
+            expectedSection = SettingsSection.Privacy,
+            expectedDescription = privacyDescription,
+            expectedTitle = privacyScreenTitle,
+            lastRequestProvider = { lastRequest },
         )
     }
 
-    private fun assertSectionNavigation(
+    private fun assertSectionSelection(
         sectionTitle: String,
-        sectionDescription: String,
-        destinationTitle: String,
-        backLabel: String,
+        expectedSection: SettingsSection,
+        expectedDescription: String,
+        expectedTitle: String,
+        lastRequestProvider: () -> SettingsNavigationRequest?,
     ) {
         composeRule.onNodeWithText(sectionTitle).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(sectionDescription).fetchSemanticsNodes().isEmpty()
+        composeRule.runOnIdle {
+            val request = requireNotNull(lastRequestProvider()) { "Expected selection for $sectionTitle" }
+            assertEquals(expectedSection, request.section)
+            assertEquals(expectedTitle, request.title)
+            assertEquals(expectedDescription, request.description)
         }
-        composeRule.onNodeWithText(destinationTitle).assertIsDisplayed()
-        composeRule.onNodeWithText(backLabel).performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText(sectionDescription).fetchSemanticsNodes().isNotEmpty()
-        }
-    }
-}
-
-@Composable
-private fun SettingsTestScreen(
-    modifier: Modifier,
-    title: String,
-    backLabel: String,
-    onBack: () -> Unit,
-) {
-    Column(modifier = modifier.fillMaxSize()) {
-        Text(text = title)
-        Text(
-            text = backLabel,
-            modifier = Modifier.clickable(onClick = onBack),
-        )
     }
 }

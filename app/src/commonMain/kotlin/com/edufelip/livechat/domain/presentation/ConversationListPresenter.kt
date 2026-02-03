@@ -16,6 +16,7 @@ import com.edufelip.livechat.domain.utils.ConversationListSnapshotCache
 import com.edufelip.livechat.domain.utils.asCStateFlow
 import com.edufelip.livechat.domain.utils.currentEpochMillis
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ConversationListPresenter(
     private val observeConversationSummaries: ObserveConversationSummariesUseCase,
     private val markConversationRead: MarkConversationReadUseCase,

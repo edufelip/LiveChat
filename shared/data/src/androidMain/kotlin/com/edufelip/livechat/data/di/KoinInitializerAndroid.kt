@@ -90,14 +90,20 @@ private fun firebaseRestConfig(
 ): com.edufelip.livechat.data.remote.FirebaseRestConfig =
     run {
         val emulatorConfig = loadFirebaseEmulatorConfig()
+        val projectId = app.options.projectId.orEmpty()
+        val apiKey = app.options.apiKey.orEmpty()
 
         // Log configuration details
         println("🔧 FirebaseRestConfig Initialization:")
-        println("  - ProjectId: ${app.options.projectId ?: "❌ MISSING"}")
+        println("  - ProjectId: ${projectId.ifBlank { "❌ MISSING" }}")
         println(
-            "  - ApiKey: ${app.options.apiKey
-                ?.take(10)
-                ?.plus("...") ?: "❌ MISSING"}",
+            "  - ApiKey: ${
+                if (apiKey.isBlank()) {
+                    "❌ MISSING"
+                } else {
+                    apiKey.take(10).plus("...")
+                }
+            }",
         )
         println("  - Emulator: ${emulatorConfig?.host ?: "Not using emulator"}")
         println("  - Region: ${context.defaultRegionIso()}")
@@ -105,9 +111,9 @@ private fun firebaseRestConfig(
         com.edufelip.livechat.data.remote
             .FirebaseRestConfig(
                 projectId =
-                    app.options.projectId
+                    projectId.takeIf { it.isNotBlank() }
                         ?: error("Firebase projectId is missing. Check google-services.json."),
-                apiKey = app.options.apiKey ?: "",
+                apiKey = apiKey,
                 emulatorHost = emulatorConfig?.host,
                 emulatorPort = emulatorConfig?.firestorePort,
                 defaultRegionIso = context.defaultRegionIso(),

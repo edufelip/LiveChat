@@ -14,7 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,12 +77,17 @@ fun ConversationDetailRoute(
     val state by presenter.collectState()
     val sessionProvider = rememberSessionProvider()
     val currentUserId = sessionProvider.currentUserId().orEmpty()
-    val resolvedContactName = state.contactName ?: contactName
+    val resolvedContactName =
+        if (state.contactName.isNotBlank()) {
+            state.contactName
+        } else {
+            contactName?.takeIf { it.isNotBlank() }
+        }
     val mediaController = rememberConversationMediaController()
     val scope = rememberCoroutineScope()
     val permissionViewModel = rememberPermissionViewModel()
     val permissionUiState by permissionViewModel.uiState.collectAsState()
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val snackbarHostState = remember { SnackbarHostState() }
     var isRecording by remember { mutableStateOf(false) }
     var recordingDurationMillis by remember { mutableStateOf(0L) }
@@ -301,7 +306,9 @@ fun ConversationDetailRoute(
         },
         onDismissMessageActions = clearSelection,
         onCopyMessage = { message ->
-            clipboardManager.setText(AnnotatedString(message.body))
+            scope.launch {
+                clipboard.setText(AnnotatedString(message.body))
+            }
             scope.launch {
                 snackbarHostState.showSnackbar(conversationStrings.messageCopied)
             }

@@ -129,7 +129,7 @@ fun ConversationDetailScreen(
     val resolvedTitle =
         remember(contactName, state.contactName) {
             contactName?.takeIf { it.isNotBlank() }
-                ?: state.contactName?.takeIf { it.isNotBlank() }
+                ?: state.contactName.takeIf { it.isNotBlank() }
                 ?: strings.home.conversationTitle
         }
     val conversationStrings = strings.conversation

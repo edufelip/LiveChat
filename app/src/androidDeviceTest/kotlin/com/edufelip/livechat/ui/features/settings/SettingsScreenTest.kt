@@ -2,9 +2,10 @@ package com.edufelip.livechat.ui.features.settings
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
@@ -38,6 +39,6 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithTag(SettingsTestTags.SEARCH_FIELD).performTextInput(accountTitle.take(3))
         composeRule.onNodeWithText(accountTitle).assertIsDisplayed()
-        composeRule.onNodeWithText(notificationsTitle).assertDoesNotExist()
+        composeRule.onAllNodesWithText(notificationsTitle).assertCountEquals(0)
     }
 }
