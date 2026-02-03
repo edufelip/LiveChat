@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +40,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,35 +72,56 @@ internal fun WelcomeScreen(
             textAlign = TextAlign.Center,
         )
     val termsAnnotated =
-        remember(strings.welcomeTermsMessage, colors.primary) {
+        remember(
+            strings.welcomeTermsMessage,
+            colors.primary,
+            strings.welcomeTermsUrl,
+            strings.welcomePrivacyUrl,
+        ) {
             val termsKeyword = "Terms of Service"
             val privacyKeyword = "Privacy Policy"
             buildAnnotatedString {
                 append(strings.welcomeTermsMessage)
                 val termsIndex = strings.welcomeTermsMessage.indexOf(termsKeyword)
                 if (termsIndex >= 0) {
-                    addStyle(
-                        style = SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold),
-                        start = termsIndex,
-                        end = termsIndex + termsKeyword.length,
-                    )
-                    addStringAnnotation(
-                        tag = "terms",
-                        annotation = termsKeyword,
+                    val termsLink =
+                        LinkAnnotation.Clickable(
+                            tag = "terms",
+                            styles =
+                                TextLinkStyles(
+                                    style = SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold),
+                                ),
+                            linkInteractionListener =
+                                LinkInteractionListener {
+                                    if (strings.welcomeTermsUrl.isNotBlank()) {
+                                        openWebViewUrl(strings.welcomeTermsUrl)
+                                    }
+                                },
+                        )
+                    addLink(
+                        termsLink,
                         start = termsIndex,
                         end = termsIndex + termsKeyword.length,
                     )
                 }
                 val privacyIndex = strings.welcomeTermsMessage.indexOf(privacyKeyword)
                 if (privacyIndex >= 0) {
-                    addStyle(
-                        style = SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold),
-                        start = privacyIndex,
-                        end = privacyIndex + privacyKeyword.length,
-                    )
-                    addStringAnnotation(
-                        tag = "privacy",
-                        annotation = privacyKeyword,
+                    val privacyLink =
+                        LinkAnnotation.Clickable(
+                            tag = "privacy",
+                            styles =
+                                TextLinkStyles(
+                                    style = SpanStyle(color = colors.primary, fontWeight = FontWeight.SemiBold),
+                                ),
+                            linkInteractionListener =
+                                LinkInteractionListener {
+                                    if (strings.welcomePrivacyUrl.isNotBlank()) {
+                                        openWebViewUrl(strings.welcomePrivacyUrl)
+                                    }
+                                },
+                        )
+                    addLink(
+                        privacyLink,
                         start = privacyIndex,
                         end = privacyIndex + privacyKeyword.length,
                     )
@@ -167,28 +190,9 @@ internal fun WelcomeScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            @Suppress("DEPRECATION")
-            ClickableText(
+            Text(
                 text = termsAnnotated,
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { offset ->
-                    termsAnnotated
-                        .getStringAnnotations(tag = "terms", start = offset, end = offset)
-                        .firstOrNull()
-                        ?.let {
-                            if (strings.welcomeTermsUrl.isNotBlank()) {
-                                openWebViewUrl(strings.welcomeTermsUrl)
-                            }
-                        }
-                    termsAnnotated
-                        .getStringAnnotations(tag = "privacy", start = offset, end = offset)
-                        .firstOrNull()
-                        ?.let {
-                            if (strings.welcomePrivacyUrl.isNotBlank()) {
-                                openWebViewUrl(strings.welcomePrivacyUrl)
-                            }
-                        }
-                },
                 style = termsStyle,
             )
             Spacer(modifier = Modifier.height(8.dp))
