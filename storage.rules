@@ -18,10 +18,19 @@ service firebase.storage {
         && (request.auth.uid == receiverId || request.auth.uid == senderId);
     }
 
+    // Profile photos uploaded by the owner.
+    // Path convention: profile_photos/{userId}/avatar.jpg
+    match /profile_photos/{userId}/{fileName} {
+      allow read: if true;
+
+      allow create, update, delete: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
     // Default-deny for everything else.
     match /{allPaths=**} {
       allow read, write: if false;
     }
   }
 }
-

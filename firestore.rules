@@ -6,8 +6,11 @@ service cloud.firestore {
     }
 
     function isDeleted(uid) {
+      // Check if user document exists and has is_deleted = true
+      // If document doesn't exist, user is not deleted
+      // If is_deleted field is missing, user is not deleted
       return exists(/databases/$(database)/documents/users/$(uid)) &&
-        get(/databases/$(database)/documents/users/$(uid)).data.is_deleted == true;
+        get(/databases/$(database)/documents/users/$(uid)).data.get('is_deleted', false) == true;
     }
 
     function isActiveUser(uid) {
@@ -25,15 +28,15 @@ service cloud.firestore {
         && (!('last_item_at' in data) || data.last_item_at is timestamp);
     }
 
-    function isValidInboxItemBase(data, ownerId) {
+    function isValidInboxItemBase(data) {
       return data.sender_id is string
         && data.action_type in ['message', 'delivered', 'read']
         && data.created_at is timestamp
         && (!('created_at_ms' in data) || data.created_at_ms is int);
     }
 
-    function isValidMessageItem(data, ownerId) {
-      return isValidInboxItemBase(data, ownerId)
+    function isValidMessageItem(data) {
+      return isValidInboxItemBase(data)
         && data.action_type == 'message'
         && data.message_id is string
         && data.content_type in ['text', 'image', 'audio']
@@ -42,8 +45,8 @@ service cloud.firestore {
         && !('action_message_id' in data);
     }
 
-    function isValidReceiptItem(data, ownerId) {
-      return isValidInboxItemBase(data, ownerId)
+    function isValidReceiptItem(data) {
+      return isValidInboxItemBase(data)
         && data.action_type in ['delivered', 'read']
         && data.action_message_id is string
         && !('message_id' in data)
@@ -52,9 +55,21 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId && resource.data.is_deleted != true;
-      allow create: if request.auth != null && request.auth.uid == userId && request.resource.data.is_deleted != true;
-      allow update: if request.auth != null && request.auth.uid == userId && resource.data.is_deleted != true;
+      // Allow read if authenticated, owns the document, and it's not soft-deleted
+      // Handle cases: document doesn't exist, is_deleted field missing, or is_deleted is false
+      allow read: if request.auth != null 
+                  && request.auth.uid == userId 
+                  && (resource == null || !('is_deleted' in resource.data) || resource.data.is_deleted != true);
+      
+      // Allow create if authenticated, owns the document, and not creating a deleted user
+      allow create: if request.auth != null 
+                    && request.auth.uid == userId 
+                    && (!('is_deleted' in request.resource.data) || request.resource.data.is_deleted != true);
+      
+      // Allow update if authenticated, owns the document, and it's not currently soft-deleted
+      allow update: if request.auth != null 
+                    && request.auth.uid == userId 
+                    && (resource == null || !('is_deleted' in resource.data) || resource.data.is_deleted != true);
     }
 
     match /users/{userId}/settings/{settingsId} {
@@ -70,8 +85,15 @@ service cloud.firestore {
     }
 
     match /presence/{userId} {
-      allow read: if isActiveUser(request.auth.uid);
-      allow create, update: if isActiveUser(userId) && request.auth.uid == userId;
+      // Anyone authenticated can read presence (for online status)
+      allow read: if isSignedIn();
+      
+      // Users can create/update their own presence if authenticated and not soft-deleted
+      // Handle case where user document might not exist yet
+      allow create, update: if isSignedIn() 
+                            && request.auth.uid == userId 
+                            && (!exists(/databases/$(database)/documents/users/$(userId)) 
+                                || !get(/databases/$(database)/documents/users/$(userId)).data.get('is_deleted', false));
     }
 
     match /inboxes/{ownerId} {
@@ -85,8 +107,8 @@ service cloud.firestore {
         allow read, delete: if isInboxOwner(ownerId);
         allow create: if isActiveUser(request.auth.uid)
           && request.resource.data.sender_id == request.auth.uid
-          && (isValidMessageItem(request.resource.data, ownerId)
-              || isValidReceiptItem(request.resource.data, ownerId));
+          && (isValidMessageItem(request.resource.data)
+              || isValidReceiptItem(request.resource.data));
         allow update: if false;
       }
     }
