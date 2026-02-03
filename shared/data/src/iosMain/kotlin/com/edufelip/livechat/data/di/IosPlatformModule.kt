@@ -37,6 +37,21 @@ fun iosPlatformModule(
 ): Module =
     module {
         MediaFileStore.configure(iosMediaDirectory())
+
+        // Log iOS Firebase configuration
+        println("🔧 iOS FirebaseRestConfig:")
+        println("  - ProjectId: ${config.projectId.takeIf { it.isNotBlank() } ?: "❌ MISSING"}")
+        println(
+            "  - ApiKey: ${config.apiKey
+                .takeIf { it.isNotBlank() }
+                ?.take(10)
+                ?.plus("...") ?: "❌ MISSING"}",
+        )
+        println("  - Emulator: ${config.emulatorHost ?: "Not using emulator"}")
+        println("  - Documents Endpoint: ${config.documentsEndpoint}")
+        println("  - Users Collection: ${config.usersCollection}")
+        println("  - Is Configured: ${config.isConfigured}")
+
         single { config }
         single { httpClient }
         single { bridgeBundle.messagesBridge }
@@ -64,7 +79,13 @@ fun defaultHttpClient(): HttpClient =
             )
         }
         install(Logging) {
-            level = LogLevel.NONE
+            level = LogLevel.ALL
+            logger =
+                object : io.ktor.client.plugins.logging.Logger {
+                    override fun log(message: String) {
+                        println("🌐 HTTP: $message")
+                    }
+                }
         }
         install(WebSockets) { }
     }

@@ -90,15 +90,32 @@ private fun firebaseRestConfig(
 ): com.edufelip.livechat.data.remote.FirebaseRestConfig =
     run {
         val emulatorConfig = loadFirebaseEmulatorConfig()
-        com.edufelip.livechat.data.remote.FirebaseRestConfig(
-            projectId =
-                app.options.projectId
-                    ?: error("Firebase projectId is missing. Check google-services.json."),
-            apiKey = app.options.apiKey ?: "",
-            emulatorHost = emulatorConfig?.host,
-            emulatorPort = emulatorConfig?.firestorePort,
-            defaultRegionIso = context.defaultRegionIso(),
+
+        // Log configuration details
+        println("🔧 FirebaseRestConfig Initialization:")
+        println("  - ProjectId: ${app.options.projectId ?: "❌ MISSING"}")
+        println(
+            "  - ApiKey: ${app.options.apiKey
+                ?.take(10)
+                ?.plus("...") ?: "❌ MISSING"}",
         )
+        println("  - Emulator: ${emulatorConfig?.host ?: "Not using emulator"}")
+        println("  - Region: ${context.defaultRegionIso()}")
+
+        com.edufelip.livechat.data.remote
+            .FirebaseRestConfig(
+                projectId =
+                    app.options.projectId
+                        ?: error("Firebase projectId is missing. Check google-services.json."),
+                apiKey = app.options.apiKey ?: "",
+                emulatorHost = emulatorConfig?.host,
+                emulatorPort = emulatorConfig?.firestorePort,
+                defaultRegionIso = context.defaultRegionIso(),
+            ).also { config ->
+                println("  - Documents Endpoint: ${config.documentsEndpoint}")
+                println("  - Users Collection: ${config.usersCollection}")
+                println("  - Is Configured: ${config.isConfigured}")
+            }
     }
 
 private fun ensureFirebaseApp(context: Context): FirebaseApp =
@@ -139,7 +156,13 @@ fun defaultHttpClient(): HttpClient =
             )
         }
         install(Logging) {
-            level = LogLevel.NONE
+            level = LogLevel.ALL
+            logger =
+                object : io.ktor.client.plugins.logging.Logger {
+                    override fun log(message: String) {
+                        println("🌐 HTTP: $message")
+                    }
+                }
         }
         install(WebSockets) { }
     }
