@@ -22,7 +22,7 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shield
@@ -158,7 +158,7 @@ fun SettingsScreen(
                     title = settingsStrings.privacyPolicyTitle,
                     icon = Icons.Rounded.Shield,
                     iconBackground = SettingsIconGray,
-                    trailingIcon = Icons.Rounded.OpenInNew,
+                    trailingIcon = Icons.AutoMirrored.Rounded.OpenInNew,
                     onClick = { openWebViewUrl(settingsStrings.privacyPolicyUrl) },
                     parentLabel = null,
                 )

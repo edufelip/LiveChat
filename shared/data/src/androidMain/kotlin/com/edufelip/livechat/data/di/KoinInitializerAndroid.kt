@@ -134,7 +134,7 @@ private fun Context.defaultRegionIso(): String? {
     val localeCountry =
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             val locales = resources.configuration.locales
-            if (locales.isEmpty) null else locales.get(0)?.country
+            if (locales.isEmpty) null else locales[0].country
         } else {
             @Suppress("DEPRECATION")
             resources.configuration.locale?.country
@@ -147,7 +147,7 @@ private fun Context.defaultRegionIso(): String? {
             Locale.getDefault().country,
         )
     return candidates
-        .firstOrNull { !it.isNullOrBlank() }
+        .firstOrNull { it.isNotBlank() }
         ?.uppercase(Locale.ROOT)
 }
 

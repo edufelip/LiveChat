@@ -8,6 +8,7 @@ import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.providers.model.UserSession
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -17,6 +18,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class AccountRepositoryTest {
     @Test
     fun observeAccountProfile_keepsPendingDisplayNameUntilRemoteMatches() =

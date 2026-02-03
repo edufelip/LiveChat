@@ -27,9 +27,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CallMade
-import androidx.compose.material.icons.rounded.CallMissed
-import androidx.compose.material.icons.rounded.CallReceived
+import androidx.compose.material.icons.automirrored.rounded.CallMade
+import androidx.compose.material.icons.automirrored.rounded.CallMissed
+import androidx.compose.material.icons.automirrored.rounded.CallReceived
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Videocam
@@ -554,9 +554,9 @@ private data class CallAvatar(
 private enum class CallType(
     val icon: ImageVector,
 ) {
-    Outgoing(Icons.Rounded.CallMade),
-    Incoming(Icons.Rounded.CallReceived),
-    Missed(Icons.Rounded.CallMissed),
+    Outgoing(Icons.AutoMirrored.Rounded.CallMade),
+    Incoming(Icons.AutoMirrored.Rounded.CallReceived),
+    Missed(Icons.AutoMirrored.Rounded.CallMissed),
     Video(Icons.Rounded.Videocam),
 }
 
