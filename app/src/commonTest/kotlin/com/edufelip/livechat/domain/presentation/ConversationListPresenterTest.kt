@@ -90,6 +90,27 @@ class ConversationListPresenterTest {
         }
 
     @Test
+    fun initUsesCachedSummariesSortedByPinnedBeforeRecency() =
+        runTest {
+            val pinnedOlder = summary(id = "10", unread = 0, pinned = true, timestamp = 2_000)
+            val newer = summary(id = "11", unread = 1, pinned = false, timestamp = 9_000)
+            setUpPresenter(
+                initialSummaries = emptyList(),
+                cachedSummaries = listOf(newer, pinnedOlder),
+                testScheduler = testScheduler,
+            )
+
+            scope.advanceUntilIdle()
+
+            val state = presenter.uiState.value
+            assertEquals(false, state.isLoading)
+            assertEquals(
+                listOf(pinnedOlder.conversationId, newer.conversationId),
+                state.conversations.map { it.conversationId },
+            )
+        }
+
+    @Test
     fun archivedFilterOnlyShowsArchivedConversations() =
         runTest {
             val archived = summary(id = "9", unread = 0, pinned = false, timestamp = 12_000, archived = true)
@@ -146,8 +167,12 @@ class ConversationListPresenterTest {
     private fun setUpPresenter(
         initialSummaries: List<ConversationSummary>,
         testScheduler: TestCoroutineScheduler,
+        cachedSummaries: List<ConversationSummary>? = null,
     ) {
         ConversationListSnapshotCache.clear()
+        if (cachedSummaries != null) {
+            ConversationListSnapshotCache.update(cachedSummaries)
+        }
         repository = FakeMessagesRepository(initialSummaries)
         participantsRepository = FakeParticipantsRepository()
         val presenceRepository = FakePresenceRepository()
