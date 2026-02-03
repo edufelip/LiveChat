@@ -53,7 +53,16 @@ class FirebaseRestAccountRemoteData(
         idToken: String,
         displayName: String,
     ) {
-        updateFields(userId, idToken, mapOf(FIELD_DISPLAY_NAME to Value(stringValue = displayName)))
+        println("🏷️ updateDisplayName called: userId=$userId, displayName='$displayName'")
+        updateFields(
+            userId = userId,
+            idToken = idToken,
+            fields =
+                mapOf(
+                    FIELD_DISPLAY_NAME to Value(stringValue = displayName),
+                    FIELD_DISPLAY_NAME_CAMEL to Value(stringValue = displayName),
+                ),
+        )
     }
 
     override suspend fun updateStatusMessage(
@@ -61,6 +70,7 @@ class FirebaseRestAccountRemoteData(
         idToken: String,
         statusMessage: String,
     ) {
+        println("💬 updateStatusMessage called: userId=$userId, statusMessage='$statusMessage'")
         updateFields(userId, idToken, mapOf(FIELD_STATUS_MESSAGE to Value(stringValue = statusMessage)))
     }
 
@@ -69,6 +79,7 @@ class FirebaseRestAccountRemoteData(
         idToken: String,
         email: String,
     ) {
+        println("📧 updateEmail called: userId=$userId, email='$email'")
         updateFields(userId, idToken, mapOf(FIELD_EMAIL to Value(stringValue = email)))
     }
 
@@ -91,6 +102,7 @@ class FirebaseRestAccountRemoteData(
             val fields =
                 buildMap {
                     put(FIELD_DISPLAY_NAME, Value(stringValue = ""))
+                    put(FIELD_DISPLAY_NAME_CAMEL, Value(stringValue = ""))
                     put(FIELD_STATUS_MESSAGE, Value(stringValue = ""))
                     phoneNumber
                         ?.takeIf { it.isNotBlank() }
@@ -136,17 +148,41 @@ class FirebaseRestAccountRemoteData(
         fields: Map<String, Value>,
     ) {
         withContext(dispatcher) {
+            println("📝 FirebaseRestAccountRemoteData.updateFields() called:")
+            println("  - UserId: $userId")
+            println("  - Token: ${idToken.take(10)}...${idToken.takeLast(10)}")
+            println("  - Fields to update: ${fields.keys}")
+            println("  - Config.isConfigured: ${config.isConfigured}")
+
             ensureConfigured(idToken)
+
             val url = "${config.documentsEndpoint}/${config.usersCollection}/$userId"
+            println("  - Full URL: $url")
+
             val request = UpdateDocumentRequest(fields = fields)
-            httpClient.patch(url) {
-                header(AUTHORIZATION_HEADER, "Bearer $idToken")
-                if (config.apiKey.isNotBlank()) {
-                    parameter("key", config.apiKey)
-                }
-                fields.keys.forEach { parameter("updateMask.fieldPaths", it) }
-                contentType(ContentType.Application.Json)
-                setBody(request)
+            println("  - Request payload: $request")
+
+            try {
+                val response =
+                    httpClient.patch(url) {
+                        header(AUTHORIZATION_HEADER, "Bearer $idToken")
+                        if (config.apiKey.isNotBlank()) {
+                            parameter("key", config.apiKey)
+                            println("  - Using API key: ${config.apiKey.take(10)}...")
+                        }
+                        fields.keys.forEach { fieldPath ->
+                            parameter("updateMask.fieldPaths", fieldPath)
+                            println("  - Update mask: $fieldPath")
+                        }
+                        contentType(ContentType.Application.Json)
+                        setBody(request)
+                    }
+                println("  ✅ Update successful! Status: ${response.status}")
+            } catch (e: Exception) {
+                println("  ❌ Update failed: ${e.message}")
+                println("  - Exception type: ${e::class.simpleName}")
+                e.printStackTrace()
+                throw e
             }
         }
     }
@@ -164,6 +200,7 @@ class FirebaseRestAccountRemoteData(
                     FIELD_IS_DELETED to Value(booleanValue = true),
                     FIELD_DELETED_AT to Value(integerValue = now),
                     FIELD_DISPLAY_NAME to Value(stringValue = DELETED_USER_NAME),
+                    FIELD_DISPLAY_NAME_CAMEL to Value(stringValue = DELETED_USER_NAME),
                     FIELD_STATUS_MESSAGE to Value(stringValue = ""),
                     FIELD_PHONE_NUMBER to Value(stringValue = ""),
                     FIELD_EMAIL to Value(stringValue = ""),
@@ -199,7 +236,11 @@ class FirebaseRestAccountRemoteData(
     }
 
     private fun FirestoreDocument.toAccountProfile(userId: String): AccountProfile {
-        val displayName = fields[FIELD_DISPLAY_NAME]?.stringValue.orEmpty()
+        val displayName =
+            fields[FIELD_DISPLAY_NAME]
+                ?.stringValue
+                ?.takeIf { it.isNotBlank() }
+                ?: fields[FIELD_DISPLAY_NAME_CAMEL]?.stringValue.orEmpty()
         return AccountProfile(
             userId = userId,
             displayName = displayName,
@@ -241,6 +282,7 @@ class FirebaseRestAccountRemoteData(
         const val AUTHORIZATION_HEADER = "Authorization"
         const val AUTH_DELETE_ENDPOINT = "https://identitytoolkit.googleapis.com/v1/accounts:delete"
         const val FIELD_DISPLAY_NAME = "display_name"
+        const val FIELD_DISPLAY_NAME_CAMEL = "displayName"
         const val FIELD_STATUS_MESSAGE = "status_message"
         const val FIELD_PHONE_NUMBER = "phone_num"
         const val FIELD_EMAIL = "email"
