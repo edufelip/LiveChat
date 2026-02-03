@@ -5,6 +5,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -68,6 +69,16 @@ fun AccountSettingsRoute(
 
     val presenter = rememberAccountPresenter()
     val state by presenter.collectState()
+
+    // Log when route is composed
+    DisposableEffect(Unit) {
+        println("🎬 AccountSettingsRoute: Screen composed")
+        println("  - State: isLoading=${state.isLoading}, profile=${state.profile}")
+        onDispose {
+            println("🎬 AccountSettingsRoute: Screen disposed")
+        }
+    }
+
     val scope = rememberCoroutineScope()
     val sessionProvider = rememberSessionProvider()
     val phoneAuthPresenter = rememberPhoneAuthPresenter()
@@ -274,6 +285,33 @@ fun AccountSettingsRoute(
         }
     }
 
+    val onConfirmEdit: (EditField, String) -> Unit =
+        fun(
+            field: EditField,
+            value: String,
+        ) {
+            // Prevent duplicate submissions
+            if (state.isUpdating || pendingEditSave) {
+                println("💾 Ignoring duplicate confirm - update already in progress")
+                return
+            }
+
+            val trimmedValue = value.trim()
+            println("💾 Bottom sheet Confirm clicked:")
+            println("  - Active field: $field")
+            println("  - Value: '$trimmedValue'")
+            println("  - Calling presenter update method...")
+            pendingEditSave = true
+            pendingEditField = field
+            pendingEditValue = trimmedValue
+            when (field) {
+                EditField.DisplayName -> presenter.updateDisplayName(trimmedValue)
+                EditField.StatusMessage -> presenter.updateStatusMessage(trimmedValue)
+                EditField.Email -> presenter.updateEmail(trimmedValue)
+                EditField.None -> Unit
+            }
+        }
+
     if (activeEdit != EditField.None) {
         AccountEditBottomSheet(
             title = activeEdit.title(strings),
@@ -289,16 +327,7 @@ fun AccountSettingsRoute(
                 activeEdit = EditField.None
             },
             onConfirm = {
-                val trimmedValue = editValue.trim()
-                pendingEditSave = true
-                pendingEditField = activeEdit
-                pendingEditValue = trimmedValue
-                when (activeEdit) {
-                    EditField.DisplayName -> presenter.updateDisplayName(trimmedValue)
-                    EditField.StatusMessage -> presenter.updateStatusMessage(trimmedValue)
-                    EditField.Email -> presenter.updateEmail(trimmedValue)
-                    EditField.None -> Unit
-                }
+                onConfirmEdit(activeEdit, editValue)
             },
             confirmEnabled = activeEdit.canSave(editValue),
             isUpdating = state.isUpdating,
@@ -419,12 +448,14 @@ fun AccountSettingsRoute(
         targetItemId = targetItemId,
         onBack = onBack,
         onEditDisplayName = {
+            println("🖱️ onEditDisplayName clicked (allowEdits=$allowEdits)")
             if (allowEdits) {
                 pendingEditSave = false
                 pendingEditField = null
                 pendingEditValue = ""
                 editValue = state.profile?.displayName.orEmpty()
                 activeEdit = EditField.DisplayName
+                println("  ✅ Opened edit sheet for DisplayName")
             }
         },
         onEditPhoto = {
@@ -433,21 +464,25 @@ fun AccountSettingsRoute(
             }
         },
         onEditStatus = {
+            println("🖱️ onEditStatus clicked (allowEdits=$allowEdits)")
             if (allowEdits) {
                 pendingEditSave = false
                 pendingEditField = null
                 pendingEditValue = ""
                 editValue = state.profile?.statusMessage.orEmpty()
                 activeEdit = EditField.StatusMessage
+                println("  ✅ Opened edit sheet for StatusMessage")
             }
         },
         onEditEmail = {
+            println("🖱️ onEditEmail clicked (allowEdits=$allowEdits)")
             if (allowEdits) {
                 pendingEditSave = false
                 pendingEditField = null
                 pendingEditValue = ""
                 editValue = state.profile?.email.orEmpty()
                 activeEdit = EditField.Email
+                println("  ✅ Opened edit sheet for Email")
             }
         },
         onDeleteAccount = {

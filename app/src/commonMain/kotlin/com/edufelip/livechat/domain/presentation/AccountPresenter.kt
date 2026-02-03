@@ -21,9 +21,9 @@ import kotlinx.coroutines.launch
 
 class AccountPresenter(
     private val observeAccountProfile: ObserveAccountProfileUseCase,
-    private val updateDisplayName: UpdateAccountDisplayNameUseCase,
-    private val updateStatusMessage: UpdateAccountStatusMessageUseCase,
-    private val updateEmail: UpdateAccountEmailUseCase,
+    private val updateDisplayNameUseCase: UpdateAccountDisplayNameUseCase,
+    private val updateStatusMessageUseCase: UpdateAccountStatusMessageUseCase,
+    private val updateEmailUseCase: UpdateAccountEmailUseCase,
     private val updatePhotoUseCase: UpdateAccountPhotoUseCase,
     private val deleteAccount: DeleteAccountUseCase,
     private val scope: CoroutineScope,
@@ -48,27 +48,43 @@ class AccountPresenter(
     }
 
     fun updateDisplayName(value: String) {
+        val stackTrace =
+            Exception()
+                .stackTraceToString()
+                .lines()
+                .take(5)
+                .joinToString("\n")
+        println("🎨 AccountPresenter.updateDisplayName called: '$value'")
+        println("  📍 Call stack:\n$stackTrace")
         val trimmed = value.trim()
-        if (trimmed.isEmpty()) return
+        if (trimmed.isEmpty()) {
+            println("  ⚠️ Empty value, skipping update")
+            return
+        }
         updateProfile(
-            update = { updateDisplayName(trimmed) },
+            update = { updateDisplayNameUseCase(trimmed) },
             localUpdate = { it.copy(displayName = trimmed) },
         )
     }
 
     fun updateStatusMessage(value: String) {
+        println("🎨 AccountPresenter.updateStatusMessage called: '$value'")
         val trimmed = value.trim()
         updateProfile(
-            update = { updateStatusMessage(trimmed) },
+            update = { updateStatusMessageUseCase(trimmed) },
             localUpdate = { it.copy(statusMessage = trimmed) },
         )
     }
 
     fun updateEmail(value: String) {
+        println("🎨 AccountPresenter.updateEmail called: '$value'")
         val trimmed = value.trim()
-        if (trimmed.isEmpty()) return
+        if (trimmed.isEmpty()) {
+            println("  ⚠️ Empty value, skipping update")
+            return
+        }
         updateProfile(
-            update = { updateEmail(trimmed) },
+            update = { updateEmailUseCase(trimmed) },
             localUpdate = { it.copy(email = trimmed) },
         )
     }
@@ -141,10 +157,18 @@ class AccountPresenter(
         update: suspend () -> Unit,
         localUpdate: (AccountProfile) -> AccountProfile,
     ) {
+        // Prevent concurrent updates
+        if (mutableState.value.isUpdating) {
+            println("  ⚠️ Update already in progress, ignoring duplicate call")
+            return
+        }
+
         scope.launch {
+            println("  🔄 Starting profile update...")
             mutableState.update { it.copy(isUpdating = true, errorMessage = null) }
             runCatching { update() }
                 .onSuccess {
+                    println("  ✅ Profile update succeeded!")
                     mutableState.update { state ->
                         state.copy(
                             isUpdating = false,
@@ -152,6 +176,8 @@ class AccountPresenter(
                         )
                     }
                 }.onFailure { throwable ->
+                    println("  ❌ Profile update failed: ${throwable.message}")
+                    throwable.printStackTrace()
                     mutableState.update {
                         it.copy(
                             isUpdating = false,

@@ -45,9 +45,9 @@ val presentationModule: Module =
         factory {
             AccountPresenter(
                 observeAccountProfile = get(),
-                updateDisplayName = get(),
-                updateStatusMessage = get(),
-                updateEmail = get(),
+                updateDisplayNameUseCase = get(),
+                updateStatusMessageUseCase = get(),
+                updateEmailUseCase = get(),
                 updatePhotoUseCase = get(),
                 deleteAccount = get(),
                 scope = MainScope(),
