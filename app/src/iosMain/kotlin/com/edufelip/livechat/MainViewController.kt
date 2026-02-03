@@ -100,7 +100,7 @@ fun defaultFirebaseConfig() =
         )
     }
 
-private fun iosEmulatorOverrides(): Pair<String, Int>? {
+fun iosEmulatorOverrides(): Pair<String, Int>? {
     val environment = platform.Foundation.NSProcessInfo.processInfo.environment
     val enabled =
         environment["FIREBASE_EMULATOR_ENABLED"]?.toString()?.lowercase() in listOf("1", "true", "yes")

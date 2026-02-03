@@ -18,7 +18,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        let config = MainViewControllerKt.defaultFirebaseConfig()
+        let config = makeFirebaseRestConfig()
 
         let root = LiveChatRootViewController(
             config: config,
@@ -35,6 +35,35 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
         self.window = window
     }
+}
+
+private func makeFirebaseRestConfig() -> FirebaseRestConfig {
+    #if canImport(FirebaseCore)
+    if let app = FirebaseApp.app() {
+        NSLog("🔧 iOS SceneDelegate: Creating FirebaseRestConfig from FirebaseApp")
+        NSLog("  - ProjectId: \(app.options.projectID ?? "❌ MISSING")")
+        NSLog("  - ApiKey: \(app.options.apiKey?.prefix(10) ?? "❌ MISSING")...")
+        
+        let emulator = MainViewControllerKt.iosEmulatorOverrides()
+        return FirebaseRestConfig(
+            projectId: app.options.projectID ?? "YOUR_FIREBASE_PROJECT",
+            apiKey: app.options.apiKey ?? "YOUR_FIREBASE_API_KEY",
+            emulatorHost: emulator?.first as? String,
+            emulatorPort: emulator?.second as? KotlinInt,
+            usersCollection: "users",
+            messagesCollection: "items",
+            conversationsCollection: "inboxes",
+            presenceCollection: "presence",
+            invitesCollection: "invites",
+            websocketEndpoint: "",
+            pollingIntervalMs: 5000,
+            defaultRegionIso: nil
+        )
+    }
+    #endif
+    
+    NSLog("⚠️ iOS SceneDelegate: FirebaseApp not configured, using default config")
+    return MainViewControllerKt.defaultFirebaseConfig()
 }
 
 private func liveChatBackgroundColor() -> UIColor {
