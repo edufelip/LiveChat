@@ -1,4 +1,5 @@
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.Sync
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
@@ -104,6 +105,34 @@ kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }
+}
+
+val syncComposeResources =
+    tasks.register<Sync>("syncComposeResources") {
+        val appProject = project(":app")
+        val prepareTaskName = "prepareComposeResourcesTaskForCommonMain"
+        dependsOn(appProject.tasks.named(prepareTaskName))
+        val outputRoot = layout.buildDirectory.dir("generated/composeResources/main")
+        from(
+            appProject.layout.buildDirectory.dir(
+                "generated/compose/resourceGenerator/preparedResources/commonMain/composeResources",
+            ),
+        ) {
+            into("composeResources/com.edufelip.livechat.resources")
+        }
+        into(outputRoot)
+    }
+
+android {
+    sourceSets.getByName("main") {
+        assets.srcDir(syncComposeResources.map { it.destinationDir })
+    }
+}
+
+tasks.matching { task ->
+    task.name.startsWith("merge") && task.name.endsWith("Assets")
+}.configureEach {
+    dependsOn(syncComposeResources)
 }
 
 dependencies {
