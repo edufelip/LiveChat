@@ -6,6 +6,7 @@ import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxActionType
 import com.edufelip.livechat.data.models.InboxItem
 import com.edufelip.livechat.data.repositories.MessagesRepository
+import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
@@ -16,6 +17,9 @@ import com.edufelip.livechat.domain.models.Participant
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
+import com.edufelip.livechat.shared.data.database.AvatarCacheDao
+import com.edufelip.livechat.shared.data.database.AvatarCacheEntity
+import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,6 +39,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class MessagesRepositoryInboxActionTest {
     private val dispatcher = StandardTestDispatcher()
+    private val avatarCache = AvatarCacheRepository(FakeAvatarCacheDao(), FakeMediaStorageBridge, dispatcher)
 
     @Test
     fun actionDeduplicationSkipsRepeatedInboxActions() =
@@ -59,6 +64,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -110,6 +116,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -182,6 +189,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -227,6 +235,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -249,6 +258,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -287,6 +297,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = FakeSessionProvider("me"),
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -318,6 +329,7 @@ class MessagesRepositoryInboxActionTest {
                     localData = localData,
                     sessionProvider = sessionProvider,
                     participantsRepository = FakeParticipantsRepository(),
+                    avatarCache = avatarCache,
                     dispatcher = dispatcher,
                 )
 
@@ -613,5 +625,37 @@ class MessagesRepositoryInboxActionTest {
         override fun currentUserId(): String? = userId
 
         override fun currentUserPhone(): String? = null
+    }
+
+    private object FakeMediaStorageBridge : MediaStorageBridge {
+        override suspend fun uploadBytes(
+            objectPath: String,
+            bytes: ByteArray,
+        ): String = "https://example.com/media.jpg"
+
+        override suspend fun downloadBytes(
+            remoteUrl: String,
+            maxBytes: Long,
+        ): ByteArray = byteArrayOf()
+
+        override suspend fun deleteRemote(remoteUrl: String) = Unit
+    }
+
+    private class FakeAvatarCacheDao : AvatarCacheDao {
+        private val store = mutableMapOf<String, AvatarCacheEntity>()
+
+        override suspend fun get(ownerId: String): AvatarCacheEntity? = store[ownerId]
+
+        override suspend fun upsert(entity: AvatarCacheEntity) {
+            store[entity.ownerId] = entity
+        }
+
+        override suspend fun delete(ownerId: String) {
+            store.remove(ownerId)
+        }
+
+        override suspend fun deleteAll() {
+            store.clear()
+        }
     }
 }

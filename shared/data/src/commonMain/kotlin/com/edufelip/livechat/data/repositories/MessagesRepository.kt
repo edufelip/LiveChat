@@ -17,13 +17,16 @@ import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.utils.currentEpochMillis
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -36,12 +39,14 @@ class MessagesRepository(
     private val localData: IMessagesLocalData,
     private val sessionProvider: UserSessionProvider,
     private val participantsRepository: IConversationParticipantsRepository,
+    private val avatarCache: AvatarCacheRepository,
     private val readReceiptsEnabled: () -> Boolean = { true },
     private val blockedUserIdsProvider: () -> Set<String> = { emptySet() },
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IMessagesRepository {
     private val logTag = "COMMCHECK"
     private val mediaCleanupTracker = mutableMapOf<String, Long>()
+    private val cacheScope = CoroutineScope(SupervisorJob() + dispatcher)
 
     override fun observeConversation(
         conversationId: String,
@@ -237,7 +242,33 @@ class MessagesRepository(
                 }
             }.let { flow ->
                 flowOfMaybeReadReceipts(flow)
+            }.combine(avatarCache.changes) { summaries, _ -> summaries }
+            .map { summaries ->
+                summaries.map { summary ->
+                    val remoteUrl =
+                        summary.contactPhoto
+                            ?.takeIf { it.isNotBlank() }
+                            ?.takeIf { it.isRemoteAvatarUrl() }
+                    val ownerId =
+                        summary.contactUserId?.takeIf { it.isNotBlank() }
+                            ?: summary.conversationId.takeIf { it.isNotBlank() }
+                    if (remoteUrl == null || ownerId == null) {
+                        summary
+                    } else {
+                        val cachedPath =
+                            runCatching { avatarCache.getCachedLocalPath(ownerId, remoteUrl) }.getOrNull()
+                        if (cachedPath == null) {
+                            cacheScope.launch { avatarCache.prefetchAvatar(ownerId, remoteUrl) }
+                        }
+                        summary.copy(contactPhotoLocalPath = cachedPath)
+                    }
+                }
             }
+
+    private fun String.isRemoteAvatarUrl(): Boolean {
+        val normalized = lowercase()
+        return normalized.startsWith("http://") || normalized.startsWith("https://") || normalized.startsWith("gs://")
+    }
 
     override suspend fun markConversationAsRead(
         conversationId: String,

@@ -12,6 +12,7 @@ import com.edufelip.livechat.data.contracts.IPrivacySettingsRemoteData
 import com.edufelip.livechat.data.local.ContactsLocalDataSource
 import com.edufelip.livechat.data.local.MessagesLocalDataSource
 import com.edufelip.livechat.data.repositories.AccountRepository
+import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.data.repositories.AppearanceSettingsRepository
 import com.edufelip.livechat.data.repositories.BlockedContactsRepository
 import com.edufelip.livechat.data.repositories.ContactsRepository
@@ -35,13 +36,16 @@ import com.edufelip.livechat.domain.repositories.INotificationSettingsRepository
 import com.edufelip.livechat.domain.repositories.IPresenceRepository
 import com.edufelip.livechat.domain.repositories.IPrivacySettingsRepository
 import com.edufelip.livechat.domain.repositories.IRemoteConfigRepository
+import com.edufelip.livechat.shared.data.database.LiveChatDatabase
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val sharedDataModule: Module =
     module {
         single(createdAtStart = true) { UserDocumentBootstrapper(get(), get()) }
-        single<IAccountRepository> { AccountRepository(get<IAccountRemoteData>(), get(), get()) }
+        single { get<LiveChatDatabase>().avatarCacheDao() }
+        single { AvatarCacheRepository(get(), get()) }
+        single<IAccountRepository> { AccountRepository(get<IAccountRemoteData>(), get(), get(), get()) }
         single<IAppearanceSettingsRepository> {
             AppearanceSettingsRepository(get<IAppearanceSettingsRemoteData>(), get())
         }
@@ -59,6 +63,7 @@ val sharedDataModule: Module =
                 localData = get(),
                 sessionProvider = get(),
                 participantsRepository = get(),
+                avatarCache = get(),
                 readReceiptsEnabled = privacySettingsStore::readReceiptsEnabled,
                 blockedUserIdsProvider = blockedContactsStore::currentBlockedUserIds,
             )

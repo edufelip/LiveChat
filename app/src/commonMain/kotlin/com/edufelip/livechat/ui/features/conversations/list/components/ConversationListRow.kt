@@ -133,7 +133,7 @@ fun ConversationListRow(
             ) {
                 ConversationAvatar(
                     displayName = summary.displayName,
-                    photoUrl = summary.contactPhoto,
+                    photoUrl = summary.contactPhotoLocalPath ?: summary.contactPhoto,
                     isOnline = summary.isOnline,
                     modifier = Modifier.size(AVATAR_SIZE),
                 )

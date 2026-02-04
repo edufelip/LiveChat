@@ -63,9 +63,11 @@ fun AccountSettingsScreen(
                     ?.uppercaseChar()
                     ?.toString()
                     .orEmpty()
-            val photoUrl = profile?.photoUrl?.takeIf { it.isNotBlank() }
+            val remotePhotoUrl = profile?.photoUrl?.takeIf { it.isNotBlank() }
+            val localPhotoPath = profile?.photoLocalPath?.takeIf { it.isNotBlank() }
+            val photoUrl = localPhotoPath ?: remotePhotoUrl
             val photoValue =
-                if (photoUrl.isNullOrBlank()) {
+                if (remotePhotoUrl.isNullOrBlank()) {
                     accountStrings.photoMissing
                 } else {
                     accountStrings.photoChange

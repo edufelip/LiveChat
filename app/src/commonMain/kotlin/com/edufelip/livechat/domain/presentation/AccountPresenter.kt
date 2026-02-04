@@ -99,7 +99,7 @@ class AccountPresenter(
                     mutableState.update { state ->
                         state.copy(
                             isUpdating = false,
-                            profile = state.profile?.copy(photoUrl = photoUrl),
+                            profile = state.profile?.copy(photoUrl = photoUrl, photoLocalPath = null),
                         )
                     }
                 }.onFailure { throwable ->

@@ -10,6 +10,7 @@ import com.edufelip.livechat.data.local.MessagesLocalDataSource
 import com.edufelip.livechat.data.remote.FirebaseMessagesRemoteData
 import com.edufelip.livechat.data.remote.FirebaseRestConfig
 import com.edufelip.livechat.data.remote.STORAGE_BUCKET_URL
+import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.data.repositories.ConversationParticipantsRepository
 import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
@@ -166,6 +167,7 @@ class FirebaseEmulatorMessageFlowTest {
         val participantsRepository = ConversationParticipantsRepository(localData, sessionProvider)
         val messagesBridge = FirebaseMessagesBridge(FirebaseFirestore.getInstance(), firebaseRestConfig())
         val storageBridge = FirebaseStorageBridge(storage)
+        val avatarCache = AvatarCacheRepository(database.avatarCacheDao(), storageBridge, Dispatchers.IO)
         val remoteData =
             FirebaseMessagesRemoteData(
                 messagesBridge = messagesBridge,
@@ -180,6 +182,7 @@ class FirebaseEmulatorMessageFlowTest {
                 localData = localData,
                 sessionProvider = sessionProvider,
                 participantsRepository = participantsRepository,
+                avatarCache = avatarCache,
                 dispatcher = Dispatchers.IO,
             )
         return repository to localData

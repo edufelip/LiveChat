@@ -23,7 +23,13 @@ actual suspend fun loadAvatarImageBitmap(
 ): ImageBitmap? {
     return withContext(Dispatchers.Default) {
         runCatching {
-            val url = NSURL.URLWithString(photoUrl) ?: return@runCatching null
+            val parsed = NSURL.URLWithString(photoUrl)
+            val url =
+                when {
+                    parsed == null -> NSURL.fileURLWithPath(photoUrl)
+                    parsed.scheme == null -> NSURL.fileURLWithPath(photoUrl)
+                    else -> parsed
+                }
             val data = fetchData(url) ?: return@runCatching null
             val skiaImage = Image.makeFromEncoded(data.toByteArray())
             skiaImage.toComposeImageBitmap()

@@ -7,4 +7,5 @@ data class AccountProfile(
     val phoneNumber: String? = null,
     val email: String? = null,
     val photoUrl: String? = null,
+    val photoLocalPath: String? = null,
 )

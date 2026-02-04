@@ -59,3 +59,11 @@ tasks.register("testAllModuleUnitTests") {
         "testAppUnitTest",
     )
 }
+
+subprojects {
+    tasks.withType<Test>().configureEach {
+        // Pin Robolectric SDK to avoid Java 21+ requirement from SDK 36.
+        systemProperty("robolectric.enabledSdks", "34")
+        systemProperty("robolectric.sdk", "34")
+    }
+}

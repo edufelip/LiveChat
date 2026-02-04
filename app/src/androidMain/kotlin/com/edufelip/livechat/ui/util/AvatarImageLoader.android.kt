@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.FileInputStream
 import java.net.URL
 
 actual suspend fun loadAvatarImageBitmap(
@@ -20,6 +21,9 @@ actual suspend fun loadAvatarImageBitmap(
             val inputStream =
                 when (uri.scheme?.lowercase()) {
                     "http", "https" -> URL(photoUrl).openStream()
+                    "content" -> context.contentResolver.openInputStream(uri)
+                    "file" -> FileInputStream(uri.path ?: photoUrl)
+                    null -> FileInputStream(photoUrl)
                     else -> context.contentResolver.openInputStream(uri)
                 }
             inputStream?.use { BitmapFactory.decodeStream(it) }?.asImageBitmap()

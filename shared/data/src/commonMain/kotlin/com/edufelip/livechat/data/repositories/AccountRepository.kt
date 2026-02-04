@@ -8,9 +8,11 @@ import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IAccountRepository
 import com.edufelip.livechat.domain.utils.currentEpochMillis
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -19,13 +21,16 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class AccountRepository(
     private val remoteData: IAccountRemoteData,
     private val sessionProvider: UserSessionProvider,
     private val storageBridge: MediaStorageBridge,
+    private val avatarCache: AvatarCacheRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : IAccountRepository {
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val profileCache = MutableStateFlow<AccountProfile?>(null)
     private val pendingUpdates = MutableStateFlow<PendingProfileUpdates?>(null)
 
@@ -54,8 +59,26 @@ class AccountRepository(
                         else -> profile
                     }
                 val resolvedProfile = applyPendingOverrides(mergedProfile)
-                profileCache.value = resolvedProfile
-                resolvedProfile
+                val photoUrl = resolvedProfile.photoUrl?.takeIf { it.isNotBlank() }
+                val cachedPath =
+                    photoUrl?.let { avatarCache.getCachedLocalPath(session.userId, it) }
+                val resolvedWithCache = resolvedProfile.copy(photoLocalPath = cachedPath)
+                profileCache.value = resolvedWithCache
+                if (photoUrl != null && cachedPath == null) {
+                    scope.launch {
+                        val cached = avatarCache.prefetchAvatar(session.userId, photoUrl)
+                        if (cached != null) {
+                            profileCache.update { current ->
+                                if (current?.photoUrl == photoUrl) {
+                                    current.copy(photoLocalPath = cached)
+                                } else {
+                                    current
+                                }
+                            }
+                        }
+                    }
+                }
+                resolvedWithCache
             },
         ).distinctUntilChanged().flowOn(dispatcher)
 
@@ -138,6 +161,9 @@ class AccountRepository(
         val objectPath = "profile_photos/${session.userId}/avatar.jpg"
         val downloadUrl = storageBridge.uploadBytes(objectPath, uploadBytes)
         remoteData.updatePhotoUrl(session.userId, session.idToken, downloadUrl)
+        val cachedPath =
+            runCatching { avatarCache.cacheLocalAvatar(session.userId, downloadUrl, localPath) }
+                .getOrNull()
         setPendingUpdate(photoUrl = downloadUrl)
         profileCache.update { current ->
             val base =
@@ -149,6 +175,7 @@ class AccountRepository(
                     )
             base.copy(
                 photoUrl = downloadUrl,
+                photoLocalPath = cachedPath,
                 phoneNumber = base.phoneNumber ?: session.phoneNumber,
             )
         }
@@ -198,6 +225,13 @@ class AccountRepository(
             return profile
         }
 
+        val resolvedPhotoUrl = pending.photoUrl ?: profile.photoUrl
+        val resolvedLocalPath =
+            if (resolvedPhotoUrl == profile.photoUrl) {
+                profile.photoLocalPath
+            } else {
+                null
+            }
         val pendingMatchesRemote =
             (pending.displayName == null || pending.displayName == profile.displayName) &&
                 (pending.statusMessage == null || pending.statusMessage == profile.statusMessage) &&
@@ -213,7 +247,8 @@ class AccountRepository(
             displayName = pending.displayName ?: profile.displayName,
             statusMessage = pending.statusMessage ?: profile.statusMessage,
             email = pending.email ?: profile.email,
-            photoUrl = pending.photoUrl ?: profile.photoUrl,
+            photoUrl = resolvedPhotoUrl,
+            photoLocalPath = resolvedLocalPath,
         )
     }
 

@@ -4,6 +4,7 @@ data class ConversationSummary(
     val conversationId: String,
     val contactName: String?,
     val contactPhoto: String?,
+    val contactPhotoLocalPath: String? = null,
     val contactUserId: String? = null,
     val lastMessage: Message,
     val unreadCount: Int,

@@ -249,6 +249,7 @@ class MessagesLocalDataSource(
             conversationId = conversationId,
             contactName = contactName,
             contactPhoto = contactPhoto,
+            contactPhotoLocalPath = null,
             contactUserId = contactFirebaseUid,
             lastMessage = lastMessage,
             unreadCount = unreadCount?.toInt() ?: 0,

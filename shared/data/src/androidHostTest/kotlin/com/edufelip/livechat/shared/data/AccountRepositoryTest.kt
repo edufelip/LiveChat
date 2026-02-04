@@ -4,9 +4,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.contracts.IAccountRemoteData
 import com.edufelip.livechat.data.repositories.AccountRepository
+import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.data.session.InMemoryUserSessionProvider
 import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.providers.model.UserSession
+import com.edufelip.livechat.shared.data.database.AvatarCacheDao
+import com.edufelip.livechat.shared.data.database.AvatarCacheEntity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -47,6 +50,7 @@ class AccountRepositoryTest {
                     remoteData = remoteData,
                     sessionProvider = sessionProvider,
                     storageBridge = FakeMediaStorageBridge,
+                    avatarCache = AvatarCacheRepository(FakeAvatarCacheDao(), FakeMediaStorageBridge, dispatcher),
                     dispatcher = dispatcher,
                 )
 
@@ -115,6 +119,7 @@ class AccountRepositoryTest {
                     remoteData = remoteData,
                     sessionProvider = sessionProvider,
                     storageBridge = storageBridge,
+                    avatarCache = AvatarCacheRepository(FakeAvatarCacheDao(), storageBridge, dispatcher),
                     dispatcher = dispatcher,
                 )
 
@@ -213,5 +218,23 @@ class AccountRepositoryTest {
     ): String {
         val path = "profile_photos/$userId/avatar.jpg".replace("/", "%2F")
         return "https://firebasestorage.googleapis.com/v0/b/app/o/$path?alt=media&token=$token"
+    }
+
+    private class FakeAvatarCacheDao : AvatarCacheDao {
+        private val store = mutableMapOf<String, AvatarCacheEntity>()
+
+        override suspend fun get(ownerId: String): AvatarCacheEntity? = store[ownerId]
+
+        override suspend fun upsert(entity: AvatarCacheEntity) {
+            store[entity.ownerId] = entity
+        }
+
+        override suspend fun delete(ownerId: String) {
+            store.remove(ownerId)
+        }
+
+        override suspend fun deleteAll() {
+            store.clear()
+        }
     }
 }
