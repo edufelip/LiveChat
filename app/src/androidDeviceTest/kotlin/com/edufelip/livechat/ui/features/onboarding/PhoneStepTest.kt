@@ -92,7 +92,8 @@ class PhoneStepTest {
         composeRule.setContent {
             LiveChatTheme {
                 val strings = liveChatStrings()
-                SideEffect { errorMessage = strings.onboarding.invalidPhoneError }
+                val localErrorMessage = strings.onboarding.invalidPhoneError
+                SideEffect { errorMessage = localErrorMessage }
                 PhoneStep(
                     selectedCountry =
                         CountryOption.default(
@@ -100,7 +101,7 @@ class PhoneStepTest {
                             strings.onboarding.defaultCountryIso,
                         ),
                     phoneNumber = "123",
-                    phoneError = errorMessage,
+                    phoneError = localErrorMessage,
                     isLoading = false,
                     onPickCountry = {},
                     onPhoneChanged = {},

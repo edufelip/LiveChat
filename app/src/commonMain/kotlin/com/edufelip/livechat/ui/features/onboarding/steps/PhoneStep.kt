@@ -76,6 +76,7 @@ internal fun PhoneStep(
     phoneNumber: String,
     phoneError: String?,
     isLoading: Boolean,
+    phonePlaceholder: String? = null,
     onPickCountry: () -> Unit,
     onPhoneChanged: (String) -> Unit,
     onContinue: () -> Unit,
@@ -244,7 +245,7 @@ internal fun PhoneStep(
                                     },
                             value = phoneNumber,
                             onValueChange = onPhoneChanged,
-                            placeholder = { Text(strings.phoneFieldPlaceholder) },
+                            placeholder = { Text(phonePlaceholder ?: strings.phoneFieldPlaceholder) },
                             singleLine = true,
                             isError = phoneError != null,
                             keyboardOptions =

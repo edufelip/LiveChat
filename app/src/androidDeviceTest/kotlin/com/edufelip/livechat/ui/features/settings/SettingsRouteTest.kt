@@ -47,10 +47,10 @@ class SettingsRouteTest {
                 val appearanceDescriptionLocal = settingsStrings.appearanceDescription
                 val privacyTitleLocal = settingsStrings.privacyTitle
                 val privacyDescriptionLocal = settingsStrings.privacyDescription
-                val accountScreenTitleLocal = strings.account.screenTitle
-                val notificationsScreenTitleLocal = strings.notifications.screenTitle
-                val appearanceScreenTitleLocal = strings.appearance.screenTitle
-                val privacyScreenTitleLocal = strings.privacy.screenTitle
+                val accountScreenTitleLocal = settingsStrings.accountTitle
+                val notificationsScreenTitleLocal = settingsStrings.notificationsTitle
+                val appearanceScreenTitleLocal = settingsStrings.appearanceTitle
+                val privacyScreenTitleLocal = settingsStrings.privacyTitle
 
                 SideEffect {
                     accountTitle = accountTitleLocal

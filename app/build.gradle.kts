@@ -2,9 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.gradle.api.tasks.Sync
 
 plugins {
     kotlin("multiplatform")
+    kotlin("native.cocoapods")
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.compose.hot.reload)
@@ -12,6 +14,16 @@ plugins {
 }
 
 kotlin {
+    cocoapods {
+        summary = "LiveChat Compose UI"
+        homepage = "https://example.com/livechat"
+        ios.deploymentTarget = "17.2"
+        pod("PhoneNumberKit", version = "~> 4.2")
+        framework {
+            isStatic = true
+        }
+    }
+
     targets.configureEach {
         compilations.configureEach {
             compileTaskProvider.configure {
@@ -84,6 +96,7 @@ kotlin {
                 implementation(libs.firebase.auth)
                 implementation(libs.firebase.messaging)
                 implementation(libs.navigationevent.compose)
+                implementation(libs.libphonenumber)
             }
         }
         val androidHostTest by getting {
@@ -139,5 +152,28 @@ kotlin {
 compose {
     resources {
         packageOfResClass = "com.edufelip.livechat.resources"
+    }
+}
+
+val preparedComposeResources =
+    layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources")
+val androidDeviceTestAssetsOut =
+    layout.buildDirectory.dir("intermediates/assets/androidDeviceTest/mergeAndroidDeviceTestAssets")
+val androidDeviceTestAssetsDir = layout.projectDirectory.dir("src/androidDeviceTest/assets")
+
+tasks.matching { it.name == "mergeAndroidDeviceTestAssets" }.configureEach {
+    dependsOn("prepareComposeResourcesTaskForCommonMain")
+    inputs.dir(androidDeviceTestAssetsDir)
+    doLast {
+        copy {
+            from(preparedComposeResources) {
+                into("composeResources/com.edufelip.livechat.resources")
+            }
+            into(androidDeviceTestAssetsOut)
+        }
+        copy {
+            from(androidDeviceTestAssetsDir)
+            into(androidDeviceTestAssetsOut)
+        }
     }
 }

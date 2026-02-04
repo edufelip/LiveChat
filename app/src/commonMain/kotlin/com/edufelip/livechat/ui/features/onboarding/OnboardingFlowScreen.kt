@@ -48,6 +48,7 @@ import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberPhoneAuthPresenter
 import com.edufelip.livechat.ui.util.isDigitsOnly
 import com.edufelip.livechat.ui.util.isUiTestMode
+import com.edufelip.livechat.ui.util.rememberPhoneNumberFormattingService
 import com.edufelip.livechat.ui.util.uiTestOverrides
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -72,7 +73,16 @@ internal fun OnboardingFlowScreen(
         remember(selectedCountryCode, priorityIsoCodes, defaultCountryIso) {
             CountryOption.fromIsoCode(selectedCountryCode, priorityIsoCodes, defaultCountryIso)
         }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    val phoneFormatter = rememberPhoneNumberFormattingService()
+    var phoneDigits by rememberSaveable { mutableStateOf("") }
+    val formattedPhoneNumber =
+        remember(phoneDigits, selectedCountry.isoCode) {
+            phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+        }
+    val phonePlaceholder =
+        remember(selectedCountry.isoCode) {
+            phoneFormatter.exampleNumber(selectedCountry.isoCode)
+        }
     var phoneInputError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
     var showCountryPicker by remember { mutableStateOf(false) }
@@ -89,13 +99,13 @@ internal fun OnboardingFlowScreen(
         }
     val onPhoneChangedAction =
         rememberStableAction<String> { input ->
-            phoneNumber = input.filter(Char::isDigit).take(20)
+            phoneDigits = phoneFormatter.normalizeDigits(input).take(20)
             phoneInputError = null
             phoneAuthPresenter.dismissError()
         }
     val onContinueAction =
         rememberStableAction {
-            if (!phoneNumber.isDigitsOnly() || phoneNumber.length < 7) {
+            if (!phoneDigits.isDigitsOnly() || phoneDigits.length < 7) {
                 phoneInputError = strings.onboarding.invalidPhoneError
                 return@rememberStableAction
             }
@@ -108,7 +118,7 @@ internal fun OnboardingFlowScreen(
             phoneAuthPresenter.startVerification(
                 PhoneNumber(
                     dialCode = selectedCountry.dialCode,
-                    nationalNumber = phoneNumber,
+                    nationalNumber = phoneDigits,
                 ),
                 presentationContext,
             )
@@ -207,12 +217,14 @@ internal fun OnboardingFlowScreen(
                     PhoneStep(
                         modifier = contentModifier,
                         selectedCountry = selectedCountry,
-                        phoneNumber = phoneNumber,
+                        phoneNumber = formattedPhoneNumber,
                         phoneError = phoneErrorMessage,
                         isLoading = phoneAuthState.isRequesting,
+                        phonePlaceholder = phonePlaceholder,
                         onPickCountry = onPickCountryAction,
                         onPhoneChanged = onPhoneChangedAction,
                         onContinue = onContinueAction,
+                        continueEnabled = phoneDigits.isNotBlank() && !phoneAuthState.isRequesting,
                     )
 
                 OnboardingStep.OTP ->
@@ -261,7 +273,16 @@ internal fun UiTestOnboardingFlow(
         remember(selectedCountryCode, priorityIsoCodes, defaultCountryIso) {
             CountryOption.fromIsoCode(selectedCountryCode, priorityIsoCodes, defaultCountryIso)
         }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
+    val phoneFormatter = rememberPhoneNumberFormattingService()
+    var phoneDigits by rememberSaveable { mutableStateOf("") }
+    val formattedPhoneNumber =
+        remember(phoneDigits, selectedCountry.isoCode) {
+            phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+        }
+    val phonePlaceholder =
+        remember(selectedCountry.isoCode) {
+            phoneFormatter.exampleNumber(selectedCountry.isoCode)
+        }
     var phoneInputError by remember { mutableStateOf<String?>(null) }
     var otp by rememberSaveable { mutableStateOf("") }
     var otpError by remember { mutableStateOf<String?>(null) }
@@ -277,17 +298,17 @@ internal fun UiTestOnboardingFlow(
         }
     val onPhoneChangedAction =
         rememberStableAction<String> { input ->
-            phoneNumber = input.filter(Char::isDigit).take(20)
+            phoneDigits = phoneFormatter.normalizeDigits(input).take(20)
             phoneInputError = null
         }
     val onContinueAction =
         rememberStableAction {
-            val candidate = phoneNumber.ifBlank { phoneOverride.orEmpty() }
+            val candidate = phoneDigits.ifBlank { phoneOverride.orEmpty() }
             if (!candidate.isDigitsOnly() || candidate.length < 7) {
                 phoneInputError = strings.onboarding.invalidPhoneError
                 return@rememberStableAction
             }
-            phoneNumber = candidate
+            phoneDigits = candidate
             phoneInputError = null
             otp = ""
             otpError = null
@@ -365,9 +386,10 @@ internal fun UiTestOnboardingFlow(
                     PhoneStep(
                         modifier = contentModifier,
                         selectedCountry = selectedCountry,
-                        phoneNumber = phoneNumber,
+                        phoneNumber = formattedPhoneNumber,
                         phoneError = phoneInputError,
                         isLoading = false,
+                        phonePlaceholder = phonePlaceholder,
                         onPickCountry = onPickCountryAction,
                         onPhoneChanged = onPhoneChangedAction,
                         onContinue = onContinueAction,

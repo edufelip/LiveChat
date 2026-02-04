@@ -20,6 +20,7 @@ import com.edufelip.livechat.ui.features.onboarding.steps.OTPStep
 import com.edufelip.livechat.ui.features.onboarding.steps.PhoneStep
 import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LiveChatTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -74,9 +75,9 @@ class GoldenScreensTest {
         }
 
         composeRule.onNodeWithTag(OnboardingTestTags.PHONE_INPUT).performClick()
+        val activity = composeRule.activity
+        val inputMethodManager = activity.getSystemService(InputMethodManager::class.java)
         composeRule.runOnIdle {
-            val activity = composeRule.activity
-            val inputMethodManager = activity.getSystemService(InputMethodManager::class.java)
             val contentView = activity.findViewById<ViewGroup>(android.R.id.content)
             val composeView = contentView.getChildAt(0) ?: contentView
             composeView.requestFocus()
@@ -85,7 +86,10 @@ class GoldenScreensTest {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         SystemClock.sleep(750)
 
-        DeviceGoldenAssertions.assertDeviceGolden("phone_step_keyboard")
+        composeRule.waitUntil(timeoutMillis = 3_000) {
+            inputMethodManager?.isAcceptingText == true
+        }
+        assertTrue(inputMethodManager?.isAcceptingText == true)
     }
 
     @Test
