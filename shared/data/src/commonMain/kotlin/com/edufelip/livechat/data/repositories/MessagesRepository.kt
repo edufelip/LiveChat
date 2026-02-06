@@ -17,8 +17,8 @@ import com.edufelip.livechat.domain.providers.UserSessionProvider
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.domain.repositories.IMessagesRepository
 import com.edufelip.livechat.domain.utils.currentEpochMillis
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob

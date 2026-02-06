@@ -10,8 +10,8 @@ import com.edufelip.livechat.domain.models.AccountProfile
 import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.shared.data.database.AvatarCacheDao
 import com.edufelip.livechat.shared.data.database.AvatarCacheEntity
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest

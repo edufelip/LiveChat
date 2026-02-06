@@ -118,8 +118,6 @@ kotlin {
             iosArm64Test.dependsOn(this)
             iosSimulatorArm64Test.dependsOn(this)
         }
-
-
     }
 
     listOf(iosX64, iosArm64, iosSimulatorArm64).forEach { target ->

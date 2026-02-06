@@ -87,6 +87,7 @@ fun ConversationDetailRoute(
     val scope = rememberCoroutineScope()
     val permissionViewModel = rememberPermissionViewModel()
     val permissionUiState by permissionViewModel.uiState.collectAsState()
+
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }

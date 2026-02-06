@@ -12,8 +12,8 @@ import com.edufelip.livechat.data.contracts.IPrivacySettingsRemoteData
 import com.edufelip.livechat.data.local.ContactsLocalDataSource
 import com.edufelip.livechat.data.local.MessagesLocalDataSource
 import com.edufelip.livechat.data.repositories.AccountRepository
-import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.data.repositories.AppearanceSettingsRepository
+import com.edufelip.livechat.data.repositories.AvatarCacheRepository
 import com.edufelip.livechat.data.repositories.BlockedContactsRepository
 import com.edufelip.livechat.data.repositories.ContactsRepository
 import com.edufelip.livechat.data.repositories.ConversationParticipantsRepository

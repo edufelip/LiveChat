@@ -1,12 +1,13 @@
 package com.edufelip.livechat.shared.data
 
+import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import com.edufelip.livechat.data.contracts.IMessagesLocalData
 import com.edufelip.livechat.data.contracts.IMessagesRemoteData
 import com.edufelip.livechat.data.models.InboxAction
 import com.edufelip.livechat.data.models.InboxActionType
 import com.edufelip.livechat.data.models.InboxItem
-import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.data.repositories.AvatarCacheRepository
+import com.edufelip.livechat.data.repositories.MessagesRepository
 import com.edufelip.livechat.domain.models.ConversationPeer
 import com.edufelip.livechat.domain.models.ConversationSummary
 import com.edufelip.livechat.domain.models.Message
@@ -19,7 +20,6 @@ import com.edufelip.livechat.domain.providers.model.UserSession
 import com.edufelip.livechat.domain.repositories.IConversationParticipantsRepository
 import com.edufelip.livechat.shared.data.database.AvatarCacheDao
 import com.edufelip.livechat.shared.data.database.AvatarCacheEntity
-import com.edufelip.livechat.data.bridge.MediaStorageBridge
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
