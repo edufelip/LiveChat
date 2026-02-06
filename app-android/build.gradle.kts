@@ -135,6 +135,14 @@ tasks
         dependsOn(syncComposeResources)
     }
 
+tasks
+    .matching { task ->
+        task.name.startsWith("generate") &&
+            (task.name.endsWith("LintReportModel") || task.name.endsWith("LintVitalReportModel"))
+    }.configureEach {
+        dependsOn(syncComposeResources)
+    }
+
 dependencies {
     implementation(project(":app"))
     implementation(libs.androidx.activity.compose)
