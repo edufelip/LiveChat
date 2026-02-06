@@ -129,7 +129,6 @@ data class AppearanceStrings(
     val typographySample: String =
         "The quick brown fox jumps over the lazy dog. " +
             "Adjust the slider to see how text will appear in your chats.",
-    val resetTitle: String = "Reset appearance",
 )
 
 data class PrivacyStrings(
@@ -465,7 +464,6 @@ fun rememberLiveChatStrings(): LiveChatStrings {
             typographyDefaultLabel = stringResource(Res.string.appearance_typography_default_label),
             typographyLargeLabel = stringResource(Res.string.appearance_typography_large_label),
             typographySample = stringResource(Res.string.appearance_typography_sample),
-            resetTitle = stringResource(Res.string.appearance_reset_title),
         )
 
     val privacy =

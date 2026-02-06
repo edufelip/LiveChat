@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.preview.DevicePreviews
 import com.edufelip.livechat.preview.LiveChatPreviewContainer
 import com.edufelip.livechat.ui.common.navigation.SettingsSubmenuBackHandler
@@ -29,6 +30,7 @@ fun AppearanceSettingsRoute(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     targetItemId: String? = null,
+    presenterOverride: AppearanceSettingsPresenter? = null,
 ) {
     val strings = liveChatStrings()
     if (LocalInspectionMode.current) {
@@ -43,15 +45,16 @@ fun AppearanceSettingsRoute(
         return
     }
 
-    val presenter = rememberAppearanceSettingsPresenter()
+    val presenter = presenterOverride ?: rememberAppearanceSettingsPresenter()
     val state by presenter.collectState()
 
     var sliderValue by remember { mutableStateOf(sliderFromScale(state.settings.textScale)) }
     var isDragging by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(state.settings.textScale) {
-        if (!isDragging) {
+    LaunchedEffect(state.settings.textScale, state.isUpdating, isDragging) {
+        // Keep slider aligned with persisted value after updates complete, including failed saves.
+        if (!isDragging && !state.isUpdating) {
             sliderValue = sliderFromScale(state.settings.textScale)
         }
     }

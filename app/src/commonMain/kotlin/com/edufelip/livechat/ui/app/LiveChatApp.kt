@@ -32,6 +32,7 @@ import com.edufelip.livechat.domain.models.AppUiState
 import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeUiState
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.notifications.NotificationNavigation
 import com.edufelip.livechat.notifications.PlatformTokenRegistrar
 import com.edufelip.livechat.preview.DevicePreviews
@@ -72,11 +73,16 @@ fun LiveChatApp(
                 onboarding = baseStrings.onboarding.copy(welcomePrivacyUrl = privacyPolicyUrl),
             )
         }
-    val appearanceSettings =
+    val appearancePresenter: AppearanceSettingsPresenter? =
         if (isInspection) {
+            null
+        } else {
+            rememberAppearanceSettingsPresenter()
+        }
+    val appearanceSettings =
+        if (appearancePresenter == null) {
             AppearanceSettings()
         } else {
-            val appearancePresenter = rememberAppearanceSettingsPresenter()
             val appearanceState by appearancePresenter.collectState()
             appearanceState.settings
         }
@@ -203,6 +209,7 @@ fun LiveChatApp(
                             onShareInvite = onShareInvite,
                             phoneContactsProvider = phoneContactsProvider,
                             onCloseConversation = presenter::closeConversation,
+                            appearanceSettingsPresenter = checkNotNull(appearancePresenter),
                         )
                 }
             }

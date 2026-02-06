@@ -38,7 +38,6 @@ import com.edufelip.livechat.domain.useCases.ObservePrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ObserveWelcomeSeenUseCase
 import com.edufelip.livechat.domain.useCases.RefreshRemoteConfigUseCase
 import com.edufelip.livechat.domain.useCases.RegisterDeviceTokenUseCase
-import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResetPrivacySettingsUseCase
 import com.edufelip.livechat.domain.useCases.ResolveConversationIdForContactUseCase
 import com.edufelip.livechat.domain.useCases.SendMessageUseCase
@@ -119,7 +118,6 @@ val sharedDomainModule: Module =
         factory { DeleteAccountUseCase(get<IAccountRepository>(), get()) }
         factory { UpdateThemeModeUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateTextScaleUseCase(get<IAppearanceSettingsRepository>()) }
-        factory { ResetAppearanceSettingsUseCase(get<IAppearanceSettingsRepository>()) }
         factory { UpdateInvitePreferenceUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateLastSeenAudienceUseCase(get<IPrivacySettingsRepository>()) }
         factory { UpdateReadReceiptsUseCase(get<IPrivacySettingsRepository>(), get()) }

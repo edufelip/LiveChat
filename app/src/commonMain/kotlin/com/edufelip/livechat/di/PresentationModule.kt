@@ -68,7 +68,6 @@ val presentationModule: Module =
                 observeSettings = get(),
                 updateThemeMode = get(),
                 updateTextScale = get(),
-                resetSettings = get(),
                 scope = MainScope(),
             )
         }

@@ -4,7 +4,6 @@ import com.edufelip.livechat.domain.models.AppearanceSettings
 import com.edufelip.livechat.domain.models.AppearanceSettingsUiState
 import com.edufelip.livechat.domain.models.ThemeMode
 import com.edufelip.livechat.domain.useCases.ObserveAppearanceSettingsUseCase
-import com.edufelip.livechat.domain.useCases.ResetAppearanceSettingsUseCase
 import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
@@ -22,7 +21,6 @@ class AppearanceSettingsPresenter(
     private val observeSettings: ObserveAppearanceSettingsUseCase,
     private val updateThemeMode: UpdateThemeModeUseCase,
     private val updateTextScale: UpdateTextScaleUseCase,
-    private val resetSettings: ResetAppearanceSettingsUseCase,
     private val scope: CoroutineScope,
 ) {
     private val mutableState = MutableStateFlow(AppearanceSettingsUiState())
@@ -58,13 +56,6 @@ class AppearanceSettingsPresenter(
         updateSettings(
             update = { updateTextScale(scale) },
             localUpdate = { it.copy(textScale = scale) },
-        )
-    }
-
-    fun resetAppearanceSettings() {
-        updateSettings(
-            update = { resetSettings() },
-            localUpdate = { AppearanceSettings() },
         )
     }
 

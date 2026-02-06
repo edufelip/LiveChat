@@ -113,7 +113,6 @@
     <string name="appearance_typography_default_label">Default</string>
     <string name="appearance_typography_large_label">Large</string>
     <string name="appearance_typography_sample">The quick brown fox jumps over the lazy dog. Adjust the slider to see how text will appear in your chats.</string>
-    <string name="appearance_reset_title">Reset appearance</string>
 
     <!-- Privacy -->
     <string name="privacy_screen_title">Privacy</string>

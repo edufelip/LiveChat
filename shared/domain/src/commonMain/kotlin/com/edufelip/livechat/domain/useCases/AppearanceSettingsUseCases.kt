@@ -26,11 +26,3 @@ class UpdateTextScaleUseCase(
         repository.updateTextScale(scale)
     }
 }
-
-class ResetAppearanceSettingsUseCase(
-    private val repository: IAppearanceSettingsRepository,
-) {
-    suspend operator fun invoke() {
-        repository.resetSettings()
-    }
-}

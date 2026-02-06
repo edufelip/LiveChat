@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import com.edufelip.livechat.domain.models.Contact
 import com.edufelip.livechat.domain.models.HomeTab
 import com.edufelip.livechat.domain.models.HomeUiState
+import com.edufelip.livechat.domain.presentation.AppearanceSettingsPresenter
 import com.edufelip.livechat.ui.common.navigation.PlatformBackGestureHandler
 import com.edufelip.livechat.ui.features.contacts.ContactsRoute
 import com.edufelip.livechat.ui.features.contacts.model.InviteShareRequest
@@ -50,6 +51,7 @@ internal fun HomeLayerHost(
     onShareInvite: (InviteShareRequest) -> Unit,
     phoneContactsProvider: () -> List<Contact>,
     onCloseConversation: () -> Unit,
+    appearanceSettingsPresenter: AppearanceSettingsPresenter,
 ) {
     var settingsSelection by rememberSaveable(stateSaver = settingsSelectionSaver) {
         mutableStateOf<SettingsSelection?>(null)
@@ -177,6 +179,7 @@ internal fun HomeLayerHost(
                             modifier = fullScreenModifier,
                             onBack = onBack,
                             targetItemId = layer.targetItemId,
+                            presenterOverride = appearanceSettingsPresenter,
                         )
                     SettingsSection.Privacy -> {
                         val privacyUrl = strings.settings.privacyPolicyUrl
