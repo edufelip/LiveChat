@@ -14,8 +14,14 @@ private class IosPhoneNumberFormattingService : PhoneNumberFormattingService {
         regionIso: String,
     ): String {
         if (rawDigits.isBlank()) return ""
-        val formatter = PartialFormatter(phoneNumberKit = phoneNumberKit, defaultRegion = regionIso.uppercase())
-        return formatter.formatPartial(rawDigits)
+        return formatAsYouTypeWithRegionalAdjustments(rawDigits, regionIso) {
+            val formatter =
+                PartialFormatter(
+                    phoneNumberKit = phoneNumberKit,
+                    defaultRegion = regionIso.uppercase(),
+                )
+            formatter.formatPartial(rawDigits)
+        }
     }
 
     override fun exampleNumber(regionIso: String): String? {

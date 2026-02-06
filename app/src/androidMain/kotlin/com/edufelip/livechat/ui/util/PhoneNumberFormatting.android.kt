@@ -14,12 +14,14 @@ private class AndroidPhoneNumberFormattingService : PhoneNumberFormattingService
         regionIso: String,
     ): String {
         if (rawDigits.isBlank()) return ""
-        val formatter = phoneNumberUtil.getAsYouTypeFormatter(regionIso.uppercase())
-        var formatted = ""
-        rawDigits.forEach { digit ->
-            formatted = formatter.inputDigit(digit)
+        return formatAsYouTypeWithRegionalAdjustments(rawDigits, regionIso) {
+            val formatter = phoneNumberUtil.getAsYouTypeFormatter(regionIso.uppercase())
+            var formatted = ""
+            rawDigits.forEach { digit ->
+                formatted = formatter.inputDigit(digit)
+            }
+            formatted
         }
-        return formatted
     }
 
     override fun exampleNumber(regionIso: String): String? {
