@@ -143,6 +143,13 @@ tasks
         dependsOn(syncComposeResources)
     }
 
+tasks
+    .matching { task ->
+        task.name.startsWith("lint") && task.name.contains("Analyze")
+    }.configureEach {
+        dependsOn(syncComposeResources)
+    }
+
 dependencies {
     implementation(project(":app"))
     implementation(libs.androidx.activity.compose)
