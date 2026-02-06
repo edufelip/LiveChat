@@ -53,10 +53,10 @@ jobs:
 
       - name: Write google-services.json for prod flavor
         env:
-          GOOGLE_SERVICES_JSON_SECRET: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+          GOOGLE_SERVICES_JSON_SECRET: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 || secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}
         run: |
           if [ -z "$GOOGLE_SERVICES_JSON_SECRET" ]; then
-            echo "ANDROID_GOOGLE_SERVICES_JSON_BASE64 is not set" >&2
+            echo "Neither ANDROID_GOOGLE_SERVICES_JSON_BASE64 nor GOOGLE_SERVICES_JSON_BASE64_PROD is set" >&2
             exit 1
           fi
 
