@@ -66,8 +66,8 @@ val presentationModule: Module =
         factory {
             AppearanceSettingsPresenter(
                 observeSettings = get(),
-                updateThemeMode = get(),
-                updateTextScale = get(),
+                updateThemeModeUseCase = get(),
+                updateTextScaleUseCase = get(),
                 scope = MainScope(),
             )
         }

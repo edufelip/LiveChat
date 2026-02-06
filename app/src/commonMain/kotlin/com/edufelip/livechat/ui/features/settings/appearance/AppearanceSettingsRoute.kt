@@ -23,7 +23,6 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.state.collectState
 import com.edufelip.livechat.ui.state.rememberAppearanceSettingsPresenter
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @Composable
 fun AppearanceSettingsRoute(
@@ -119,21 +118,6 @@ fun AppearanceSettingsRoute(
         },
     )
 }
-
-private fun scaleFromSlider(value: Float): Float {
-    val clamped = value.coerceIn(0f, 100f)
-    val range = AppearanceSettings.MAX_TEXT_SCALE - AppearanceSettings.MIN_TEXT_SCALE
-    return AppearanceSettings.MIN_TEXT_SCALE + (range * (clamped / 100f))
-}
-
-private fun sliderFromScale(scale: Float): Float {
-    val clamped = scale.coerceIn(AppearanceSettings.MIN_TEXT_SCALE, AppearanceSettings.MAX_TEXT_SCALE)
-    val range = AppearanceSettings.MAX_TEXT_SCALE - AppearanceSettings.MIN_TEXT_SCALE
-    if (range == 0f) return 50f
-    return ((clamped - AppearanceSettings.MIN_TEXT_SCALE) / range) * 100f
-}
-
-private fun Float.roundToTwoDecimals(): Float = (this * 100f).roundToInt() / 100f
 
 private fun approximatelyEqual(
     a: Float,

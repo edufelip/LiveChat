@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.edufelip.livechat.ui.features.settings.appearance.clampTextScale
 
 val LiveChatTypography =
     Typography(
@@ -27,7 +28,7 @@ val LiveChatTypography =
     )
 
 fun Typography.scaled(scale: Float): Typography {
-    val clamped = scale.coerceIn(0.9f, 1.2f)
+    val clamped = clampTextScale(scale)
     return Typography(
         displayLarge = displayLarge.scale(clamped),
         displayMedium = displayMedium.scale(clamped),

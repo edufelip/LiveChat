@@ -8,6 +8,7 @@ import com.edufelip.livechat.domain.useCases.UpdateTextScaleUseCase
 import com.edufelip.livechat.domain.useCases.UpdateThemeModeUseCase
 import com.edufelip.livechat.domain.utils.CStateFlow
 import com.edufelip.livechat.domain.utils.asCStateFlow
+import com.edufelip.livechat.ui.features.settings.appearance.clampTextScale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +20,8 @@ import kotlinx.coroutines.launch
 
 class AppearanceSettingsPresenter(
     private val observeSettings: ObserveAppearanceSettingsUseCase,
-    private val updateThemeMode: UpdateThemeModeUseCase,
-    private val updateTextScale: UpdateTextScaleUseCase,
+    private val updateThemeModeUseCase: UpdateThemeModeUseCase,
+    private val updateTextScaleUseCase: UpdateTextScaleUseCase,
     private val scope: CoroutineScope,
 ) {
     private val mutableState = MutableStateFlow(AppearanceSettingsUiState())
@@ -47,15 +48,16 @@ class AppearanceSettingsPresenter(
 
     fun updateThemeMode(mode: ThemeMode) {
         updateSettings(
-            update = { updateThemeMode(mode) },
+            update = { updateThemeModeUseCase(mode) },
             localUpdate = { it.copy(themeMode = mode) },
         )
     }
 
     fun updateTextScale(scale: Float) {
+        val clampedScale = clampTextScale(scale)
         updateSettings(
-            update = { updateTextScale(scale) },
-            localUpdate = { it.copy(textScale = scale) },
+            update = { updateTextScaleUseCase(clampedScale) },
+            localUpdate = { it.copy(textScale = clampedScale) },
         )
     }
 
