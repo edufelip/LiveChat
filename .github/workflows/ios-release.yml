@@ -75,17 +75,14 @@ jobs:
 
           mkdir -p iosApp/iosApp iosApp/config/prod
           TARGET_FILE="iosApp/iosApp/GoogleService-Info.plist"
-          TMP_FILE="$(mktemp)"
-          printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" > "$TMP_FILE"
 
-          if base64 --decode "$TMP_FILE" > "$TARGET_FILE" 2>/dev/null; then
+          if printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" | base64 --decode > "$TARGET_FILE" 2>/dev/null ||
+            printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" | base64 -D > "$TARGET_FILE" 2>/dev/null; then
             echo "GoogleService-Info.plist decoded from base64 secret"
           else
             printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" > "$TARGET_FILE"
             echo "GoogleService-Info.plist written from raw plist secret"
           fi
-
-          rm -f "$TMP_FILE"
 
           if ! plutil -lint "$TARGET_FILE" >/dev/null; then
             echo "GoogleService-Info.plist is not a valid plist" >&2
