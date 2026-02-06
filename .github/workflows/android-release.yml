@@ -26,7 +26,7 @@ jobs:
     permissions:
       contents: read
     env:
-      RELEASE_STORE_FILE: ${{ github.workspace }}/app/release.keystore
+      RELEASE_STORE_FILE: ${{ github.workspace }}/app-android/release.keystore
       RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
@@ -53,12 +53,12 @@ jobs:
 
       - name: Write google-services.json for prod flavor
         run: |
-          mkdir -p app/src/prod
-          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/src/prod/google-services.json
+          mkdir -p app-android/src/prod
+          echo "${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app-android/src/prod/google-services.json
 
       - name: Build release bundle (prod flavor)
         run: |
-          ./gradlew :app:bundleProdRelease \
+          ./gradlew :app-android:bundleProdRelease \
             -PversionCode="$GITHUB_RUN_NUMBER" \
             -PversionName="1.0.$GITHUB_RUN_NUMBER" \
             -Pandroid.injected.signing.store.file="$RELEASE_STORE_FILE" \
@@ -70,14 +70,14 @@ jobs:
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.aab
-          path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          name: app-android-prod-release.aab
+          path: app-android/build/outputs/bundle/prodRelease/*.aab
 
       - name: Upload to Play Console
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.edufelip.livechat
-          releaseFiles: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          releaseFiles: app-android/build/outputs/bundle/prodRelease/*.aab
           track: ${{ env.PLAY_TRACK }}
           status: ${{ env.PLAY_RELEASE_STATUS }}

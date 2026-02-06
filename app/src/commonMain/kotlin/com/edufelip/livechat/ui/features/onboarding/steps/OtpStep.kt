@@ -2,6 +2,7 @@ package com.edufelip.livechat.ui.features.onboarding.steps
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Lock
@@ -34,17 +36,25 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,11 +80,23 @@ internal fun OTPStep(
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
+    val focusManager = LocalFocusManager.current
+    var otpInputBounds by remember { mutableStateOf<Rect?>(null) }
+
     Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            if (otpInputBounds?.contains(down.position) != true) {
+                                focusManager.clearFocus()
+                            }
+                        }
+                    }
+                }.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .testTag(OnboardingTestTags.OTP_STEP)
                 .padding(horizontal = MaterialTheme.spacing.xl)
                 .padding(top = MaterialTheme.spacing.xxxl, bottom = MaterialTheme.spacing.xxl),
@@ -130,7 +152,10 @@ internal fun OTPStep(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .testTag(OnboardingTestTags.OTP_INPUT),
+                            .testTag(OnboardingTestTags.OTP_INPUT)
+                            .onGloballyPositioned { coordinates ->
+                                otpInputBounds = coordinates.boundsInRoot()
+                            },
                 )
                 if (errorMessage != null) {
                     Text(
@@ -201,6 +226,7 @@ private fun OtpCodeField(
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val focusManager = LocalFocusManager.current
     BasicTextField(
         value = value,
         onValueChange = { input ->
@@ -214,7 +240,15 @@ private fun OtpCodeField(
                 .semantics { contentDescription = label }
                 .clickable { focusRequester.requestFocus() },
         interactionSource = interactionSource,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        keyboardOptions =
+            KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Done,
+            ),
+        keyboardActions =
+            KeyboardActions(
+                onDone = { focusManager.clearFocus() },
+            ),
         singleLine = true,
         textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.Transparent),
         cursorBrush = SolidColor(Color.Transparent),

@@ -21,7 +21,7 @@ jobs:
     permissions:
       contents: read
     env:
-      RELEASE_STORE_FILE: ${{ github.workspace }}/app/release.keystore
+      RELEASE_STORE_FILE: ${{ github.workspace }}/app-android/release.keystore
       RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
       RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_RELEASE_KEY_ALIAS }}
       RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
@@ -78,12 +78,12 @@ jobs:
 
       - name: Write google-services.json (prod)
         run: |
-          mkdir -p app/src/prod
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}" | base64 --decode > app/src/prod/google-services.json
+          mkdir -p app-android/src/prod
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64_PROD }}" | base64 --decode > app-android/src/prod/google-services.json
 
       - name: Build prod release bundle
         run: |
-          ./gradlew :app:bundleProdRelease \
+          ./gradlew :app-android:bundleProdRelease \
             -PversionCode="$GITHUB_RUN_NUMBER" \
             -PversionName="$VERSION" \
             -Pandroid.injected.signing.store.file="$RELEASE_STORE_FILE" \
@@ -118,12 +118,12 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID_ANDROID_PROD }}
           serviceCredentialsFile: ${{ runner.temp }}/firebase-service-account.json
           groups: beta-testers
-          file: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          file: app-android/build/outputs/bundle/prodRelease/*.aab
           releaseNotes: ${{ env.RELEASE_NOTES }}
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-prod-release.aab
-          path: app/build/outputs/bundle/prodRelease/app-prod-release.aab
+          name: app-android-prod-release.aab
+          path: app-android/build/outputs/bundle/prodRelease/*.aab
           retention-days: 30
