@@ -66,10 +66,37 @@ jobs:
 
       - name: Write GoogleService-Info.plist for prod flavor
         env:
-          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+          IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 || secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD }}
         run: |
-          mkdir -p iosApp/config/prod
-          echo "$IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/config/prod/GoogleService-Info.plist
+          if [ -z "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" ]; then
+            echo "Neither IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 nor IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64_PROD is set" >&2
+            exit 1
+          fi
+
+          mkdir -p iosApp/iosApp iosApp/config/prod
+          TARGET_FILE="iosApp/iosApp/GoogleService-Info.plist"
+          TMP_FILE="$(mktemp)"
+          printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" > "$TMP_FILE"
+
+          if base64 --decode "$TMP_FILE" > "$TARGET_FILE" 2>/dev/null; then
+            echo "GoogleService-Info.plist decoded from base64 secret"
+          else
+            printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST_SECRET" > "$TARGET_FILE"
+            echo "GoogleService-Info.plist written from raw plist secret"
+          fi
+
+          rm -f "$TMP_FILE"
+
+          if ! plutil -lint "$TARGET_FILE" >/dev/null; then
+            echo "GoogleService-Info.plist is not a valid plist" >&2
+            exit 1
+          fi
+
+          /usr/libexec/PlistBuddy -c 'Print:GOOGLE_APP_ID' "$TARGET_FILE" >/dev/null
+          /usr/libexec/PlistBuddy -c 'Print:PROJECT_ID' "$TARGET_FILE" >/dev/null
+          /usr/libexec/PlistBuddy -c 'Print:BUNDLE_ID' "$TARGET_FILE" >/dev/null
+
+          cp "$TARGET_FILE" iosApp/config/prod/GoogleService-Info.plist
 
       - name: Set up keychain and certificates
         env:
