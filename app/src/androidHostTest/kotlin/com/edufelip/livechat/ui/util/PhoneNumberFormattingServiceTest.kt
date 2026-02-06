@@ -21,6 +21,12 @@ class PhoneNumberFormattingServiceTest {
     }
 
     @Test
+    fun formatAsYouTypeBrazilWrapsAreaCodeWithParentheses() {
+        val formatted = formatter.formatAsYouType("21985670564", "BR")
+        assertEquals("(21) 98567-0564", formatted)
+    }
+
+    @Test
     fun exampleNumberHasDigits() {
         val example = formatter.exampleNumber("US")
         assertNotNull(example)
