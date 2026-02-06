@@ -9,7 +9,10 @@ private val phoneNumberUtil: PhoneNumberUtil by lazy { PhoneNumberUtil.getInstan
 actual fun phoneNumberFormattingService(): PhoneNumberFormattingService = AndroidPhoneNumberFormattingService()
 
 private class AndroidPhoneNumberFormattingService : PhoneNumberFormattingService {
-    override fun formatAsYouType(rawDigits: String, regionIso: String): String {
+    override fun formatAsYouType(
+        rawDigits: String,
+        regionIso: String,
+    ): String {
         if (rawDigits.isBlank()) return ""
         val formatter = phoneNumberUtil.getAsYouTypeFormatter(regionIso.uppercase())
         var formatted = ""

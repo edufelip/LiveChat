@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.edufelip.livechat.domain.auth.phone.model.PhoneAuthError
 import com.edufelip.livechat.domain.auth.phone.model.PhoneNumber
@@ -75,10 +77,9 @@ internal fun OnboardingFlowScreen(
         }
     val phoneFormatter = rememberPhoneNumberFormattingService()
     var phoneDigits by rememberSaveable { mutableStateOf("") }
-    val formattedPhoneNumber =
-        remember(phoneDigits, selectedCountry.isoCode) {
-            phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
-        }
+    var phoneInputValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(""))
+    }
     val phonePlaceholder =
         remember(selectedCountry.isoCode) {
             phoneFormatter.exampleNumber(selectedCountry.isoCode)
@@ -98,8 +99,14 @@ internal fun OnboardingFlowScreen(
             showCountryPicker = false
         }
     val onPhoneChangedAction =
-        rememberStableAction<String> { input ->
-            phoneDigits = phoneFormatter.normalizeDigits(input).take(20)
+        rememberStableAction<TextFieldValue> { input ->
+            phoneDigits = phoneFormatter.normalizeDigits(input.text).take(20)
+            val formatted = phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+            phoneInputValue =
+                TextFieldValue(
+                    text = formatted,
+                    selection = TextRange(formatted.length),
+                )
             phoneInputError = null
             phoneAuthPresenter.dismissError()
         }
@@ -148,6 +155,17 @@ internal fun OnboardingFlowScreen(
 
     LaunchedEffect(phoneAuthState.session?.verificationId) {
         otp = ""
+    }
+    LaunchedEffect(phoneDigits, selectedCountry.isoCode) {
+        val formatted = phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+        val endSelection = TextRange(formatted.length)
+        if (phoneInputValue.text != formatted || phoneInputValue.selection != endSelection) {
+            phoneInputValue =
+                TextFieldValue(
+                    text = formatted,
+                    selection = endSelection,
+                )
+        }
     }
 
     val currentStep =
@@ -217,7 +235,7 @@ internal fun OnboardingFlowScreen(
                     PhoneStep(
                         modifier = contentModifier,
                         selectedCountry = selectedCountry,
-                        phoneNumber = formattedPhoneNumber,
+                        phoneNumber = phoneInputValue,
                         phoneError = phoneErrorMessage,
                         isLoading = phoneAuthState.isRequesting,
                         phonePlaceholder = phonePlaceholder,
@@ -275,10 +293,9 @@ internal fun UiTestOnboardingFlow(
         }
     val phoneFormatter = rememberPhoneNumberFormattingService()
     var phoneDigits by rememberSaveable { mutableStateOf("") }
-    val formattedPhoneNumber =
-        remember(phoneDigits, selectedCountry.isoCode) {
-            phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
-        }
+    var phoneInputValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(""))
+    }
     val phonePlaceholder =
         remember(selectedCountry.isoCode) {
             phoneFormatter.exampleNumber(selectedCountry.isoCode)
@@ -297,8 +314,14 @@ internal fun UiTestOnboardingFlow(
             showCountryPicker = false
         }
     val onPhoneChangedAction =
-        rememberStableAction<String> { input ->
-            phoneDigits = phoneFormatter.normalizeDigits(input).take(20)
+        rememberStableAction<TextFieldValue> { input ->
+            phoneDigits = phoneFormatter.normalizeDigits(input.text).take(20)
+            val formatted = phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+            phoneInputValue =
+                TextFieldValue(
+                    text = formatted,
+                    selection = TextRange(formatted.length),
+                )
             phoneInputError = null
         }
     val onContinueAction =
@@ -332,6 +355,18 @@ internal fun UiTestOnboardingFlow(
                 }
             }
         }
+
+    LaunchedEffect(phoneDigits, selectedCountry.isoCode) {
+        val formatted = phoneFormatter.formatAsYouType(phoneDigits, selectedCountry.isoCode)
+        val endSelection = TextRange(formatted.length)
+        if (phoneInputValue.text != formatted || phoneInputValue.selection != endSelection) {
+            phoneInputValue =
+                TextFieldValue(
+                    text = formatted,
+                    selection = endSelection,
+                )
+        }
+    }
 
     Scaffold(
         modifier =
@@ -386,7 +421,7 @@ internal fun UiTestOnboardingFlow(
                     PhoneStep(
                         modifier = contentModifier,
                         selectedCountry = selectedCountry,
-                        phoneNumber = formattedPhoneNumber,
+                        phoneNumber = phoneInputValue,
                         phoneError = phoneInputError,
                         isLoading = false,
                         phonePlaceholder = phonePlaceholder,

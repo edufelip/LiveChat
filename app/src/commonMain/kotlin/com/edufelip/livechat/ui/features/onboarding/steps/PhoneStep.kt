@@ -58,6 +58,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -73,14 +74,14 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun PhoneStep(
     selectedCountry: CountryOption,
-    phoneNumber: String,
+    phoneNumber: TextFieldValue,
     phoneError: String?,
     isLoading: Boolean,
     phonePlaceholder: String? = null,
     onPickCountry: () -> Unit,
-    onPhoneChanged: (String) -> Unit,
+    onPhoneChanged: (TextFieldValue) -> Unit,
     onContinue: () -> Unit,
-    continueEnabled: Boolean = phoneNumber.isNotBlank() && !isLoading,
+    continueEnabled: Boolean = phoneNumber.text.isNotBlank() && !isLoading,
     modifier: Modifier = Modifier,
 ) {
     val strings = liveChatStrings().onboarding
@@ -338,7 +339,7 @@ private fun PhoneStepPreview() {
                     strings.onboarding.priorityCountryIsos,
                     strings.onboarding.defaultCountryIso,
                 ),
-            phoneNumber = "5550100",
+            phoneNumber = TextFieldValue("5550100"),
             phoneError = null,
             isLoading = false,
             onPickCountry = {},

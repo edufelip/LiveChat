@@ -14,9 +14,9 @@ import com.edufelip.livechat.ui.resources.liveChatStrings
 import com.edufelip.livechat.ui.theme.LiveChatTheme
 import com.edufelip.livechat.ui.util.phoneNumberFormattingService
 import com.edufelip.livechat.ui.util.rememberPhoneNumberFormattingService
+import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.assertNotEquals
 
 class PhoneInputFormattingTest {
     @get:Rule

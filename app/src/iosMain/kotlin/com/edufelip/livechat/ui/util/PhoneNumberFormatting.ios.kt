@@ -1,15 +1,18 @@
 package com.edufelip.livechat.ui.util
 
-import PhoneNumberKit.PhoneNumberKit
 import PhoneNumberKit.PartialFormatter
 import PhoneNumberKit.PhoneNumberFormat
+import PhoneNumberKit.PhoneNumberKit
 
 private val phoneNumberKit = PhoneNumberKit()
 
 actual fun phoneNumberFormattingService(): PhoneNumberFormattingService = IosPhoneNumberFormattingService()
 
 private class IosPhoneNumberFormattingService : PhoneNumberFormattingService {
-    override fun formatAsYouType(rawDigits: String, regionIso: String): String {
+    override fun formatAsYouType(
+        rawDigits: String,
+        regionIso: String,
+    ): String {
         if (rawDigits.isBlank()) return ""
         val formatter = PartialFormatter(phoneNumberKit = phoneNumberKit, defaultRegion = regionIso.uppercase())
         return formatter.formatPartial(rawDigits)

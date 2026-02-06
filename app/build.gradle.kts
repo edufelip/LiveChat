@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
-import org.gradle.api.tasks.Sync
 
 plugins {
     kotlin("multiplatform")
@@ -17,8 +16,8 @@ kotlin {
     cocoapods {
         summary = "LiveChat Compose UI"
         homepage = "https://example.com/livechat"
+        version = "1.0.0"
         ios.deploymentTarget = "17.2"
-        pod("PhoneNumberKit", version = "~> 4.2")
         framework {
             isStatic = true
         }
@@ -95,8 +94,8 @@ kotlin {
                 implementation(libs.firebase.analytics)
                 implementation(libs.firebase.auth)
                 implementation(libs.firebase.messaging)
-                implementation(libs.navigationevent.compose)
                 implementation(libs.libphonenumber)
+                implementation(libs.navigationevent.compose)
             }
         }
         val androidHostTest by getting {
@@ -146,8 +145,6 @@ kotlin {
         }
     }
 }
-
-
 
 compose {
     resources {

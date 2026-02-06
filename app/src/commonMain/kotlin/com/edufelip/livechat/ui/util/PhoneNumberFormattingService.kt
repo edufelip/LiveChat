@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
 interface PhoneNumberFormattingService {
-    fun formatAsYouType(rawDigits: String, regionIso: String): String
+    fun formatAsYouType(
+        rawDigits: String,
+        regionIso: String,
+    ): String
 
     fun exampleNumber(regionIso: String): String?
 
@@ -12,7 +15,6 @@ interface PhoneNumberFormattingService {
 }
 
 @Composable
-fun rememberPhoneNumberFormattingService(): PhoneNumberFormattingService =
-    remember { phoneNumberFormattingService() }
+fun rememberPhoneNumberFormattingService(): PhoneNumberFormattingService = remember { phoneNumberFormattingService() }
 
 expect fun phoneNumberFormattingService(): PhoneNumberFormattingService
